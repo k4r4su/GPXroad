@@ -1,9 +1,9 @@
-# Génération d'un paquet PMTiles régional — GPXlibre (it11, "vector-pmtiles" étape 2)
+# Génération d'un paquet PMTiles régional — GPXroad (it11, "vector-pmtiles" étape 2)
 
 Ce manuel s'exécute sur le NAS (ou toute machine Linux/macOS) du propriétaire — **pas** dans
 l'app. Objectif : produire un fichier `region.pmtiles` unique à partir d'un ou plusieurs
 extraits Geofabrik `.osm.pbf`, compatible avec le style embarqué dans l'app
-(`GPXlibre/Resources/vector-style-liberty.json`, schéma **OpenMapTiles**). Cas test retenu :
+(`GPXroad/Resources/vector-style-liberty.json`, schéma **OpenMapTiles**). Cas test retenu :
 Alsace + Franche-Comté fusionnées en un seul paquet.
 
 Toutes les commandes ci-dessous ont été vérifiées contre la documentation officielle des

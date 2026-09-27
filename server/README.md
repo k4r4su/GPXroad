@@ -1,4 +1,4 @@
-# GPXlibre — serveur de points bloqués partagés
+# GPXroad — serveur de points bloqués partagés
 
 Base communautaire minimale des "chemins bloqués" signalés par les utilisateurs de
 l'app. Auto-hébergeable (NAS, Raspberry Pi, VPS...), aucune dépendance à un service
@@ -66,7 +66,7 @@ la base — un client mobile n'a besoin que des points autour de sa trace charg�
 
 ## Configuration côté app
 
-Dans GPXlibre, Réglages → section "Avancé" (repliée par défaut) : URL du serveur,
+Dans GPXroad, Réglages → section "Avancé" (repliée par défaut) : URL du serveur,
 modifiable pour pointer vers votre instance auto-hébergée. Par défaut, l'app pointe vers
 une constante (`SharedBlockageConstants.defaultServerURLString`) qui n'est volontairement
 pas un service public déployé par ce projet — voir la note dans le code : sans instance

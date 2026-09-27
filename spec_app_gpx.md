@@ -1,6 +1,6 @@
 # Spécification fonctionnelle — App de navigation GPX moto (iOS + CarPlay)
 
-Nom de travail : **GPXlibre**
+Nom de travail : **GPXroad**
 
 ## 1. Contexte et objectif
 

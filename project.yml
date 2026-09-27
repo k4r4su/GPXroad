@@ -1,11 +1,11 @@
-name: GPXlibre
+name: GPXroad
 options:
-  bundleIdPrefix: com.gpxlibre
+  bundleIdPrefix: com.gpxroad
   deploymentTarget:
     iOS: "16.0"
   createIntermediateGroups: true
   # It31 : français = langue de développement (les clés de traduction SONT les textes français) ;
-  # traductions en/de/es/it dans GPXlibre/Resources/<langue>.lproj.
+  # traductions en/de/es/it dans GPXroad/Resources/<langue>.lproj.
   developmentLanguage: fr
 configs:
   Debug: debug
@@ -20,7 +20,7 @@ packages:
     url: https://github.com/maplibre/maplibre-gl-native-distribution
     exactVersion: 6.31.0
 targets:
-  GPXlibre:
+  GPXroad:
     type: application
     platform: iOS
     deploymentTarget: "16.0"
@@ -30,34 +30,34 @@ targets:
       # bundle, et Xcode refuse de builder (4 fichiers différents nommés "CLAUDE.md" entrent
       # en collision sur le même chemin de sortie dans l'app). Si un futur CLAUDE.md est ajouté
       # dans un nouveau sous-dossier listé ici, lui ajouter le même excludes.
-      - path: GPXlibre/App
-      - path: GPXlibre/Config
-      - path: GPXlibre/Models
-      - path: GPXlibre/Services
-      - path: GPXlibre/Views
-      - path: GPXlibre/Ride
+      - path: GPXroad/App
+      - path: GPXroad/Config
+      - path: GPXroad/Models
+      - path: GPXroad/Services
+      - path: GPXroad/Views
+      - path: GPXroad/Ride
         excludes:
           - CLAUDE.md
-      - path: GPXlibre/Map
+      - path: GPXroad/Map
         excludes:
           - CLAUDE.md
-      - path: GPXlibre/Offline
+      - path: GPXroad/Offline
         excludes:
           - CLAUDE.md
-      - path: GPXlibre/Waypoints
-      - path: GPXlibre/Recording
-      - path: GPXlibre/Nav
-      - path: GPXlibre/RoadBook
+      - path: GPXroad/Waypoints
+      - path: GPXroad/Recording
+      - path: GPXroad/Nav
+      - path: GPXroad/RoadBook
         excludes:
           - CLAUDE.md
-      - path: GPXlibre/Rendering
-      - path: GPXlibre/Settings
+      - path: GPXroad/Rendering
+      - path: GPXroad/Settings
         excludes:
           - CLAUDE.md
-      - path: GPXlibre/Onboarding
-      - path: GPXlibre/Tutorial
-      - path: GPXlibre/Sync
-      - path: GPXlibre/Resources
+      - path: GPXroad/Onboarding
+      - path: GPXroad/Tutorial
+      - path: GPXroad/Sync
+      - path: GPXroad/Resources
         buildPhase: resources
     dependencies:
       - package: MapLibre
@@ -65,7 +65,7 @@ targets:
     info:
       path: Generated/Info.plist
       properties:
-        CFBundleDisplayName: GPXlibre
+        CFBundleDisplayName: GPXroad
         CFBundleDevelopmentRegion: fr
         CFBundleLocalizations: [fr, en, de, es, it]
         # Fix "splash-version-still-1.0" (it23bis, retour terrain : "la version affichée sur le
@@ -84,13 +84,13 @@ targets:
           - UIInterfaceOrientationPortrait
           - UIInterfaceOrientationLandscapeLeft
           - UIInterfaceOrientationLandscapeRight
-        NSLocationWhenInUseUsageDescription: "GPXlibre affiche votre position sur la trace et enregistre votre sortie quand vous le demandez, y compris écran verrouillé ou dans une autre app pendant l'enregistrement."
+        NSLocationWhenInUseUsageDescription: "GPXroad affiche votre position sur la trace et enregistre votre sortie quand vous le demandez, y compris écran verrouillé ou dans une autre app pendant l'enregistrement."
         # It30 (fix "recording-survives-tabs-and-background") : enregistrement de la sortie en
         # arrière-plan, seulement pendant un enregistrement démarré par l'utilisateur (indicateur
         # bleu d'iOS). Voir `RideRecorder`/`CoreLocationRecordingSource`.
         UIBackgroundModes:
           - location
-        NSMicrophoneUsageDescription: "GPXlibre utilise le micro pour enregistrer une courte note audio optionnelle sur un point d'intérêt."
+        NSMicrophoneUsageDescription: "GPXroad utilise le micro pour enregistrer une courte note audio optionnelle sur un point d'intérêt."
         ITSAppUsesNonExemptEncryption: false
         LSSupportsOpeningDocumentsInPlace: true
         UISupportsDocumentBrowser: false
@@ -112,6 +112,10 @@ targets:
             LSHandlerRank: Owner
     settings:
       base:
+        # Renommage GPXlibre → GPXroad : Bundle ID VOLONTAIREMENT inchangé pendant la phase dev
+        # (décision du propriétaire) — la même app est mise à jour sur l'iPhone, données et clé
+        # Valhalla (trousseau `com.olivier.gpxlibre.valhalla`) conservées. À changer au passage
+        # TestFlight : nouveau Bundle ID = nouvelle app, conteneur de données vide (voir TODO.md).
         PRODUCT_BUNDLE_IDENTIFIER: com.olivier.gpxlibre
         TARGETED_DEVICE_FAMILY: "1"
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
@@ -127,14 +131,14 @@ targets:
 
   # Tests unitaires (Bloc 5) : encode/decode du payload de synchro des points bloqués
   # partagés — livré même sans instance serveur publique prouvée dans cette session.
-  GPXlibreTests:
+  GPXroadTests:
     type: bundle.unit-test
     platform: iOS
     deploymentTarget: "16.0"
     sources:
-      - path: GPXlibreTests
+      - path: GPXroadTests
     dependencies:
-      - target: GPXlibre
+      - target: GPXroad
     settings:
       base:
         GENERATE_INFOPLIST_FILE: YES

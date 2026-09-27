@@ -1,7 +1,12 @@
-# CLAUDE.md — mémoire de travail GPXlibre
+# CLAUDE.md — mémoire de travail GPXroad
 
 Ce fichier n'est pas une doc utilisateur : c'est un pense-bête pour la prochaine session
 Claude Code sur ce dépôt. Le lire en entier avant de toucher au code.
+
+**Nom** : l'app s'appelle **GPXroad** (ex-GPXlibre, renommée après it31). Le Bundle ID reste
+`com.olivier.gpxlibre` jusqu'à TestFlight (voir TODO.md) : toute commande `simctl`/`devicectl`/
+`defaults` vise donc `com.olivier.gpxlibre`. Le produit s'appelle `GPXroad.app`, le module Swift
+`GPXroad` (`@testable import GPXroad`).
 
 ## Philosophie propriétaire (mot pour mot, ne pas dévier)
 
@@ -19,8 +24,8 @@ avec recalcul a été ajouté malgré le "hors périmètre MVP" d'origine) : `sp
 ## Architecture — où vit quoi
 
 ```
-GPXlibre/
-  App/            AppNavigationState (onglet actif), GPXlibreApp (racine, injecte tous
+GPXroad/
+  App/            AppNavigationState (onglet actif), GPXroadApp (racine, injecte tous
                    les @StateObject en @EnvironmentObject), SplashScreenView (it22bis, spec
                    "splash-screen" : logo + nom + version + barre de progression temporisée,
                    affiché systématiquement au lancement — voir section dédiée ci-dessous)
@@ -277,23 +282,23 @@ GPXlibre/
   Tutorial/       Tutoriel intégré (it31) — TutorialContent (une page par onglet, contenu
                    statique localisé) + TutorialView (Réglages > Tutoriel). Voir "Fin de chaque
                    itération" : à tenir à jour.
-GPXlibreTests/    XCTest, @MainActor, @testable import GPXlibre — voir conventions plus bas
+GPXroadTests/    XCTest, @MainActor, @testable import GPXroad — voir conventions plus bas
 server/           Backend FastAPI+SQLite pour SharedBlockage (Docker, `docker compose up`)
 docs/             Docs livrables pour le propriétaire (pas du pense-bête interne) :
                    tuile-sources.md (sources vectorielles évaluées), generation-tuiles-
                    regionales.md (manuel Planetiler/osmium à exécuter sur le NAS)
 ```
 
-Hors GPXlibre/ : `scripts/l10n_check.py` (it31) — vérification des traductions, voir
+Hors GPXroad/ : `scripts/l10n_check.py` (it31) — vérification des traductions, voir
 "Traductions" plus bas.
 
 `project.yml` (xcodegen) est la source de vérité du projet Xcode. **Après tout ajout ou
 suppression de fichier Swift, lancer `xcodegen generate`** avant de builder — ne jamais
-éditer `GPXlibre.xcodeproj` à la main.
+éditer `GPXroad.xcodeproj` à la main.
 
 ## Moteur de carte
 
-Déplacé dans `GPXlibre/Map/CLAUDE.md` (chargé automatiquement quand une session travaille
+Déplacé dans `GPXroad/Map/CLAUDE.md` (chargé automatiquement quand une session travaille
 sous ce dossier) — 2D-only, fond vectoriel PMTiles, priorité MapSourceResolver, découverte
 `pmtiles://` native.
 
@@ -339,13 +344,13 @@ multi-région, pas d'état parallèle dans `VectorPackagesView`.
 
 ## Vitesse affichée, `isGuidanceStopped`, hors-trace
 
-Déplacé dans `GPXlibre/Ride/CLAUDE.md` (chargé automatiquement quand une session travaille
+Déplacé dans `GPXroad/Ride/CLAUDE.md` (chargé automatiquement quand une session travaille
 sous ce dossier) — vitesse affichée vs utilisée (raw-speed-1hz), `isGuidanceStopped` vs
 `isRecordingPaused` (Pause/Stop défini), seuil hors-trace à hystérésis.
 
 ## Réglages stagés, sheets translucides
 
-Déplacé dans `GPXlibre/Settings/CLAUDE.md` (chargé automatiquement quand une session
+Déplacé dans `GPXroad/Settings/CLAUDE.md` (chargé automatiquement quand une session
 travaille sous ce dossier) — exception "réglages stagés (non live)", fond translucide des
 sheets à aperçu carte live.
 
@@ -363,7 +368,7 @@ chargement — piloté par `LibraryConstants.sortKey`/`dateDisplayEnabled`
 
 ## Compter avant d'énumérer : bbox de tuiles
 
-Déplacé dans `GPXlibre/Offline/CLAUDE.md` (chargé automatiquement quand une session
+Déplacé dans `GPXroad/Offline/CLAUDE.md` (chargé automatiquement quand une session
 travaille sous ce dossier) — piège vécu du crash "region-picker-huge-bbox-crash" (it16) et
 la règle à appliquer partout où une bbox arbitraire pilote une énumération de tuiles.
 
@@ -434,7 +439,7 @@ par défaut depuis it29) fait désormais partie du comportement validé : `Roadb
 Perte de données corrigée : la capture vivait dans `RideSessionManager`, dont le GPS s'arrête
 dès qu'on quitte l'onglet Ride, et rien ne tournait en arrière-plan. Règles désormais :
 - **`RideRecorder`** (Recording/) est le SEUL propriétaire de l'enregistrement. C'est un service
-  applicatif créé par `GPXlibreApp`, jamais lié à une vue : ne JAMAIS remettre de capture dans un
+  applicatif créé par `GPXroadApp`, jamais lié à une vue : ne JAMAIS remettre de capture dans un
   `onAppear`/`onDisappear` ni dans `RideSessionManager` (dont le GPS de guidage s'arrête hors de
   Ride, et c'est voulu).
 - **Démarrage, pause, reprise et fin UNIQUEMENT sur action de l'utilisateur** (bouton au-dessus
@@ -451,14 +456,14 @@ dès qu'on quitte l'onglet Ride, et rien ne tournait en arrière-plan. Règles d
 - L'enregistrement ne dépend plus de la trace suivie : changer de trace ne le remet plus à zéro.
 - Validé sur iPhone réel : 16 min en arrière-plan (puis écran verrouillé), un point toutes les
   ~6 s sans aucun trou ; points intacts après un arrêt forcé de l'app. Méthode sans toucher
-  l'écran : build Debug lancé avec `-GPXlibreDebugStartRecording` (et
-  `-GPXlibreDebugFinishRecording`), app Réglages ouverte par-dessus via `devicectl device process
+  l'écran : build Debug lancé avec `-GPXroadDebugStartRecording` (et
+  `-GPXroadDebugFinishRecording`), app Réglages ouverte par-dessus via `devicectl device process
   launch`, journal relu via `devicectl device copy from` (lecture seule).
 
 ## Traductions (it31) — FR (défaut) / EN / DE / ES / IT
 
 - Langue de développement `fr` : les CLÉS de traduction sont les textes français.
-  Traductions dans `GPXlibre/Resources/<en|de|es|it>.lproj/` (`Localizable.strings`,
+  Traductions dans `GPXroad/Resources/<en|de|es|it>.lproj/` (`Localizable.strings`,
   `Recording.strings` pour "Enregistrer" au sens Record, `InfoPlist.strings`).
 - Langue : Réglages > Langue (`RideSettingsStore.appLanguage`, `AppLanguage`). Automatique = la
   PREMIÈRE langue de l'appareil si supportée, sinon français. Appliquée en direct
@@ -473,18 +478,18 @@ dès qu'on quitte l'onglet Ride, et rien ne tournait en arrière-plan. Règles d
 - Dates : `AppLanguageBundle.locale` + `setLocalizedDateFormatFromTemplate`, jamais `fr_FR` en
   dur. Services externes : `AppLanguageBundle.bcp47` (Valhalla, voix), `currentCode`
   (Nominatim).
-- Tests : langue forcée en français sous XCTest (GPXlibreApp), indépendante de la machine.
-- Vérification visuelle : argument DEBUG `-GPXlibreDebugTab <ride|search|roadBook|library|
+- Tests : langue forcée en français sous XCTest (GPXroadApp), indépendante de la machine.
+- Vérification visuelle : argument DEBUG `-GPXroadDebugTab <ride|search|roadBook|library|
   settings>` + `defaults write com.olivier.gpxlibre settings.appLanguage <code>` sur le
   simulateur (et `AppleLanguages` pour simuler la langue de l'appareil).
 
 ## Écran de démarrage et numéro de version (spec "splash-screen", it22bis)
 
-`SplashScreenView` (`GPXlibre/App/`) : logo (`SplashLogo`, imageset dans `Assets.xcassets`,
+`SplashScreenView` (`GPXroad/App/`) : logo (`SplashLogo`, imageset dans `Assets.xcassets`,
 copie de l'icône app `icon.png` — pas une référence directe à `AppIcon.appiconset`, qui n'est
-pas fiablement chargeable via `Image(_:)`) + nom "GPXlibre" + version + barre de progression
+pas fiablement chargeable via `Image(_:)`) + nom "GPXroad" + version + barre de progression
 temporisée (~1.4 s, purement visuelle — l'app n'a rien à charger de façon asynchrone au
-démarrage). Affiché SYSTÉMATIQUEMENT à chaque lancement (dans `GPXlibreApp.body`, PAS dans
+démarrage). Affiché SYSTÉMATIQUEMENT à chaque lancement (dans `GPXroadApp.body`, PAS dans
 `RootView`), contrairement à `OnboardingView` qui ne s'affiche qu'une fois.
 
 **Convention de version explicite du propriétaire, à respecter à CHAQUE itération tant que l'app
@@ -543,13 +548,13 @@ version.
   — impossible de taper à travers l'UI. Vérification honnête : soit forcer un état via une
   modification de code TEMPORAIRE (annulée juste après, jamais commitée), soit documenter la
   limite plutôt que prétendre avoir vérifié visuellement quelque chose qui ne l'a pas été.
-- Build : `xcodebuild -project GPXlibre.xcodeproj -scheme GPXlibre -destination
+- Build : `xcodebuild -project GPXroad.xcodeproj -scheme GPXroad -destination
   'platform=iOS Simulator,id=<udid>' build` (simulateur) et `-destination
   'generic/platform=iOS' build CODE_SIGNING_ALLOWED=NO` (device, compile-only). Les deux
   doivent être verts avant tout commit.
-- Tests : `xcodebuild test -project GPXlibre.xcodeproj -scheme GPXlibre -destination
-  'platform=iOS Simulator,id=<udid>'`. `GPXlibreTests/` — XCTest, `@MainActor`,
-  `@testable import GPXlibre`. Stores testés avec des seams d'injection (`tracksDirectoryOverride`,
+- Tests : `xcodebuild test -project GPXroad.xcodeproj -scheme GPXroad -destination
+  'platform=iOS Simulator,id=<udid>'`. `GPXroadTests/` — XCTest, `@MainActor`,
+  `@testable import GPXroad`. Stores testés avec des seams d'injection (`tracksDirectoryOverride`,
   `defaults: UserDefaults`) pour ne JAMAIS toucher les vraies données de l'app pendant un
   test — toujours vérifier qu'un nouveau test ne lit/écrit pas `Documents/` ou
   `UserDefaults.standard` réels sans isolation.
@@ -564,7 +569,7 @@ passée. Un fichier CLAUDE.md obsolète est pire qu'utile : il fait perdre du te
 prochaine session à démêler ce qui a changé.
 
 **Mettre à jour le tutoriel intégré** (règle permanente du propriétaire, it31) :
-`GPXlibre/Tutorial/TutorialContent.swift` doit décrire l'app RÉELLE — à relire dès qu'un
+`GPXroad/Tutorial/TutorialContent.swift` doit décrire l'app RÉELLE — à relire dès qu'un
 changement touche l'interface utilisateur, au même titre que CLAUDE.md/TODO.md. Un tutoriel qui
 décrit une fonctionnalité disparue ou modifiée est pire que pas de tutoriel. Tout texte ajouté
 ou modifié y est aussi traduit (voir "Traductions").

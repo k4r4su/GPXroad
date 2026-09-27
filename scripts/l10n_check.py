@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
-"""Vérifie les traductions de GPXlibre (it31) — à lancer en fin d'itération.
+"""Vérifie les traductions de GPXroad (it31) — à lancer en fin d'itération.
 
 1. Compile l'app avec SWIFT_EMIT_LOC_STRINGS=YES (clés extraites par le compilateur : littéraux
    SwiftUI, String(localized:)) dans un dossier temporaire.
-2. Compare avec GPXlibre/Resources/<langue>.lproj/Localizable.strings (en, de, es, it).
+2. Compare avec GPXroad/Resources/<langue>.lproj/Localizable.strings (en, de, es, it).
 3. Affiche les clés du code SANS traduction.
 4. Signale tout `String(localized:)` du code sans `bundle: .appLanguage` : il ne suivrait pas la
    langue choisie dans Réglages (seuls les textes SwiftUI passent par la redirection du bundle).
@@ -23,7 +23,7 @@ def strings_keys(path):
     return keys
 
 def code_keys(derived):
-    subprocess.run(["xcodebuild", "build", "-project", "GPXlibre.xcodeproj", "-scheme", "GPXlibre",
+    subprocess.run(["xcodebuild", "build", "-project", "GPXroad.xcodeproj", "-scheme", "GPXroad",
                     "-destination", "generic/platform=iOS Simulator", "-derivedDataPath", derived,
                     "SWIFT_EMIT_LOC_STRINGS=YES", "-quiet"], cwd=ROOT, check=True,
                    stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
@@ -32,12 +32,12 @@ def code_keys(derived):
         data = json.load(open(f))
         for table, entries in data.get("tables", {}).items():
             for e in entries:
-                keys.setdefault((table, e["key"]), data["source"].split("/GPXlibre/")[-1])
+                keys.setdefault((table, e["key"]), data["source"].split("/GPXroad/")[-1])
     return keys
 
 def calls_without_bundle():
     found = []
-    for f in glob.glob(os.path.join(ROOT, "GPXlibre/**/*.swift"), recursive=True):
+    for f in glob.glob(os.path.join(ROOT, "GPXroad/**/*.swift"), recursive=True):
         for number, line in enumerate(open(f, encoding="utf-8"), 1):
             if "String(localized:" in line and "bundle:" not in line and not line.strip().startswith("//"):
                 found.append(f"{os.path.relpath(f, ROOT)}:{number}")
@@ -51,7 +51,7 @@ def main():
         print(f"String(localized:) sans bundle: .appLanguage — {location}")
         missing += 1
     for lang in LANGS:
-        base = os.path.join(ROOT, "GPXlibre/Resources", f"{lang}.lproj")
+        base = os.path.join(ROOT, "GPXroad/Resources", f"{lang}.lproj")
         tables = {os.path.basename(p)[:-8]: strings_keys(p) for p in glob.glob(os.path.join(base, "*.strings"))}
         for (table, key), source in sorted(keys.items()):
             if key and key not in tables.get(table, set()):

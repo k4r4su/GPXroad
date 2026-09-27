@@ -1,5 +1,20 @@
 # TODO
 
+## Renommage GPXlibre → GPXroad
+
+Fait : projet `GPXroad.xcodeproj`, cible et schéma `GPXroad`/`GPXroadTests`, dossiers `GPXroad/`
+et `GPXroadTests/`, nom affiché sous l'icône, splash, textes de l'app (5 langues), `creator` des
+GPX exportés, docs. Checklist : l'icône s'appelle « GPXroad », splash « GPXroad », traces et
+réglages toujours là (mise à jour en place).
+
+Volontairement NON changé :
+- **Bundle ID `com.olivier.gpxlibre`** (décision : à changer au passage TestFlight). Ce jour-là :
+  nouveau Bundle ID = nouvelle app, conteneur vide sur l'iPhone → exporter les traces avant ;
+  la clé Valhalla (trousseau `com.olivier.gpxlibre.valhalla`) sera à ressaisir.
+- Écran « À propos » : n'existe pas (seul le splash affiche nom et version).
+- Infra : service docker `gpxlibre-blockages`, dossier NAS `~/gpxlibre-tuiles` (renommer casserait
+  un déploiement existant), dépôt GitHub et dossier local `~/Developer/GPXlibre`.
+
 ## Itération 31 — dossiers, proposition d'enregistrement, tutoriel, traductions — v0.0.31
 
 Commits `library-folders`, `ride-start-recording-prompt`, `in-app-tutorial`,
@@ -22,7 +37,7 @@ Commits `library-folders`, `ride-start-recording-prompt`, `in-app-tutorial`,
       de français (hors noms de traces, noms propres OSM, noms de langues).
 - [ ] iPhone réglé successivement en EN / DE / ES / IT / FR puis en suédois, langue de l'app sur
       « Automatique » : suit l'iPhone, et le suédois donne du français. (iOS propose aussi
-      Réglages iOS > GPXlibre > Langue : même effet.)
+      Réglages iOS > GPXroad > Langue : même effet.)
 - [ ] Guidage Valhalla « Aller à » > Itinéraire en anglais : instructions et voix en anglais.
 
 Identifié, NON traité :
@@ -53,7 +68,7 @@ Checklist manuelle (iPhone, trace "wahlbach-moulin-bas-test-gpx", sens inversé)
 - [ ] Pause : la flèche bleue disparaît, le compteur s'arrête ; Reprendre : il repart.
 - [ ] Terminer → Enregistrer : trace dans la Bibliothèque, flèche bleue disparue, le bouton
       redevient "Enregistrer".
-- [ ] Réglages iOS > GPXlibre > Position "Jamais", puis "Enregistrer" : alerte "Localisation
+- [ ] Réglages iOS > GPXroad > Position "Jamais", puis "Enregistrer" : alerte "Localisation
       refusée" avec "Ouvrir Réglages", pas de crash. Remettre "Lorsque l'app est active".
 - [ ] Road Book Assisté GPS, s'écarter de plus de 30 m de la trace : "Hors trace", puis "Trace à
       N m" après 30 s ; revenir dessus : affichage normal.
@@ -361,7 +376,7 @@ Trois retours terrain distincts après livraison d'it23, chacun diagnostiqué av
   paliers qui pointent vers le HAUT. `RoadbookTier` réécrit : un seul glyphe de base tourné d'un
   angle standardisé par palier (30°/65°/105°/180°) — répercuté sur les 3 consommateurs
   (`LateralCapBannerView`, pins carte `RideMapLibreView`, export PDF). Détail complet :
-  `GPXlibre/RoadBook/CLAUDE.md`.
+  `GPXroad/RoadBook/CLAUDE.md`.
 - **`refactor:"roadbook-table-ui"`** — "niveau UI c'est pas ça du tout... copie ce qui se fait
   en affichage roadbook" (référence choisie : roadbook papier de rallye classique). L'ancien
   `List` SwiftUI générique remplacé par `RoadbookTableView` : vraie table dense en colonnes
@@ -816,7 +831,7 @@ propriétaire, hors périmètre de cette itération).
   natif, mosaïque annuelle), déjà documentée comme assumée AVANT l'implémentation, s'est avérée
   rédhibitoire en usage réel, bien plus grossière qu'un satellite commercial. `TileSource.
   satellite`/`MapThemePreset.satellite` et tout le code associé (vignette, footer raster, ancrage
-  hillshade) ont été intégralement supprimés — voir `GPXlibre/Offline/CLAUDE.md` pour
+  hillshade) ont été intégralement supprimés — voir `GPXroad/Offline/CLAUDE.md` pour
   l'historique complet. Ne pas réintroduire cette même source sans un changement de fournisseur
   (résolution) en amont ; si le besoin redevient réel, repartir directement de la piste Maxar/
   Mapbox payante plutôt que retenter une source gratuite basse résolution déjà rejetée à l'usage.
@@ -1264,7 +1279,7 @@ acceptation des conditions) que je ne peux pas faire à ta place.
 
 1. Créer un compte gratuit sur https://developer.tomtom.com/user/register
 2. Créer une clé API ("API Keys" → "Add new key")
-3. Ouvrir `GPXlibre/Nav/TrafficService.swift`, renseigner `apiKey` :
+3. Ouvrir `GPXroad/Nav/TrafficService.swift`, renseigner `apiKey` :
    ```swift
    static let apiKey = "TA_CLE_TOMTOM"
    ```

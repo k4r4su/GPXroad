@@ -1,4 +1,4 @@
-# Sources de tuiles vectorielles — GPXlibre (it11, "vector-pmtiles")
+# Sources de tuiles vectorielles — GPXroad (it11, "vector-pmtiles")
 
 Ce document répertorie les sources vectorielles évaluées pour l'étape 1 (validation du
 style/de l'UX vectorielle avec une source hébergée, sans compte), et pourquoi **OpenFreeMap**
@@ -8,7 +8,7 @@ a été retenu. L'étape 2 (self-host PMTiles régional) est documentée sépar�
 ## Choisi : OpenFreeMap
 
 - **URL du style utilisé** : `https://tiles.openfreemap.org/styles/liberty` (récupéré une
-  fois et embarqué, patché, dans `GPXlibre/Resources/vector-style-liberty.json` — voir
+  fois et embarqué, patché, dans `GPXroad/Resources/vector-style-liberty.json` — voir
   ci-dessous "Pourquoi embarqué plutôt que re-téléchargé").
 - **Source de tuiles réelle** (celle que l'app mute pour basculer hébergé/local) :
   `https://tiles.openfreemap.org/planet`, source `"type": "vector"` identifiée
@@ -20,13 +20,13 @@ a été retenu. L'étape 2 (self-host PMTiles régional) est documentée sépar�
   active, voir `MapEngineConstants.vectorHostedAttributionPlainText`).
 - **Auto-hébergeable** si besoin un jour (le projet publie un script de déploiement complet
   côté serveur) — cohérent avec l'esprit "hors-ligne capable, sans dépendance à vie à un
-  tiers" de l'app, même si l'étape 2 de GPXlibre passe par PMTiles régional plutôt que par un
+  tiers" de l'app, même si l'étape 2 de GPXroad passe par PMTiles régional plutôt que par un
   clone complet d'OpenFreeMap.
 
 ### Pourquoi le style est embarqué plutôt que re-téléchargé à chaque lancement
 
 Le style JSON complet (~110 couches) est récupéré UNE fois pendant le développement, patché
-(voir "Patch moto-trail" ci-dessous), puis committé dans `GPXlibre/Resources/
+(voir "Patch moto-trail" ci-dessous), puis committé dans `GPXroad/Resources/
 vector-style-liberty.json`. Au runtime, seul le champ `sources.openmaptiles.url` est modifié
 (`https://tiles.openfreemap.org/planet` pour l'étape 1, `pmtiles://file://...` pour l'étape
 2) — jamais tout le style. Avantages :
@@ -71,7 +71,7 @@ sans clé annoncée. Pas retenu pour l'étape 1 par manque de vérification dire
 publique exacte du endpoint de tuiles au moment de cette itération — à évaluer via
 `versatiles.org`/leur organisation GitHub si OpenFreeMap devait un jour devenir indisponible.
 Son atout principal : builds de style clair ET sombre déjà fournis, ce qui comblerait la
-limite de scope actuelle de GPXlibre (le fond vectoriel n'a qu'une variante claire pour
+limite de scope actuelle de GPXroad (le fond vectoriel n'a qu'une variante claire pour
 l'instant, voir `RideMapLibreView.updateNightMode`).
 
 ## Ce qui reste vrai quel que soit le choix

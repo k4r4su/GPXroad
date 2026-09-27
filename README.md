@@ -1,8 +1,8 @@
-# GPXlibre
+# GPXroad
 
 > « Le but de l'app c'est d'afficher une trace de façon simple, pouvoir la suivre, la reprendre plus loin si besoin. »
 
-GPXlibre est une application iOS pour suivre une trace GPX en moto, à vélo ou à pied — sur route comme hors-piste. Pas de compte, pas de cloud, pas de fonctionnalités superflues : tu charges une trace, tu la suis, et si tu t'arrêtes en chemin tu la reprends là où tu en étais. Tout fonctionne hors-ligne une fois la carte téléchargée.
+GPXroad est une application iOS pour suivre une trace GPX en moto, à vélo ou à pied — sur route comme hors-piste. Pas de compte, pas de cloud, pas de fonctionnalités superflues : tu charges une trace, tu la suis, et si tu t'arrêtes en chemin tu la reprends là où tu en étais. Tout fonctionne hors-ligne une fois la carte téléchargée.
 
 ## Fonctionnalités principales
 
@@ -61,7 +61,7 @@ GPXlibre est une application iOS pour suivre une trace GPX en moto, à vélo ou 
 
 ## Pourquoi hors-ligne d'abord
 
-Beaucoup de sorties moto ou rando se font là où le réseau mobile ne suit pas. GPXlibre télécharge les cartes à l'avance (autour de la trace, ou sur une zone choisie) pour que rien ne dépende d'une connexion pendant la sortie.
+Beaucoup de sorties moto ou rando se font là où le réseau mobile ne suit pas. GPXroad télécharge les cartes à l'avance (autour de la trace, ou sur une zone choisie) pour que rien ne dépende d'une connexion pendant la sortie.
 
 ## Stack technique
 

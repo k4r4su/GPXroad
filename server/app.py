@@ -1,4 +1,4 @@
-"""GPXlibre — base partagée des points bloqués (Bloc 5).
+"""GPXroad — base partagée des points bloqués (Bloc 5).
 
 Serveur minimal auto-hébergeable (NAS, Raspberry Pi...). Stockage SQLite fichier,
 aucune dépendance externe au réseau. Trust model v1 : les signalements sont acceptés
@@ -88,7 +88,7 @@ class Blockage(BaseModel):
     last_confirmed_at: str
 
 
-app = FastAPI(title="GPXlibre — points bloqués partagés", version="1")
+app = FastAPI(title="GPXroad — points bloqués partagés", version="1")
 
 
 @app.on_event("startup")
