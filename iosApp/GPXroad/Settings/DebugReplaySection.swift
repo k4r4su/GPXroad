@@ -12,9 +12,17 @@ struct DebugReplaySection: View {
     /// Spec "replay-marker-heading-x2" (it17, Bloc 4) — activé par défaut : l'intérêt premier
     /// du replay est justement de voir les virages comme en conduite réelle (cap-en-haut).
     @State private var forceHeadingUp = true
+    /// It32 (pilote Kotlin Multiplatform) : moteur de la géométrie du Road Book, pour comparer le
+    /// module partagé à l'implémentation Swift d'origine sur une vraie trace.
+    @AppStorage(RoadbookGeometryEngine.defaultsKey) private var roadbookEngine = RoadbookGeometryEngine.shared.rawValue
 
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
+            Picker("Moteur géométrie Road Book", selection: $roadbookEngine) {
+                Text("Kotlin partagé").tag(RoadbookGeometryEngine.shared.rawValue)
+                Text("Swift natif").tag(RoadbookGeometryEngine.native.rawValue)
+            }
+            .font(.caption2)
             Text("Mode debug replay (build DEBUG uniquement)")
                 .font(.caption.bold())
             if let track = library.activeTrack {

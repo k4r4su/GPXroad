@@ -1,4 +1,5 @@
 import SwiftUI
+import GPXroadShared
 
 @main
 struct GPXroadApp: App {
@@ -25,6 +26,8 @@ struct GPXroadApp: App {
     @StateObject private var rideRecorder: RideRecorder
 
     init() {
+        // It32 : preuve que Swift consomme le framework Kotlin Multiplatform (`shared/`).
+        print(GreetingKt.greeting())
         MapLibreBootstrap.configure()
         TabBarAppearance.configure()
         let settingsStore = RideSettingsStore()

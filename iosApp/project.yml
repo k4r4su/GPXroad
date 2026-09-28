@@ -62,6 +62,13 @@ targets:
     dependencies:
       - package: MapLibre
         product: MapLibre
+      # It32 : logique partagée Kotlin Multiplatform (framework STATIQUE, rien à embarquer),
+      # construite par la cible agrégée SharedKotlin (voir aggregateTargets) AVANT toute
+      # compilation — pas en pré-build de cette cible : les tests compilaient alors parfois contre
+      # l'ancien framework (course constatée à it32).
+      - target: SharedKotlin
+      - framework: ../shared/build/XCFrameworks/release/GPXroadShared.xcframework
+        embed: false
     info:
       path: Generated/Info.plist
       properties:
@@ -138,9 +145,27 @@ targets:
     sources:
       - path: GPXroadTests
     dependencies:
+      - target: SharedKotlin
       - target: GPXroad
     settings:
       base:
         GENERATE_INFOPLIST_FILE: YES
         CODE_SIGN_STYLE: Automatic
         DEVELOPMENT_TEAM: V9Q4V3W2RZ
+
+# It32 : build du framework Kotlin partagé (shared/), seulement si ses sources ont changé — le
+# cycle iOS quotidien ne lance jamais Gradle (scripts/build_shared.sh).
+aggregateTargets:
+  SharedKotlin:
+    buildScripts:
+      - name: "Framework Kotlin partagé (si shared/ a changé)"
+        script: "\"${SRCROOT}/scripts/build_shared.sh\""
+        basedOnDependencyAnalysis: false
+        # Sorties déclarées : sans elles, Xcode lie le framework lu AVANT le script, donc l'ancien
+        # quand shared/ vient de changer (constaté à it32).
+        outputFiles:
+          - $(SRCROOT)/../shared/build/XCFrameworks/release/GPXroadShared.xcframework/ios-arm64/GPXroadShared.framework/GPXroadShared
+          - $(SRCROOT)/../shared/build/XCFrameworks/release/GPXroadShared.xcframework/ios-arm64-simulator/GPXroadShared.framework/GPXroadShared
+    settings:
+      base:
+        ENABLE_USER_SCRIPT_SANDBOXING: NO

@@ -39,13 +39,65 @@ enum RoadbookAnalyzer {
         hardThresholdDegrees: Double,
         veryHardThresholdDegrees: Double,
         mergeMinDistanceMeters: Double,
-        mapMatchedManeuvers: [MapMatchedManeuver] = []
+        mapMatchedManeuvers: [MapMatchedManeuver] = [],
+        engine: RoadbookGeometryEngine = .current
     ) -> [Checkpoint] {
         let points = track.points
         guard points.count > 2, windowBeforeMeters > 0, windowAfterMeters > 0 else { return [] }
 
         let cumulativeDistances = TrackProjector.cumulativeDistances(for: points)
         let thresholds = TierThresholds(light: lightThresholdDegrees, marked: markedThresholdDegrees, hard: hardThresholdDegrees, veryHard: veryHardThresholdDegrees)
+
+        // It32 (pilote Kotlin Multiplatform) : la partie GÉOMÉTRIQUE vient par défaut du module
+        // partagé `shared/` ; l'implémentation Swift d'origine reste disponible (`.native`) tant que
+        // la parité n'est pas validée en conditions réelles. La fusion Valhalla ci-dessous reste en
+        // Swift et s'applique au résultat, quel que soit le moteur.
+        let geometricEvents: [Checkpoint]
+        switch engine {
+        case .shared:
+            geometricEvents = SharedRoadbookGeometryBridge.geometricEvents(
+                points: points,
+                windowBeforeMeters: windowBeforeMeters,
+                windowAfterMeters: windowAfterMeters,
+                thresholds: thresholds,
+                mergeMinDistanceMeters: mergeMinDistanceMeters
+            )
+        case .native:
+            geometricEvents = nativeGeometricEvents(
+                points: points,
+                cumulativeDistances: cumulativeDistances,
+                windowBeforeMeters: windowBeforeMeters,
+                windowAfterMeters: windowAfterMeters,
+                thresholds: thresholds,
+                mergeMinDistanceMeters: mergeMinDistanceMeters
+            )
+        }
+        guard !mapMatchedManeuvers.isEmpty else { return geometricEvents }
+
+        return mergingMapMatchedDirectionChanges(
+            mapMatchedManeuvers,
+            into: geometricEvents,
+            points: points,
+            cumulativeDistances: cumulativeDistances,
+            thresholds: thresholds,
+            windowBeforeMeters: windowBeforeMeters,
+            windowAfterMeters: windowAfterMeters,
+            mergeMinDistanceMeters: mergeMinDistanceMeters
+        )
+    }
+
+    /// Partie géométrique en Swift natif — implémentation d'origine (it14 → it26), conservée à
+    /// l'identique comme référence de parité du portage Kotlin (it32). Ne pas modifier sans
+    /// reporter le changement dans `shared/.../RoadbookGeometry.kt`.
+    static func nativeGeometricEvents(
+        points: [GPXPoint],
+        cumulativeDistances: [Double],
+        windowBeforeMeters: Double,
+        windowAfterMeters: Double,
+        thresholds: TierThresholds,
+        mergeMinDistanceMeters: Double
+    ) -> [Checkpoint] {
+        let lightThresholdDegrees = thresholds.light
 
         // Fix "roadbook-turn-angle-from-heading-chords" : changement de cap RÉEL en chaque
         // sommet (voir `headingChange`), candidats au-delà du seuil minimal, puis regroupés.
@@ -79,19 +131,7 @@ enum RoadbookAnalyzer {
             raw.append((points[i].coordinate, absAngle, direction, tier, i))
         }
 
-        let geometricEvents = mergeNearby(raw, minDistanceMeters: mergeMinDistanceMeters, cumulativeDistances: cumulativeDistances)
-        guard !mapMatchedManeuvers.isEmpty else { return geometricEvents }
-
-        return mergingMapMatchedDirectionChanges(
-            mapMatchedManeuvers,
-            into: geometricEvents,
-            points: points,
-            cumulativeDistances: cumulativeDistances,
-            thresholds: thresholds,
-            windowBeforeMeters: windowBeforeMeters,
-            windowAfterMeters: windowAfterMeters,
-            mergeMinDistanceMeters: mergeMinDistanceMeters
-        )
+        return mergeNearby(raw, minDistanceMeters: mergeMinDistanceMeters, cumulativeDistances: cumulativeDistances)
     }
 
     /// Fusionne les points de map matching dans la liste géométrique déjà produite, DANS
