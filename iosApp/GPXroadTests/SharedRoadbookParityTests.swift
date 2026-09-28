@@ -16,9 +16,8 @@ import CoreLocation
 /// Écarts réels relevés (et imprimés à chaque run) : ≈ 0,01° d'angle, ≈ 1,5·10⁻⁴ de distance
 /// relative — sans commune mesure avec l'écart entre deux paliers (≥ 20°) ni avec l'arrondi du
 /// Road Book (10 m). Couvre les géométries des tests du Road Book, 400 traces aléatoires
-/// reproductibles (doublons, épingles, demi-tours, densités de 2 à 300 m, 5 latitudes), la trace
-/// d'exemple, 3 jeux de réglages — et, si `TEST_RUNNER_GPXROAD_PARITY_GPX_DIR` pointe un dossier,
-/// chaque .gpx qu'il contient (traces réelles lues sans modification), dans les deux sens.
+/// reproductibles (doublons, épingles, demi-tours, densités de 2 à 300 m, 5 latitudes) et des
+/// traces réelles (voir `testParityOnRealTracks`), chaque fois avec 3 jeux de réglages.
 final class SharedRoadbookParityTests: XCTestCase {
 
     private struct Settings {
@@ -181,25 +180,19 @@ final class SharedRoadbookParityTests: XCTestCase {
         print("Parité Road Book, traces aléatoires : \(comparedEvents) événements identiques, écart d'angle max \(maxAngleGap)°, écart de distance max \(maxDistanceRatio) (relatif)")
     }
 
-    func testParityOnTheBundledSampleTrail() throws {
-        let url = try XCTUnwrap(Bundle.main.url(forResource: "sample-trail", withExtension: "gpx"))
-        let parsed = try GPXParser.parse(data: Data(contentsOf: url))
-        assertParity(parsed.points, "sample-trail")
-    }
-
-    /// Traces réelles (lecture seule, dans les deux sens) : par défaut la bibliothèque de l'app hôte
-    /// (`Documents/Tracks`, les traces importées dans ce simulateur) ; un autre dossier via
-    /// `TEST_RUNNER_GPXROAD_PARITY_GPX_DIR=<dossier> xcodebuild test …`. Bibliothèque vide : la trace
-    /// d'exemple, pour que ce test ne soit jamais sauté.
+    /// Traces GPX réelles, lues sans modification, dans les deux sens : un dossier fourni via
+    /// `TEST_RUNNER_GPXROAD_PARITY_GPX_DIR=<dossier> xcodebuild test …` (validation it32 : 15 traces
+    /// du propriétaire, copiées dans le scratchpad). Sans dossier : la trace d'exemple embarquée —
+    /// jamais les vraies données de l'app (`Documents/`), et jamais de test sauté.
     func testParityOnRealTracks() throws {
-        let directory = ProcessInfo.processInfo.environment["GPXROAD_PARITY_GPX_DIR"].map { URL(fileURLWithPath: $0) }
-            ?? FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0].appendingPathComponent("Tracks")
-        let files = ((try? FileManager.default.contentsOfDirectory(at: directory, includingPropertiesForKeys: nil)) ?? [])
-            .filter { $0.pathExtension.lowercased() == "gpx" }
-            .sorted { $0.lastPathComponent < $1.lastPathComponent }
-        var sources = files.map { ($0.lastPathComponent, $0) }
-        if sources.isEmpty, let sample = Bundle.main.url(forResource: "sample-trail", withExtension: "gpx") {
-            sources = [("sample-trail.gpx", sample)]
+        var sources: [(String, URL)] = []
+        if let path = ProcessInfo.processInfo.environment["GPXROAD_PARITY_GPX_DIR"] {
+            let files = try FileManager.default.contentsOfDirectory(at: URL(fileURLWithPath: path), includingPropertiesForKeys: nil)
+            sources = files.filter { $0.pathExtension.lowercased() == "gpx" }
+                .sorted { $0.lastPathComponent < $1.lastPathComponent }
+                .map { ($0.lastPathComponent, $0) }
+        } else {
+            sources = [("sample-trail.gpx", try XCTUnwrap(Bundle.main.url(forResource: "sample-trail", withExtension: "gpx")))]
         }
         XCTAssertFalse(sources.isEmpty)
         var pointCount = 0
@@ -209,7 +202,7 @@ final class SharedRoadbookParityTests: XCTestCase {
             assertParity(parsed.points, name)
             assertParity(Array(parsed.points.reversed()), "\(name) (sens inverse)")
         }
-        print("Parité Road Book sur \(sources.count) traces réelles (\(pointCount) points, \(directory.path)) : \(comparedEvents) événements identiques, écart d'angle max \(maxAngleGap)°, écart de distance max \(maxDistanceRatio) (relatif)")
+        print("Parité Road Book sur \(sources.count) trace(s) réelle(s) (\(pointCount) points) : \(comparedEvents) événements identiques, écart d'angle max \(maxAngleGap)°, écart de distance max \(maxDistanceRatio) (relatif)")
     }
 
     /// Coût mesuré (informatif, jamais bloquant) : même trace dense, deux moteurs.

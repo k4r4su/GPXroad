@@ -23,9 +23,10 @@ def strings_keys(path):
     return keys
 
 def code_keys(derived):
+    # ARCHS=arm64 : le framework Kotlin partagé (it32) n'a pas de tranche simulateur x86_64.
     subprocess.run(["xcodebuild", "build", "-project", "GPXroad.xcodeproj", "-scheme", "GPXroad",
                     "-destination", "generic/platform=iOS Simulator", "-derivedDataPath", derived,
-                    "SWIFT_EMIT_LOC_STRINGS=YES", "-quiet"], cwd=ROOT, check=True,
+                    "SWIFT_EMIT_LOC_STRINGS=YES", "ARCHS=arm64", "-quiet"], cwd=ROOT, check=True,
                    stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
     keys = {}
     for f in glob.glob(os.path.join(derived, "Build/Intermediates.noindex/**/*.stringsdata"), recursive=True):
