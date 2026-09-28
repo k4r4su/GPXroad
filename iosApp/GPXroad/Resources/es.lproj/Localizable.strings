@@ -625,3 +625,9 @@
 "à gauche" = "a la izquierda";
 "Langue" = "Idioma";
 "Français, English, Deutsch, Español, Italiano. En automatique, une langue d'appareil non prise en charge affiche l'app en français." = "Français, English, Deutsch, Español, Italiano. En automático, si el idioma del dispositivo no es compatible, la app se muestra en francés.";
+
+/* It33 — rejoindre la trace depuis le Road Book */
+"Calcul du chemin pour rejoindre la trace…" = "Calculando el camino para volver a la ruta…";
+"Hors trace : chemin pour rejoindre la trace" = "Fuera de ruta: camino para volver a la ruta";
+"Rejoindre la trace — itinéraire indisponible" = "Volver a la ruta — itinerario no disponible";
+"Retour sur la trace" = "De vuelta en la ruta";

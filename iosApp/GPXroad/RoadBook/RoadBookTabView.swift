@@ -113,12 +113,36 @@ struct RoadBookTabView: View {
     /// position en mode Assisté GPS.
     @State private var offTrack = RoadbookOffTrackState()
 
+    /// Chemin pour rejoindre la trace (it33) — hors trace en mode Assisté GPS.
+    @StateObject private var rejoin = RoadbookRejoinController()
+
     private func updateOffTrack() {
         guard settings.roadbookReadingMode == .gpsAssisted, let track = selectedTrack, let location = locationManager.currentLocation else {
             offTrack.reset()
+            rejoin.reset()
             return
         }
-        offTrack.update(location: location, points: track.points, cumulativeDistances: TrackProjector.cumulativeDistances(for: track.points))
+        let cumulativeDistances = TrackProjector.cumulativeDistances(for: track)
+        offTrack.update(location: location, points: track.points, cumulativeDistances: cumulativeDistances)
+        rejoin.update(
+            location: location,
+            track: track,
+            cumulativeDistances: cumulativeDistances,
+            isOffTrack: offTrack.isOffTrack,
+            onTrackCumulative: liveCumulativeDistanceMeters,
+            settings: SharedRoadbook.settings(
+                windowBeforeMeters: settings.roadbookWindowBeforeMeters,
+                windowAfterMeters: settings.roadbookWindowAfterMeters,
+                thresholds: RoadbookAnalyzer.TierThresholds(
+                    light: settings.roadbookLightThresholdDegrees,
+                    marked: settings.roadbookMarkedThresholdDegrees,
+                    hard: settings.roadbookHardThresholdDegrees,
+                    veryHard: settings.roadbookVeryHardThresholdDegrees
+                ),
+                mergeMinDistanceMeters: settings.turnMergeMinDistanceMeters
+            ),
+            valhalla: currentValhallaConfiguration
+        )
     }
 
     /// Position actuelle projetée sur la trace (distance cumulée) — mode Assisté GPS uniquement.
@@ -126,8 +150,7 @@ struct RoadBookTabView: View {
         guard settings.roadbookReadingMode == .gpsAssisted,
               let track = selectedTrack, let location = locationManager.currentLocation
         else { return nil }
-        let cumulativeDistances = TrackProjector.cumulativeDistances(for: track.points)
-        return TrackProjector.project(location.coordinate, onto: track.points, cumulativeDistances: cumulativeDistances)?.cumulativeDistanceMeters
+        return TrackProjector.project(location.coordinate, onto: track.points, cumulativeDistances: TrackProjector.cumulativeDistances(for: track))?.cumulativeDistanceMeters
     }
 
     private var paletteColors: RoadbookPaletteColors { .resolved(for: resolvedPalette) }
@@ -221,6 +244,7 @@ struct RoadBookTabView: View {
         .onChange(of: locationManager.currentLocation?.coordinate.longitude) { _ in updateOffTrack() }
         .onChange(of: selectedTrack?.traversalKey) { _ in
             offTrack.reset()
+            rejoin.reset()
             updateOffTrack()
         }
         .onChange(of: settings.roadbookReadingMode) { _ in updateOffTrack() }
@@ -436,7 +460,8 @@ struct RoadBookTabView: View {
                 unit: settings.roadbookPDFOptions.distanceUnit,
                 hasLocationFix: locationManager.currentLocation != nil,
                 landmarks: landmarks,
-                offTrack: offTrack
+                offTrack: offTrack,
+                rejoin: offTrack.isOffTrack ? rejoin.display : nil
             )
         } else {
             RoadbookTableView(

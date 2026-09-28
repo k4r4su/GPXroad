@@ -464,7 +464,7 @@ struct RideView: View {
                     if RideConstants.rejoindreGuidanceBannerEnabled,
                        let resume = session.resumeGuidance, resume.isAutomatic,
                        let distance = session.resumeGuidanceLiveDistanceMeters {
-                        RejoinGuidanceBannerView(distanceMeters: distance, relativeBearingDegrees: resumeRelativeBearingDegrees(to: resume.pinCoordinate))
+                        RejoinGuidanceBannerView(distanceMeters: distance, relativeBearingDegrees: resumeRelativeBearingDegrees(to: resume.pinCoordinate), nextStep: session.rejoinNextStep)
                             .transition(.ridePanel)
                     } else if isOffTrackChipVisible, let offTrackInfo = offTrackPanelInfo {
                         OffTrackChipView(

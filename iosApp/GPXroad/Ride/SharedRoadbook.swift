@@ -275,4 +275,42 @@ enum SharedRoadbook {
             cumulativeDistanceMeters: landmark.cumulativeDistanceMeters
         )
     }
+
+    // MARK: - Reprise de la trace (it33)
+
+    /// Point de la trace le plus proche À VOL D'OISEAU parmi ceux DEVANT `fromCumulativeMeters`
+    /// (voir `RejoinPlanner.nearestAhead`).
+    static func rejoinTarget(
+        from position: CLLocationCoordinate2D,
+        points: [GPXPoint],
+        cumulativeDistances: [Double],
+        fromCumulativeMeters: Double
+    ) -> GPXroadShared.RejoinTarget? {
+        GPXroadShared.RejoinPlanner.shared.nearestAhead(
+            position: latLon(position),
+            points: latLons(points),
+            cumulativeDistances: doubleArray(cumulativeDistances),
+            fromCumulativeMeters: fromCumulativeMeters
+        )
+    }
+
+    /// Virages du chemin de reprise, avec les réglages du Road Book.
+    static func rejoinPlan(target: GPXroadShared.RejoinTarget, route: [CLLocationCoordinate2D], settings: GPXroadShared.RoadbookSettings) -> GPXroadShared.RejoinPlan {
+        GPXroadShared.RejoinPlanner.shared.plan(target: target, routePoints: route.map(latLon), settings: settings)
+    }
+
+    static func rejoinProgress(_ plan: GPXroadShared.RejoinPlan, position: CLLocationCoordinate2D) -> GPXroadShared.RejoinProgress {
+        GPXroadShared.RejoinPlanner.shared.progress(plan: plan, position: latLon(position))
+    }
+
+    /// Cible dépassée (derrière soi, en roulant, 10 s d'affilée) — `RejoinPassedDetector`.
+    static func updatePassed(_ detector: GPXroadShared.RejoinPassedDetector, location: CLLocation, target: CLLocationCoordinate2D) -> Bool {
+        detector.update(
+            position: latLon(location.coordinate),
+            courseDegrees: location.course >= 0 ? KotlinDouble(double: location.course) : nil,
+            speedMetersPerSecond: max(location.speed, 0),
+            timestampSeconds: location.timestamp.timeIntervalSinceReferenceDate,
+            target: latLon(target)
+        )
+    }
 }

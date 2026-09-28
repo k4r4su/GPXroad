@@ -35,6 +35,8 @@ final class RoadbookArrivalOrderAndOffTrackTests: XCTestCase {
         switch step {
         case .maneuver(_, let rank, let d): return "virage+\(rank - 1)@\(Int(d.rounded()))"
         case .landmark(let l, let d): return "\(l.info.category.rawValue)@\(Int(d.rounded()))"
+        case .rejoinManeuver(_, let rank, let d): return "reprise+\(rank - 1)@\(Int(d.rounded()))"
+        case .rejoinArrival(let d): return "trace@\(Int(d.rounded()))"
         }
     }
 
@@ -162,5 +164,51 @@ final class RoadbookArrivalOrderAndOffTrackTests: XCTestCase {
         XCTAssertEqual(try XCTUnwrap(state.rejoinDistanceMeters), 200, accuracy: 2)
         XCTAssertFalse(state.showsRejoinDistance(now: Date(timeIntervalSince1970: 1_000_000 + 5)))
         XCTAssertTrue(state.showsRejoinDistance(now: Date(timeIntervalSince1970: 1_000_000 + RideConstants.offTrackChipDistanceDelaySeconds)))
+    }
+
+    // MARK: - It33 : chemin pour rejoindre la trace dans le Road Book
+
+    /// Virage du chemin de reprise à `meters` le long du chemin.
+    private func rejoinTurn(_ meters: Double) -> RoadbookManeuver {
+        let checkpoint = Checkpoint(coordinate: north(meters, lateral: 300), turnAngleDegrees: 90, direction: .left, tier: .hard, sequenceIndex: 1, sourcePointIndex: 0, trackCumulativeDistanceMeters: meters)
+        return RoadbookManeuver(checkpoint: checkpoint, partialDistanceMeters: meters, cumulativeDistanceMeters: meters, headingDegrees: 270)
+    }
+
+    /// Hors trace, chemin calculé : virages du chemin APRÈS celui mis en avant, retour sur la
+    /// trace, puis la suite du Road Book À PARTIR du point de retour — distances depuis la position
+    /// actuelle (reste du chemin + distance le long de la trace depuis le point de retour).
+    func testTheRejoinBlockListsTheRouteTurnsThenTheTrackFromTheRejoinPoint() {
+        let entries = RoadbookEntry.merge(maneuvers: [maneuver(300), maneuver(1500), maneuver(2400)], landmarks: [landmark(.stopSign, 1800)])
+        let rejoin = RoadbookRejoinDisplay(
+            status: .routed,
+            maneuvers: [rejoinTurn(100), rejoinTurn(250), rejoinTurn(400)],
+            nextManeuverIndex: 0,
+            distanceToNextManeuverMeters: 60,
+            remainingToTrackMeters: 560,
+            routeCumulativeDistanceMeters: 40,
+            targetCumulativeDistanceMeters: 1000
+        )
+        let steps = RoadbookFocusedView.rejoinSteps(rejoin: rejoin, entries: entries)
+        XCTAssertEqual(steps.map(describe), [
+            "reprise+1@210", "reprise+2@360", "trace@560",
+            // Le virage à 300 m de la trace est AVANT le point de retour (1000 m) : jamais annoncé.
+            "virage+3@1060", "stopSign@1360", "virage+4@1960",
+        ])
+    }
+
+    /// Plus de virage sur le chemin : la carte principale annonce le retour sur la trace, la liste
+    /// reprend directement avec la trace (pas de ligne « retour » en double).
+    func testWithoutRemainingRouteTurnsTheListStartsWithTheTrack() {
+        let entries = RoadbookEntry.merge(maneuvers: [maneuver(1500)], landmarks: [])
+        let rejoin = RoadbookRejoinDisplay(status: .routed, maneuvers: [rejoinTurn(100)], nextManeuverIndex: nil, distanceToNextManeuverMeters: nil, remainingToTrackMeters: 80, routeCumulativeDistanceMeters: 300, targetCumulativeDistanceMeters: 1000)
+        XCTAssertEqual(RoadbookFocusedView.rejoinSteps(rejoin: rejoin, entries: entries).map(describe), ["virage+1@580"])
+    }
+
+    /// Sans chemin (calcul en cours, réseau absent) : aucune liste inventée.
+    func testNoRejoinListWithoutARoute() {
+        let entries = RoadbookEntry.merge(maneuvers: [maneuver(1500)], landmarks: [])
+        for status in [RoadbookRejoinDisplay.Status.waiting, .computing, .unavailable] {
+            XCTAssertTrue(RoadbookFocusedView.rejoinSteps(rejoin: RoadbookRejoinDisplay(status: status, targetCumulativeDistanceMeters: 1000), entries: entries).isEmpty)
+        }
     }
 }

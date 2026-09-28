@@ -211,4 +211,54 @@ final class AutoRecomputeTests: XCTestCase {
         XCTAssertEqual(session.resumeGuidance?.pinCoordinate.latitude ?? -1, track.points[30].coordinate.latitude, accuracy: 0.0001,
                         "après le délai de réévaluation, la cible doit se réajuster vers le point le plus proche actuel")
     }
+
+    // MARK: - It33 : point de retour DEVANT soi, recalculé s'il est dépassé
+
+    private func moving(_ coordinate: CLLocationCoordinate2D, courseDegrees: Double, at date: Date) -> CLLocation {
+        CLLocation(coordinate: coordinate, altitude: 0, horizontalAccuracy: 5, verticalAccuracy: 5, course: courseDegrees, speed: 12, timestamp: date)
+    }
+
+    /// Déjà roulé jusqu'au point 30 : une sortie de trace qui passe près du point 10 ne renvoie
+    /// JAMAIS en arrière — le point de retour est devant la dernière position sur la trace.
+    func testTheRejoinPointIsNeverBehindTheLastPositionOnTheTrack() {
+        let suite = "AutoRecomputeTests.\(UUID().uuidString)"
+        defer { UserDefaults(suiteName: suite)?.removePersistentDomain(forName: suite) }
+        let session = makeSession(defaultsSuiteName: suite)
+        let track = makeTrack()
+        session.start(track: track)
+        let t0 = Date()
+        let cumulative = TrackProjector.cumulativeDistances(for: track.points)
+
+        session.handle(location: location(track.points[30].coordinate, at: t0))
+        session.handle(location: location(offsetEast(track.points[10].coordinate, meters: 150), at: t0.addingTimeInterval(1)))
+        session.handle(location: location(offsetEast(track.points[10].coordinate, meters: 150), at: t0.addingTimeInterval(3.5)))
+
+        let pin = try? XCTUnwrap(session.resumeGuidance?.pinCumulativeDistanceMeters)
+        XCTAssertGreaterThanOrEqual(pin ?? 0, cumulative[30] - 1, "jamais un point déjà parcouru (le point 10 est plus proche à vol d'oiseau)")
+    }
+
+    /// Point de retour dépassé (derrière soi, en roulant, 10 s d'affilée) : recalculé au-delà.
+    func testAPassedRejoinPointIsRecomputedFurtherAfterTenSeconds() {
+        let suite = "AutoRecomputeTests.\(UUID().uuidString)"
+        defer { UserDefaults(suiteName: suite)?.removePersistentDomain(forName: suite) }
+        let session = makeSession(defaultsSuiteName: suite)
+        let track = makeTrack()
+        session.start(track: track)
+        let t0 = Date()
+
+        session.handle(location: location(track.points[20].coordinate, at: t0))
+        session.handle(location: location(offsetEast(track.points[20].coordinate, meters: 150), at: t0.addingTimeInterval(1)))
+        session.handle(location: location(offsetEast(track.points[20].coordinate, meters: 150), at: t0.addingTimeInterval(3.5)))
+        guard let firstPin = session.resumeGuidance?.pinCumulativeDistanceMeters else { return XCTFail("précondition : reprise automatique déclenchée") }
+
+        // On file vers le nord, parallèlement à la trace : le point de retour passe derrière.
+        var passedAt: Double?
+        for second in 0...14 {
+            let position = offsetEast(track.points[min(24 + second / 2, 40)].coordinate, meters: 150)
+            session.handle(location: moving(position, courseDegrees: 0, at: t0.addingTimeInterval(4 + Double(second))))
+            if passedAt == nil, let pin = session.resumeGuidance?.pinCumulativeDistanceMeters, pin > firstPin { passedAt = Double(second) }
+        }
+        XCTAssertNotNil(passedAt, "cible dépassée : nouveau point de retour, plus loin sur la trace")
+        XCTAssertGreaterThanOrEqual(passedAt ?? 0, 9, "pas avant ~10 s derrière soi")
+    }
 }

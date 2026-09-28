@@ -34,6 +34,10 @@ struct RoadbookFocusedView: View {
     /// Hors trace (it30) : la carte principale le dit à la place du prochain élément, la liste
     /// des éléments suivants reste affichée ; retour automatique à la normale sur la trace.
     var offTrack = RoadbookOffTrackState()
+    /// Hors trace (it33) : chemin pour rejoindre la trace — ses virages prennent la carte principale
+    /// et la tête de la liste (badge « Hors trace » toujours visible), puis la suite du Road Book à
+    /// partir du point de retour. `nil` sur la trace.
+    var rejoin: RoadbookRejoinDisplay?
 
     /// `.compact` = paysage sur iPhone (TARGETED_DEVICE_FAMILY "1", pas d'iPad à gérer) — signal
     /// natif SwiftUI, se met à jour automatiquement à la rotation, jamais besoin d'observer
@@ -44,19 +48,55 @@ struct RoadbookFocusedView: View {
     enum UpcomingStep: Identifiable, Equatable {
         case maneuver(RoadbookManeuver, rank: Int, distanceFromNowMeters: Double)
         case landmark(RoadbookLandmarkCheckpoint, distanceFromNowMeters: Double)
+        /// Virage du chemin de reprise (it33) — identifiant distinct de ceux de la trace.
+        case rejoinManeuver(RoadbookManeuver, rank: Int, distanceFromNowMeters: Double)
+        /// Fin du chemin de reprise : retour sur la trace.
+        case rejoinArrival(distanceFromNowMeters: Double)
 
         var id: String {
             switch self {
             case .maneuver(let maneuver, _, _): return "maneuver-\(maneuver.id.uuidString)"
             case .landmark(let landmark, _): return landmark.id
+            case .rejoinManeuver(let maneuver, _, _): return "rejoin-\(maneuver.id.uuidString)"
+            case .rejoinArrival: return "rejoin-arrival"
             }
         }
 
         var distanceFromNowMeters: Double {
             switch self {
-            case .maneuver(_, _, let distance), .landmark(_, let distance): return distance
+            case .maneuver(_, _, let distance), .landmark(_, let distance), .rejoinManeuver(_, _, let distance), .rejoinArrival(let distance): return distance
             }
         }
+    }
+
+    /// Hors trace avec un chemin de reprise (it33) : les virages du chemin après celui mis en avant,
+    /// le retour sur la trace, puis les éléments du Road Book situés APRÈS le point de retour —
+    /// distance = reste du chemin + distance le long de la trace depuis le point de retour.
+    static func rejoinSteps(rejoin: RoadbookRejoinDisplay, entries: [RoadbookEntry]) -> [UpcomingStep] {
+        guard rejoin.status == .routed, let remaining = rejoin.remainingToTrackMeters, let target = rejoin.targetCumulativeDistanceMeters else { return [] }
+        var steps: [UpcomingStep] = []
+        var rank = 1
+        let firstFollowing = (rejoin.nextManeuverIndex ?? rejoin.maneuvers.count) + 1
+        if firstFollowing < rejoin.maneuvers.count {
+            for maneuver in rejoin.maneuvers[firstFollowing...] {
+                rank += 1
+                steps.append(.rejoinManeuver(maneuver, rank: rank, distanceFromNowMeters: max(maneuver.cumulativeDistanceMeters - rejoin.routeCumulativeDistanceMeters, 0)))
+            }
+        }
+        if rejoin.nextManeuverIndex != nil {
+            steps.append(.rejoinArrival(distanceFromNowMeters: remaining))
+        }
+        for entry in entries where entry.cumulativeDistanceMeters > target {
+            let distance = remaining + entry.cumulativeDistanceMeters - target
+            switch entry {
+            case .maneuver(let maneuver, _):
+                rank += 1
+                steps.append(.maneuver(maneuver, rank: rank, distanceFromNowMeters: distance))
+            case .landmark(let landmark):
+                steps.append(.landmark(landmark, distanceFromNowMeters: distance))
+            }
+        }
+        return steps
     }
 
     /// TOUS les éléments après le prochain, dans l'ordre de la trace (donc de distance croissante
@@ -81,7 +121,10 @@ struct RoadbookFocusedView: View {
     }
 
     private var upcoming: [UpcomingStep] {
-        Self.upcomingSteps(entries: entries, currentEntryIndex: currentEntryIndex, distanceRemainingMeters: distanceRemainingMeters, currentCumulativeDistanceMeters: currentCumulativeDistanceMeters)
+        if offTrack.isOffTrack, let rejoin, rejoin.status == .routed {
+            return Self.rejoinSteps(rejoin: rejoin, entries: entries)
+        }
+        return Self.upcomingSteps(entries: entries, currentEntryIndex: currentEntryIndex, distanceRemainingMeters: distanceRemainingMeters, currentCumulativeDistanceMeters: currentCumulativeDistanceMeters)
     }
 
     var body: some View {
@@ -107,6 +150,11 @@ struct RoadbookFocusedView: View {
                                     )
                                 case .landmark(let landmark, let distance):
                                     RoadbookUpcomingLandmarkRow(landmark: landmark, distanceFromNowMeters: distance, unit: unit)
+                                case .rejoinManeuver(let maneuver, let rank, let distance):
+                                    RoadbookUpcomingRow(maneuver: maneuver, distanceFromNowMeters: distance, unit: unit, rank: rank, landmark: nil)
+                                        .background(Color.orange.opacity(0.08))
+                                case .rejoinArrival(let distance):
+                                    RoadbookRejoinArrivalRow(distanceFromNowMeters: distance, unit: unit)
                                 }
                                 Divider().padding(.leading, 16)
                             }
@@ -120,7 +168,7 @@ struct RoadbookFocusedView: View {
     @ViewBuilder
     private var heroContent: some View {
         if offTrack.isOffTrack {
-            RoadbookOffTrackCard(offTrack: offTrack, unit: unit, isLandscape: isLandscape)
+            rejoinHero
         } else if let currentEntryIndex, let distanceRemainingMeters, entries.indices.contains(currentEntryIndex) {
             switch entries[currentEntryIndex] {
             case .maneuver(let current, _):
@@ -136,6 +184,33 @@ struct RoadbookFocusedView: View {
             RoadbookFocusStatusView(systemImage: "location.slash", message: String(localized: "En attente d'une position GPS…", bundle: .appLanguage))
         } else {
             RoadbookFocusStatusView(systemImage: "checkered.flag", message: String(localized: "Toutes les manœuvres de cette trace ont été passées.", bundle: .appLanguage))
+        }
+    }
+
+    /// Hors trace : prochain virage du chemin de reprise (ou le retour sur la trace), badge
+    /// « Hors trace » par-dessus ; sans chemin (en attente, calcul, réseau), la carte hors trace.
+    @ViewBuilder
+    private var rejoinHero: some View {
+        if let rejoin, rejoin.status == .routed, let remaining = rejoin.remainingToTrackMeters {
+            Group {
+                if let index = rejoin.nextManeuverIndex, rejoin.maneuvers.indices.contains(index), let distance = rejoin.distanceToNextManeuverMeters {
+                    if isLandscape {
+                        RoadbookBigManeuverCardLandscape(maneuver: rejoin.maneuvers[index], distanceRemainingMeters: distance, unit: unit, landmark: nil)
+                    } else {
+                        RoadbookBigManeuverCard(maneuver: rejoin.maneuvers[index], distanceRemainingMeters: distance, unit: unit, landmark: nil)
+                    }
+                } else {
+                    RoadbookRejoinArrivalCard(remainingMeters: remaining, unit: unit, isLandscape: isLandscape)
+                }
+            }
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .background(Color.orange.opacity(0.10))
+            .overlay(alignment: .top) {
+                RoadbookOffTrackBadge()
+                    .padding(.top, 8)
+            }
+        } else {
+            RoadbookOffTrackCard(offTrack: offTrack, unit: unit, isLandscape: isLandscape, rejoinStatus: rejoin?.status)
         }
     }
 
@@ -219,6 +294,8 @@ private struct RoadbookOffTrackCard: View {
     let offTrack: RoadbookOffTrackState
     let unit: DistanceUnit
     let isLandscape: Bool
+    /// État du chemin de reprise (it33) : calcul en cours ou indisponible (réseau).
+    var rejoinStatus: RoadbookRejoinDisplay.Status?
 
     var body: some View {
         TimelineView(.periodic(from: .now, by: 1)) { context in
@@ -234,7 +311,18 @@ private struct RoadbookOffTrackCard: View {
                         Text("Trace à \(unit.displayString(fromMeters: rejoin))")
                             .font(.title3.bold().monospacedDigit())
                             .foregroundStyle(.secondary)
-                    } else {
+                    }
+                    if rejoinStatus == .computing {
+                        Text("Calcul du chemin pour rejoindre la trace…")
+                            .font(.subheadline)
+                            .foregroundStyle(.secondary)
+                            .multilineTextAlignment(.center)
+                    } else if rejoinStatus == .unavailable {
+                        Text("Rejoindre la trace — itinéraire indisponible")
+                            .font(.subheadline.bold())
+                            .foregroundStyle(.secondary)
+                            .multilineTextAlignment(.center)
+                    } else if !offTrack.showsRejoinDistance(now: context.date) || offTrack.rejoinDistanceMeters == nil {
                         Text("Les directions reprennent au retour sur la trace.")
                             .font(.subheadline)
                             .foregroundStyle(.secondary)
@@ -483,6 +571,73 @@ private struct RoadbookUpcomingLandmarkRow: View {
         }
         .buttonStyle(.plain)
         .accessibilityLabel(String(localized: "Repère : \(landmark.info.displayLabel), dans \(unit.displayString(fromMeters: distanceFromNowMeters))", bundle: .appLanguage))
+    }
+}
+
+/// Badge « Hors trace » posé sur le prochain virage du chemin de reprise (it33) : on suit un chemin
+/// hors de la trace, jamais confondu avec la trace elle-même.
+private struct RoadbookOffTrackBadge: View {
+    var body: some View {
+        Label("Hors trace", systemImage: "location.slash.fill")
+            .font(.subheadline.bold())
+            .foregroundStyle(.white)
+            .padding(.horizontal, 12)
+            .padding(.vertical, 6)
+            .background(Color.orange, in: Capsule())
+            .accessibilityLabel(String(localized: "Hors trace : chemin pour rejoindre la trace", bundle: .appLanguage))
+    }
+}
+
+/// Plus aucun virage sur le chemin de reprise : tout droit jusqu'à la trace (it33).
+private struct RoadbookRejoinArrivalCard: View {
+    let remainingMeters: Double
+    let unit: DistanceUnit
+    let isLandscape: Bool
+
+    var body: some View {
+        let layout = isLandscape ? AnyLayout(HStackLayout(spacing: 24)) : AnyLayout(VStackLayout(spacing: 14))
+        layout {
+            Image(systemName: "arrow.triangle.merge")
+                .font(.system(size: isLandscape ? 80 : 110, weight: .bold))
+                .foregroundStyle(Color.accentColor)
+            VStack(spacing: 6) {
+                Text(unit.displayString(fromMeters: remainingMeters))
+                    .font(.system(size: isLandscape ? 60 : 64, weight: .heavy, design: .rounded))
+                    .monospacedDigit()
+                    .minimumScaleFactor(0.5)
+                    .lineLimit(1)
+                Text("Retour sur la trace")
+                    .font(.title3.bold())
+                    .foregroundStyle(.secondary)
+            }
+        }
+        .padding(.horizontal, 24)
+        .accessibilityElement(children: .combine)
+    }
+}
+
+/// Ligne « Retour sur la trace » à la fin des virages du chemin de reprise (it33).
+private struct RoadbookRejoinArrivalRow: View {
+    let distanceFromNowMeters: Double
+    let unit: DistanceUnit
+
+    var body: some View {
+        HStack(spacing: 16) {
+            Color.clear.frame(width: 28, height: 1)
+            Image(systemName: "arrow.triangle.merge")
+                .font(.system(size: 24, weight: .bold))
+                .foregroundStyle(Color.accentColor)
+                .frame(width: 60)
+            Text("Retour sur la trace")
+                .font(.subheadline.bold())
+            Spacer()
+            Text(unit.displayString(fromMeters: distanceFromNowMeters))
+                .font(.headline.monospacedDigit())
+        }
+        .padding(.horizontal, 20)
+        .padding(.vertical, 14)
+        .background(Color.orange.opacity(0.08))
+        .accessibilityElement(children: .combine)
     }
 }
 

@@ -1,6 +1,7 @@
 import Foundation
 import CoreLocation
 import UIKit
+import GPXroadShared
 
 enum RideContext {
     case track, normal, fastRoad
@@ -75,6 +76,17 @@ final class RideSessionManager: NSObject, ObservableObject, CLLocationManagerDel
     /// automatique DÉJÀ actif a été réévaluée. `nil` tant qu'aucun guidage automatique n'est
     /// actif (remis à `nil` par `start()`/`stop()` comme le reste de l'état de session).
     private var lastAutoRecomputeEvaluationDate: Date?
+    /// Reprise de la trace (it33) : le point de retour est le plus proche DEVANT la dernière
+    /// position sur la trace (`lastOnTrackCumulativeMeters`), et au-delà d'une cible déjà dépassée
+    /// (`rejoinFloorCumulativeMeters`) — jamais un point déjà parcouru.
+    private var lastOnTrackCumulativeMeters: Double?
+    private var rejoinFloorCumulativeMeters: Double?
+    private let rejoinPassedDetector = GPXroadShared.RejoinPassedDetector()
+    /// Virages du chemin de reprise automatique, recalculés quand le chemin change.
+    private var rejoinPlan: (key: String, plan: GPXroadShared.RejoinPlan)?
+    /// Prochain virage du chemin de reprise (bannière « Rejoindre la trace », it33) — `nil` hors
+    /// reprise automatique routée.
+    @Published private(set) var rejoinNextStep: RejoinNextStep?
     /// Change à chaque recalcul automatique déclenché : RideView observe ce token pour afficher
     /// un toast bref "Recalcul" (spec explicite "notification silencieuse, pas de bannière
     /// permanente").
@@ -498,6 +510,56 @@ final class RideSessionManager: NSObject, ObservableObject, CLLocationManagerDel
         resumeGuidanceLiveDistanceMeters = nil
         autoRecomputeSinceDate = nil
         lastAutoRecomputeEvaluationDate = nil
+        resetRejoinTargeting()
+        lastOnTrackCumulativeMeters = nil
+    }
+
+    private func resetRejoinTargeting() {
+        rejoinFloorCumulativeMeters = nil
+        rejoinPassedDetector.reset()
+        rejoinPlan = nil
+        rejoinNextStep = nil
+    }
+
+    /// Point de retour (it33) : le plus proche à vol d'oiseau parmi les points DEVANT la dernière
+    /// position sur la trace (ou au-delà d'une cible dépassée) — routé ensuite par les routes.
+    private func rejoinTargetAhead(of location: CLLocation) -> (coordinate: CLLocationCoordinate2D, cumulativeDistanceMeters: Double)? {
+        guard let track, !trackCumulativeDistances.isEmpty else { return nil }
+        let from = max(rejoinFloorCumulativeMeters ?? 0, lastOnTrackCumulativeMeters ?? 0)
+        guard let target = SharedRoadbook.rejoinTarget(from: location.coordinate, points: track.points, cumulativeDistances: trackCumulativeDistances, fromCumulativeMeters: from) else { return nil }
+        return (SharedRoadbook.coordinate(target.coordinate), target.cumulativeDistanceMeters)
+    }
+
+    /// Prochain virage du chemin de reprise automatique, à chaque position (it33).
+    private func updateRejoinNextStep(from location: CLLocation) {
+        guard let guidance = resumeGuidance, guidance.isAutomatic, guidance.isRouted, guidance.routeCoordinates.count > 1 else {
+            rejoinPlan = nil
+            rejoinNextStep = nil
+            return
+        }
+        let key = "\(guidance.pinCoordinate.latitude),\(guidance.pinCoordinate.longitude)|\(guidance.routeCoordinates.count)"
+        let plan: GPXroadShared.RejoinPlan
+        if let cached = rejoinPlan, cached.key == key {
+            plan = cached.plan
+        } else {
+            let target = GPXroadShared.RejoinTarget(pointIndex: 0, coordinate: SharedRoadbook.latLon(guidance.pinCoordinate), cumulativeDistanceMeters: guidance.pinCumulativeDistanceMeters)
+            plan = SharedRoadbook.rejoinPlan(target: target, route: guidance.routeCoordinates, settings: SharedRoadbook.settings(
+                windowBeforeMeters: settings.roadbookWindowBeforeMeters,
+                windowAfterMeters: settings.roadbookWindowAfterMeters,
+                thresholds: RoadbookAnalyzer.TierThresholds(light: settings.roadbookLightThresholdDegrees, marked: settings.roadbookMarkedThresholdDegrees, hard: settings.roadbookHardThresholdDegrees, veryHard: settings.roadbookVeryHardThresholdDegrees),
+                mergeMinDistanceMeters: settings.turnMergeMinDistanceMeters
+            ))
+            rejoinPlan = (key, plan)
+        }
+        let progress = SharedRoadbook.rejoinProgress(plan, position: location.coordinate)
+        let next = progress.nextManeuverIndex.map { Int($0.int32Value) }.flatMap { index in
+            plan.maneuvers.indices.contains(index) ? SharedRoadbook.checkpoint(plan.maneuvers[index].checkpoint) : nil
+        }
+        rejoinNextStep = RejoinNextStep(
+            checkpoint: next,
+            distanceToTurnMeters: next == nil ? nil : progress.distanceToNextManeuverMeters?.doubleValue,
+            remainingToTrackMeters: progress.remainingToTrackMeters
+        )
     }
 
     /// N'agit que si le mode Ride est actif : évite qu'un changement de réglage fait
@@ -692,6 +754,7 @@ final class RideSessionManager: NSObject, ObservableObject, CLLocationManagerDel
             let projection = updateBlockedPathTracking(from: location)
             updateRoadbookProgress(from: location, projection: projection)
             updateAutoRecompute(from: location, projection: projection)
+            updateRejoinNextStep(from: location)
             updateRoadbookBanner(projection: projection)
             updateRideStats(from: location, projection: projection, etaSpeedKmh: etaSpeedKmh)
         }
@@ -794,6 +857,11 @@ final class RideSessionManager: NSObject, ObservableObject, CLLocationManagerDel
 
         // Règle partagée avec le Road Book (it30) : `OffTrackDetector`.
         let isOffTrack = OffTrackDetector.isOffTrack(wasOffTrack: isOffTrackPaused, distanceToTrackMeters: projection.distanceToTrackMeters)
+        if !isOffTrack {
+            lastOnTrackCumulativeMeters = projection.cumulativeDistanceMeters
+            rejoinFloorCumulativeMeters = nil
+            rejoinPassedDetector.reset()
+        }
         if isOffTrackPaused {
             guard !isOffTrack else {
                 updateOffTrackResumeTarget(from: location, projection: projection)
@@ -821,12 +889,7 @@ final class RideSessionManager: NSObject, ObservableObject, CLLocationManagerDel
     /// son ordre chronologique. Affichage informatif uniquement ici (chip hors-trace) — le
     /// routage réel se fait via `updateAutoRecompute`/`requestResume`, mécanisme inchangé.
     private func updateOffTrackResumeTarget(from location: CLLocation, projection: TrackProjector.Projection) {
-        guard let track else { return }
-        guard let nearest = TrackProjector.nearestPointByAirDistance(
-            to: location.coordinate,
-            in: track.points,
-            cumulativeDistances: trackCumulativeDistances
-        ) else { return }
+        guard let nearest = rejoinTargetAhead(of: location) else { return }
         offTrackResumeCoordinate = nearest.coordinate
         offTrackResumeDistanceMeters = RoadbookAnalyzer.distanceMeters(location.coordinate, nearest.coordinate)
     }
@@ -905,7 +968,7 @@ final class RideSessionManager: NSObject, ObservableObject, CLLocationManagerDel
     /// d'oiseau. Le routage lui-même reste inchangé : `requestResume` route vers la cible
     /// choisie via le réseau routier existant (DetourRoutingService), jamais à vol d'oiseau.
     private func updateAutoRecompute(from location: CLLocation, projection: TrackProjector.Projection?) {
-        guard !isGuidanceStopped, let track, !trackCumulativeDistances.isEmpty, let projection else {
+        guard !isGuidanceStopped, track != nil, !trackCumulativeDistances.isEmpty, let projection else {
             autoRecomputeSinceDate = nil
             return
         }
@@ -917,6 +980,17 @@ final class RideSessionManager: NSObject, ObservableObject, CLLocationManagerDel
         // pouvait devenir obsolète si le rider continuait à s'éloigner ou se rapprochait d'un
         // autre point de la trace entre-temps).
         if let existing = resumeGuidance, existing.isAutomatic {
+            // It33 : point de retour DÉPASSÉ (derrière soi, en roulant, 10 s d'affilée) —
+            // recalculé tout de suite, au-delà de l'ancien, sans attendre la réévaluation.
+            if SharedRoadbook.updatePassed(rejoinPassedDetector, location: location, target: existing.pinCoordinate) {
+                rejoinFloorCumulativeMeters = existing.pinCumulativeDistanceMeters + 1
+                if let next = rejoinTargetAhead(of: location) {
+                    requestResume(pinCoordinate: next.coordinate, pinCumulativeDistanceMeters: next.cumulativeDistanceMeters, isAutomatic: true)
+                    autoRecomputeToastToken = UUID()
+                    lastAutoRecomputeEvaluationDate = location.timestamp
+                }
+                return
+            }
             guard projection.distanceToTrackMeters > RideConstants.recomputeDivergenceThresholdMeters else { return }
             guard let lastEvaluation = lastAutoRecomputeEvaluationDate else {
                 lastAutoRecomputeEvaluationDate = location.timestamp
@@ -925,11 +999,7 @@ final class RideSessionManager: NSObject, ObservableObject, CLLocationManagerDel
             guard location.timestamp.timeIntervalSince(lastEvaluation) >= RideConstants.autoRecomputeReevaluationIntervalSeconds else { return }
             lastAutoRecomputeEvaluationDate = location.timestamp
 
-            guard let nearest = TrackProjector.nearestPointByAirDistance(
-                to: location.coordinate,
-                in: track.points,
-                cumulativeDistances: trackCumulativeDistances
-            ) else { return }
+            guard let nearest = rejoinTargetAhead(of: location) else { return }
             guard RoadbookAnalyzer.distanceMeters(nearest.coordinate, existing.pinCoordinate) > RideConstants.autoRecomputeRetargetMinDistanceMeters else { return }
             requestResume(pinCoordinate: nearest.coordinate, pinCumulativeDistanceMeters: nearest.cumulativeDistanceMeters, isAutomatic: true)
             autoRecomputeToastToken = UUID()
@@ -951,11 +1021,7 @@ final class RideSessionManager: NSObject, ObservableObject, CLLocationManagerDel
         guard location.timestamp.timeIntervalSince(since) >= RideConstants.recomputeDivergenceDurationSeconds else { return }
         autoRecomputeSinceDate = nil
 
-        guard let nearest = TrackProjector.nearestPointByAirDistance(
-            to: location.coordinate,
-            in: track.points,
-            cumulativeDistances: trackCumulativeDistances
-        ) else { return }
+        guard let nearest = rejoinTargetAhead(of: location) else { return }
         requestResume(pinCoordinate: nearest.coordinate, pinCumulativeDistanceMeters: nearest.cumulativeDistanceMeters, isAutomatic: true)
         autoRecomputeToastToken = UUID()
         lastAutoRecomputeEvaluationDate = location.timestamp
@@ -1195,6 +1261,8 @@ final class RideSessionManager: NSObject, ObservableObject, CLLocationManagerDel
     func cancelResume() {
         resumeTask?.cancel()
         resumeGuidance = nil
+        rejoinPlan = nil
+        rejoinNextStep = nil
         isRequestingResume = false
         resumeRoutingError = nil
         resumeGuidanceLiveDistanceMeters = nil
@@ -1571,4 +1639,12 @@ final class RideSessionManager: NSObject, ObservableObject, CLLocationManagerDel
         }
         isOverSpeedLimit = smoothedSpeedKmh > Double(limit + settings.speedLimitAlertThresholdKmh)
     }
+}
+
+/// Prochain virage du chemin de reprise automatique (it33), pour la bannière « Rejoindre la trace ».
+struct RejoinNextStep: Equatable {
+    /// `nil` : plus de virage, tout droit jusqu'à la trace.
+    let checkpoint: Checkpoint?
+    let distanceToTurnMeters: Double?
+    let remainingToTrackMeters: Double
 }

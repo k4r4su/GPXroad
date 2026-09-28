@@ -12,6 +12,26 @@ enum TrackProjector {
         let cumulativeDistanceMeters: Double
     }
 
+    /// Distances cumulées d'une trace, MÉMORISÉES par parcours (trace + sens, `traversalKey`) :
+    /// l'écran Road Book les relit à chaque position GPS et à chaque rendu (it33).
+    static func cumulativeDistances(for track: GPXTrack) -> [Double] {
+        let key = "\(track.traversalKey)|\(track.points.count)|\(track.points.last?.latitude ?? 0),\(track.points.last?.longitude ?? 0)"
+        cumulativeLock.lock()
+        if let cached = cumulativeCache, cached.key == key {
+            cumulativeLock.unlock()
+            return cached.distances
+        }
+        cumulativeLock.unlock()
+        let distances = cumulativeDistances(for: track.points)
+        cumulativeLock.lock()
+        cumulativeCache = (key, distances)
+        cumulativeLock.unlock()
+        return distances
+    }
+
+    private static let cumulativeLock = NSLock()
+    private static var cumulativeCache: (key: String, distances: [Double])?
+
     /// Distances cumulées depuis le départ, un élément par point de la trace.
     static func cumulativeDistances(for points: [GPXPoint]) -> [Double] {
         guard !points.isEmpty else { return [] }

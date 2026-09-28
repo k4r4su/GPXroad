@@ -9,9 +9,11 @@ struct RoadbookOffTrackState: Equatable {
     /// Depuis quand, pour afficher la distance de reprise après le même délai que la puce Ride.
     private(set) var sinceDate: Date?
     private(set) var distanceToTrackMeters: Double?
-    /// Distance à vol d'oiseau du point de trace le plus proche (même "point de reprise" que le
-    /// Ride, `TrackProjector.nearestPointByAirDistance`).
+    /// Distance à vol d'oiseau du point de retour : le point de la trace le plus proche DEVANT la
+    /// dernière position sur la trace (it33, même règle que le Ride, `RejoinPlanner.nearestAhead`).
     private(set) var rejoinDistanceMeters: Double?
+    /// Dernière position connue SUR la trace (distance cumulée) : le point de retour est au-delà.
+    private(set) var lastOnTrackCumulativeMeters: Double?
 
     mutating func update(location: CLLocation, points: [GPXPoint], cumulativeDistances: [Double]) {
         guard let projection = TrackProjector.project(location.coordinate, onto: points, cumulativeDistances: cumulativeDistances) else { return }
@@ -22,10 +24,11 @@ struct RoadbookOffTrackState: Equatable {
         guard offTrack else {
             sinceDate = nil
             rejoinDistanceMeters = nil
+            lastOnTrackCumulativeMeters = projection.cumulativeDistanceMeters
             return
         }
-        rejoinDistanceMeters = TrackProjector.nearestPointByAirDistance(to: location.coordinate, in: points, cumulativeDistances: cumulativeDistances)
-            .map { RoadbookAnalyzer.distanceMeters(location.coordinate, $0.coordinate) }
+        rejoinDistanceMeters = SharedRoadbook.rejoinTarget(from: location.coordinate, points: points, cumulativeDistances: cumulativeDistances, fromCumulativeMeters: lastOnTrackCumulativeMeters ?? 0)
+            .map { RoadbookAnalyzer.distanceMeters(location.coordinate, SharedRoadbook.coordinate($0.coordinate)) }
     }
 
     mutating func reset() {
