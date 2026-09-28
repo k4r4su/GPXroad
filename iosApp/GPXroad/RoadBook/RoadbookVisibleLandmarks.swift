@@ -1,5 +1,6 @@
 import Foundation
 import CoreLocation
+import GPXroadShared
 
 /// Un élément OSM visible, candidat repère — indépendant du sens de parcours (mis en cache par
 /// trace), la sélection se fait ensuite pour le parcours affiché (`RoadbookLandmarkSelector`).
@@ -145,16 +146,10 @@ struct RoadbookLandmarkSelection: Equatable {
 }
 
 /// Sélection PURE des repères visibles le long d'une trace DÉJÀ dans son sens de parcours —
-/// filtre de visibilité (rayon par catégorie, sens des panneaux), côté, priorité et densité. Voir
-/// `RoadBookConstants.landmark*` pour tous les réglages.
+/// visibilité (rayon par catégorie, sens des panneaux, axe de la route porteuse), côté, rattachement
+/// au carrefour, priorité et densité, repli « Entrée de <localité> ». Façade du module partagé
+/// (`shared/.../roadbook/LandmarkSelector.kt`, it33, règles du jalon it28 documentées là-bas).
 enum RoadbookLandmarkSelector {
-    private struct Placement {
-        let info: RoadbookLandmarkInfo
-        let coordinate: CLLocationCoordinate2D
-        let cumulative: Double
-        let lateral: Double
-    }
-
     static func select(
         _ data: RoadbookLandmarkData,
         points: [GPXPoint],
@@ -162,167 +157,20 @@ enum RoadbookLandmarkSelector {
         enabledCategories: Set<RoadbookLandmarkCategory> = Set(RoadbookLandmarkCategory.allCases),
         cityEntryFallbackEnabled: Bool = RoadBookConstants.landmarkCityEntryFallbackEnabled
     ) -> RoadbookLandmarkSelection {
-        let cumulative = TrackProjector.cumulativeDistances(for: points)
-        guard points.count > 1, (cumulative.last ?? 0) > 0 else { return .empty }
-
-        var placements = data.candidates
-            .filter { enabledCategories.contains($0.category) }
-            .flatMap { visiblePlacements(of: $0, points: points, cumulative: cumulative) }
-        if cityEntryFallbackEnabled, enabledCategories.contains(.citySign) {
-            placements += RoadbookCityEntryDetector.entries(
-                areas: data.builtUpAreas,
-                places: data.places,
-                mappedSigns: placements.filter { $0.info.category == .citySign }.map { (cumulative: $0.cumulative, name: $0.info.label) },
-                points: points,
-                cumulative: cumulative
-            ).map { Placement(info: RoadbookLandmarkInfo(category: .citySign, label: $0.label), coordinate: $0.coordinate, cumulative: $0.cumulativeDistanceMeters, lateral: 0) }
-        }
-
-        let maneuverPositions = maneuvers.map(\.cumulativeDistanceMeters)
-        var attached: [UUID: Placement] = [:]
-        var standalone: [Placement] = []
-        // Services : voie à part — jamais rattachés à un virage ni écartés par la densité des
-        // repères de repérage (seuls leurs doublons sont fusionnés).
-        let services = placements.filter { $0.info.category.group == .service }
-        for placement in placements where placement.info.category.group != .service {
-            let nearest = maneuvers.indices.min { abs(maneuverPositions[$0] - placement.cumulative) < abs(maneuverPositions[$1] - placement.cumulative) }
-            if let nearest, abs(maneuverPositions[nearest] - placement.cumulative) <= RoadBookConstants.landmarkJunctionRadiusMeters {
-                let id = maneuvers[nearest].id
-                if attached[id].map({ isStronger(placement, than: $0) }) ?? true { attached[id] = placement }
-            } else {
-                standalone.append(placement)
-            }
-        }
-
-        return RoadbookLandmarkSelection(
-            attached: attached.mapValues(\.info),
-            standalone: (densityLimited(standalone, maneuverPositions: maneuverPositions) + deduplicatedServices(services))
-                .sorted { $0.cumulative < $1.cumulative }
-                .map {
-                RoadbookLandmarkCheckpoint(info: $0.info, latitude: $0.coordinate.latitude, longitude: $0.coordinate.longitude, cumulativeDistanceMeters: $0.cumulative)
-            }
+        let selection = GPXroadShared.LandmarkSelector.shared.select(
+            data: SharedRoadbook.landmarkData(data),
+            points: SharedRoadbook.latLons(points),
+            maneuvers: maneuvers.map(SharedRoadbook.sharedManeuver),
+            enabledCategories: Set(enabledCategories.map(SharedRoadbook.landmarkCategory)),
+            cityEntryFallbackEnabled: cityEntryFallbackEnabled
         )
-    }
-
-    // MARK: - Visibilité
-
-    /// Un placement par PASSAGE de la trace à portée du candidat (une boucle revoit la même
-    /// église) — côté et sens calculés sur le cap de la trace à cet endroit.
-    private static func visiblePlacements(of candidate: RoadbookLandmarkCandidate, points: [GPXPoint], cumulative: [Double]) -> [Placement] {
-        guard let radius = RoadBookConstants.landmarkVisibilityRadiusMeters[candidate.category] else { return [] }
-        return TrackProjector.passes(of: candidate.coordinate, onto: points, cumulativeDistances: cumulative, maxDistanceMeters: radius).compactMap { pass in
-            guard let onTrack = TrackProjector.interpolatedCoordinate(atCumulativeDistance: pass.cumulativeDistanceMeters, points: points, cumulativeDistances: cumulative),
-                  let heading = approachHeading(at: pass.cumulativeDistanceMeters, points: points, cumulative: cumulative)
-            else { return nil }
-            if candidate.category.requiresRoadAlignment, let axes = candidate.roadAxes, !axes.isEmpty,
-               !axes.contains(where: { isAligned($0, with: heading) }) { return nil }
-            if candidate.category.isDirectional, let orientation = candidate.orientation, !isSeen(orientation, travelHeading: heading) { return nil }
-            // Côté seulement pour ce qui est posé À CÔTÉ de la route : un élément qui traverse la
-            // chaussée (famille "au sol") ou un nœud de la route elle-même n'en a pas — l'écart
-            // mesuré n'y est que celui entre la trace GPS et l'axe de la route.
-            let isOnRoad = candidate.category.isOnRoad || !(candidate.roadAxes ?? []).isEmpty
-            let side = (isOnRoad || pass.distanceToTrackMeters < RoadBookConstants.landmarkSideMinOffsetMeters)
-                ? nil
-                : side(of: candidate.coordinate, from: onTrack, travelHeading: heading)
-            let showsDistance = candidate.category.group == .service && pass.distanceToTrackMeters >= RoadBookConstants.landmarkServiceShowDistanceFromMeters
-            return Placement(
-                info: RoadbookLandmarkInfo(category: candidate.category, label: candidate.label, side: side, lateralDistanceMeters: showsDistance ? pass.distanceToTrackMeters : nil),
-                coordinate: candidate.coordinate,
-                cumulative: pass.cumulativeDistanceMeters,
-                lateral: pass.distanceToTrackMeters
-            )
+        var attached: [UUID: RoadbookLandmarkInfo] = [:]
+        for item in selection.attachedList {
+            let rank = Int(item.maneuverIndex)
+            guard maneuvers.indices.contains(rank) else { continue }
+            attached[maneuvers[rank].id] = SharedRoadbook.landmarkInfo(item.info)
         }
-    }
-
-    /// Un panneau vu de dos est ignoré.
-    private static func isSeen(_ orientation: RoadbookLandmarkCandidate.Orientation, travelHeading: Double) -> Bool {
-        switch orientation {
-        case .appliesToTravelBearing(let bearing):
-            return abs(RoadbookAnalyzer.signedAngleDifference(from: bearing, to: travelHeading)) < 90
-        case .faces(let facing):
-            return abs(RoadbookAnalyzer.signedAngleDifference(from: facing + 180, to: travelHeading)) <= RoadBookConstants.landmarkSignFacingToleranceDegrees
-        }
-    }
-
-    /// Cap de la trajectoire d'ARRIVÉE sur le repère (corde des `landmarkApproachMeters` derniers
-    /// mètres, robuste aux points dupliqués) — c'est le sens dans lequel le pilote le découvre ; un
-    /// panneau au carrefour s'adresse à la route par laquelle on ARRIVE, pas à celle où l'on tourne.
-    /// Tout début de trace : corde vers l'avant.
-    private static func approachHeading(at c: Double, points: [GPXPoint], cumulative: [Double]) -> Double? {
-        let total = cumulative.last ?? 0
-        let span = RoadBookConstants.landmarkApproachMeters
-        let from = c >= span / 2 ? max(c - span, 0) : c
-        let to = c >= span / 2 ? c : min(c + span, total)
-        guard let a = TrackProjector.interpolatedCoordinate(atCumulativeDistance: from, points: points, cumulativeDistances: cumulative),
-              let b = TrackProjector.interpolatedCoordinate(atCumulativeDistance: to, points: points, cumulativeDistances: cumulative),
-              RoadbookAnalyzer.distanceMeters(a, b) > 1
-        else { return nil }
-        return RoadbookAnalyzer.bearing(from: a, to: b)
-    }
-
-    /// Axe de route aligné sur le cap, dans un sens ou dans l'autre.
-    private static func isAligned(_ axis: Double, with heading: Double) -> Bool {
-        let difference = abs(RoadbookAnalyzer.signedAngleDifference(from: axis, to: heading))
-        let tolerance = RoadBookConstants.landmarkRoadAlignmentToleranceDegrees
-        return difference <= tolerance || difference >= 180 - tolerance
-    }
-
-    private static func side(of target: CLLocationCoordinate2D, from origin: CLLocationCoordinate2D, travelHeading: Double) -> RoadbookLandmarkSide {
-        let toTarget = RoadbookAnalyzer.bearing(from: origin, to: target)
-        return RoadbookAnalyzer.signedAngleDifference(from: travelHeading, to: toTarget) > 0 ? .right : .left
-    }
-
-    // MARK: - Priorité et densité
-
-    private static func rank(_ placement: Placement) -> (Int, Int, Double) {
-        let category = placement.info.category
-        return (
-            RoadBookConstants.landmarkGroupPriority.firstIndex(of: category.group) ?? .max,
-            RoadbookLandmarkCategory.allCases.firstIndex(of: category) ?? .max,
-            placement.lateral
-        )
-    }
-
-    private static func isStronger(_ lhs: Placement, than rhs: Placement) -> Bool {
-        rank(lhs) < rank(rhs)
-    }
-
-    /// Fusion des repères trop proches (le plus prioritaire reste), puis au plus
-    /// `landmarkMaxPerSegment` par tronçon entre deux changements de direction — les entrées
-    /// d'agglomération n'en sont jamais écartées.
-    private static func densityLimited(_ placements: [Placement], maneuverPositions: [Double]) -> [Placement] {
-        var merged: [Placement] = []
-        for placement in placements.sorted(by: { $0.cumulative < $1.cumulative }) {
-            if let last = merged.last, placement.cumulative - last.cumulative < RoadBookConstants.landmarkMergeMeters {
-                if isStronger(placement, than: last) { merged[merged.count - 1] = placement }
-            } else {
-                merged.append(placement)
-            }
-        }
-        // Par tronçon : TOUTES les entrées d'agglomération (repère le plus important, deux villages
-        // peuvent se suivre sur une même ligne droite), puis les autres repères jusqu'à la limite.
-        let segments = Dictionary(grouping: merged) { placement in maneuverPositions.filter { $0 < placement.cumulative }.count }
-        return segments.values
-            .flatMap { segment -> [Placement] in
-                let entries = segment.filter { $0.info.category == .citySign }
-                let others = segment.filter { $0.info.category != .citySign }.sorted(by: isStronger)
-                return entries + others.prefix(max(RoadBookConstants.landmarkMaxPerSegment - entries.count, 0))
-            }
-            .sorted { $0.cumulative < $1.cumulative }
-    }
-
-    /// Doublons d'un même service (nœud + surface, deux bornes d'une même station) : le plus proche
-    /// de la trace reste.
-    private static func deduplicatedServices(_ services: [Placement]) -> [Placement] {
-        var kept: [Placement] = []
-        for placement in services.sorted(by: { $0.cumulative < $1.cumulative }) {
-            if let index = kept.lastIndex(where: { $0.info.category == placement.info.category && placement.cumulative - $0.cumulative < RoadBookConstants.landmarkServiceMergeMeters }) {
-                if placement.lateral < kept[index].lateral { kept[index] = placement }
-            } else {
-                kept.append(placement)
-            }
-        }
-        return kept
+        return RoadbookLandmarkSelection(attached: attached, standalone: selection.standalone.map(SharedRoadbook.landmarkCheckpoint))
     }
 }
 
@@ -348,14 +196,22 @@ enum RoadbookEntry: Identifiable {
 
     /// `index` = rang de la manœuvre dans la liste des manœuvres (numérotation affichée
     /// inchangée : un repère n'est pas une manœuvre numérotée). À distance égale, la manœuvre
-    /// passe avant le repère.
+    /// passe avant le repère. Ordre calculé par le module partagé (`RoadbookEntry.merge`, it33).
     static func merge(maneuvers: [RoadbookManeuver], landmarks: [RoadbookLandmarkCheckpoint]) -> [RoadbookEntry] {
-        let entries = maneuvers.enumerated().map { RoadbookEntry.maneuver($0.element, index: $0.offset) }
-            + landmarks.map { RoadbookEntry.landmark($0) }
-        return entries.enumerated().sorted { lhs, rhs in
-            let l = lhs.element.cumulativeDistanceMeters
-            let r = rhs.element.cumulativeDistanceMeters
-            return l == r ? lhs.offset < rhs.offset : l < r
-        }.map(\.element)
+        let sharedLandmarks = landmarks.map(SharedRoadbook.sharedLandmarkCheckpoint)
+        let landmarkIndex = Dictionary(uniqueKeysWithValues: sharedLandmarks.enumerated().map { (ObjectIdentifier($0.element), $0.offset) })
+        let merged = GPXroadShared.RoadbookEntry.companion.merge(
+            maneuvers: maneuvers.map(SharedRoadbook.sharedManeuver),
+            landmarks: sharedLandmarks
+        )
+        return merged.compactMap { entry -> RoadbookEntry? in
+            if let maneuver = entry as? GPXroadShared.RoadbookEntry.Maneuver {
+                let index = Int(maneuver.index)
+                return maneuvers.indices.contains(index) ? .maneuver(maneuvers[index], index: index) : nil
+            }
+            guard let landmark = entry as? GPXroadShared.RoadbookEntry.Landmark,
+                  let index = landmarkIndex[ObjectIdentifier(landmark.landmark)] else { return nil }
+            return .landmark(landmarks[index])
+        }
     }
 }

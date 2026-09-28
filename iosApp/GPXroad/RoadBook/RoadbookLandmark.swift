@@ -1,4 +1,5 @@
 import Foundation
+import GPXroadShared
 
 /// CATALOGUE des repères du Road Book — seule liste de ce qui peut apparaître (jalon it28,
 /// "repères = uniquement ce que le conducteur voit"). Principe produit non négociable : un repère
@@ -58,8 +59,6 @@ enum RoadbookLandmarkCategory: String, Codable, Equatable, CaseIterable, Identif
         /// Filtres Overpass QL (type d'élément + filtres de tags), sans la clause `around` —
         /// ajoutée par `RoadbookLandmarkOverpassService.query` avec le rayon de la catégorie.
         let overpassSelectors: [String]
-        /// Reconnaissance d'un élément OSM déjà renvoyé (`RoadbookLandmark.classify`).
-        let matches: ([String: String]) -> Bool
     }
 
     var definition: Definition {
@@ -71,106 +70,89 @@ enum RoadbookLandmarkCategory: String, Codable, Equatable, CaseIterable, Identif
                                 "node[\"traffic_sign\"~\"\(values)\",i]", "node[\"traffic_sign:forward\"~\"\(values)\",i]",
                                 "node[\"traffic_sign:backward\"~\"\(values)\",i]", "node[\"highway\"=\"city_limit\"]",
                                 "node[\"city_limit\"~\"^(begin|both)$\"]",
-                              ],
-                              matches: RoadbookLandmark.isCityEntrySign)
+                              ])
         case .stopSign:
-            return Definition(group: .sign, genericLabel: "Stop", emoji: "🛑", overpassSelectors: ["node[\"highway\"=\"stop\"]"], matches: { $0["highway"] == "stop" })
+            return Definition(group: .sign, genericLabel: "Stop", emoji: "🛑", overpassSelectors: ["node[\"highway\"=\"stop\"]"])
         case .giveWaySign:
-            return Definition(group: .sign, genericLabel: "Cédez-le-passage", emoji: "🔻", overpassSelectors: ["node[\"highway\"=\"give_way\"]"], matches: { $0["highway"] == "give_way" })
+            return Definition(group: .sign, genericLabel: "Cédez-le-passage", emoji: "🔻", overpassSelectors: ["node[\"highway\"=\"give_way\"]"])
         case .trafficSignals:
-            return Definition(group: .sign, genericLabel: "Feux tricolores", emoji: "🚦", overpassSelectors: ["node[\"highway\"=\"traffic_signals\"]"], matches: { $0["highway"] == "traffic_signals" })
+            return Definition(group: .sign, genericLabel: "Feux tricolores", emoji: "🚦", overpassSelectors: ["node[\"highway\"=\"traffic_signals\"]"])
         case .levelCrossing:
-            return Definition(group: .sign, genericLabel: "Passage à niveau", emoji: "🚂", overpassSelectors: ["node[\"railway\"=\"level_crossing\"]"], matches: { $0["railway"] == "level_crossing" })
+            return Definition(group: .sign, genericLabel: "Passage à niveau", emoji: "🚂", overpassSelectors: ["node[\"railway\"=\"level_crossing\"]"])
         case .speedBump:
             return Definition(group: .infrastructure, genericLabel: "Ralentisseur", emoji: "〰️",
-                              overpassSelectors: ["node[\"traffic_calming\"~\"^(bump|hump|table|cushion)$\"]"],
-                              matches: { RoadbookLandmark.speedBumps.contains($0["traffic_calming"] ?? "") })
+                              overpassSelectors: ["node[\"traffic_calming\"~\"^(bump|hump|table|cushion)$\"]"])
         case .bridge:
             return Definition(group: .infrastructure, genericLabel: "Pont", emoji: "🌉",
-                              overpassSelectors: ["way[\"highway\"][\"bridge\"~\"^(yes|viaduct)$\"]"],
-                              matches: { ["yes", "viaduct"].contains($0["bridge"] ?? "") && $0["highway"] != nil })
+                              overpassSelectors: ["way[\"highway\"][\"bridge\"~\"^(yes|viaduct)$\"]"])
         case .tunnel:
             return Definition(group: .infrastructure, genericLabel: "Tunnel", emoji: "🚇",
-                              overpassSelectors: ["way[\"highway\"][\"tunnel\"=\"yes\"]"],
-                              matches: { $0["tunnel"] == "yes" && $0["highway"] != nil })
+                              overpassSelectors: ["way[\"highway\"][\"tunnel\"=\"yes\"]"])
         case .church:
             return Definition(group: .building, genericLabel: "Église", emoji: "⛪",
-                              overpassSelectors: ["nwr[\"amenity\"=\"place_of_worship\"]", "nwr[\"building\"~\"^(church|chapel)$\"]", "nwr[\"man_made\"=\"bell_tower\"]"],
-                              matches: { $0["amenity"] == "place_of_worship" || ["church", "chapel"].contains($0["building"] ?? "") || $0["man_made"] == "bell_tower" })
+                              overpassSelectors: ["nwr[\"amenity\"=\"place_of_worship\"]", "nwr[\"building\"~\"^(church|chapel)$\"]", "nwr[\"man_made\"=\"bell_tower\"]"])
         case .townHall:
-            return Definition(group: .building, genericLabel: "Mairie", emoji: "🏛️", overpassSelectors: ["nwr[\"amenity\"=\"townhall\"]"], matches: { $0["amenity"] == "townhall" })
+            return Definition(group: .building, genericLabel: "Mairie", emoji: "🏛️", overpassSelectors: ["nwr[\"amenity\"=\"townhall\"]"])
         case .waterTower:
-            return Definition(group: .building, genericLabel: "Château d'eau", emoji: "💧", overpassSelectors: ["nwr[\"man_made\"=\"water_tower\"]"], matches: { $0["man_made"] == "water_tower" })
+            return Definition(group: .building, genericLabel: "Château d'eau", emoji: "💧", overpassSelectors: ["nwr[\"man_made\"=\"water_tower\"]"])
         case .mill:
             return Definition(group: .building, genericLabel: "Moulin", emoji: "🌬️",
-                              overpassSelectors: ["nwr[\"man_made\"~\"^(windmill|watermill)$\"]"],
-                              matches: { ["windmill", "watermill"].contains($0["man_made"] ?? "") })
+                              overpassSelectors: ["nwr[\"man_made\"~\"^(windmill|watermill)$\"]"])
         case .waysideCross:
             return Definition(group: .building, genericLabel: "Calvaire", emoji: "✝️",
-                              overpassSelectors: ["nwr[\"historic\"~\"^(wayside_cross|wayside_shrine)$\"]"],
-                              matches: { ["wayside_cross", "wayside_shrine"].contains($0["historic"] ?? "") })
+                              overpassSelectors: ["nwr[\"historic\"~\"^(wayside_cross|wayside_shrine)$\"]"])
         case .castle:
             return Definition(group: .building, genericLabel: "Château", emoji: "🏰",
-                              overpassSelectors: ["nwr[\"historic\"=\"castle\"]", "nwr[\"building\"=\"castle\"]"],
-                              matches: { $0["historic"] == "castle" || $0["building"] == "castle" })
+                              overpassSelectors: ["nwr[\"historic\"=\"castle\"]", "nwr[\"building\"=\"castle\"]"])
         case .fuel:
-            return Definition(group: .service, genericLabel: "Station-service", emoji: "⛽", overpassSelectors: ["nwr[\"amenity\"=\"fuel\"]"], matches: { $0["amenity"] == "fuel" })
+            return Definition(group: .service, genericLabel: "Station-service", emoji: "⛽", overpassSelectors: ["nwr[\"amenity\"=\"fuel\"]"])
         case .chargingStation:
-            return Definition(group: .service, genericLabel: "Borne de recharge", emoji: "🔌", overpassSelectors: ["nwr[\"amenity\"=\"charging_station\"]"], matches: { $0["amenity"] == "charging_station" })
+            return Definition(group: .service, genericLabel: "Borne de recharge", emoji: "🔌", overpassSelectors: ["nwr[\"amenity\"=\"charging_station\"]"])
         case .parking:
             return Definition(group: .other, genericLabel: "Parking", emoji: "🅿️",
-                              overpassSelectors: ["nwr[\"amenity\"=\"parking\"]"],
-                              matches: { $0["amenity"] == "parking" && !["private", "no"].contains($0["access"] ?? "") })
+                              overpassSelectors: ["nwr[\"amenity\"=\"parking\"]"])
         case .restArea:
             return Definition(group: .other, genericLabel: "Aire de repos", emoji: "🚻",
-                              overpassSelectors: ["nwr[\"highway\"~\"^(rest_area|services)$\"]"],
-                              matches: { ["rest_area", "services"].contains($0["highway"] ?? "") })
+                              overpassSelectors: ["nwr[\"highway\"~\"^(rest_area|services)$\"]"])
         case .drinkingWater:
             return Definition(group: .other, genericLabel: "Point d'eau", emoji: "🚰",
-                              overpassSelectors: ["node[\"amenity\"~\"^(drinking_water|water_point)$\"]"],
-                              matches: { ["drinking_water", "water_point"].contains($0["amenity"] ?? "") })
+                              overpassSelectors: ["node[\"amenity\"~\"^(drinking_water|water_point)$\"]"])
         case .restaurant:
-            return Definition(group: .other, genericLabel: "Restaurant", emoji: "🍽️", overpassSelectors: ["nwr[\"amenity\"=\"restaurant\"]"], matches: { $0["amenity"] == "restaurant" })
+            return Definition(group: .other, genericLabel: "Restaurant", emoji: "🍽️", overpassSelectors: ["nwr[\"amenity\"=\"restaurant\"]"])
         case .cafe:
-            return Definition(group: .other, genericLabel: "Café", emoji: "☕", overpassSelectors: ["nwr[\"amenity\"=\"cafe\"]"], matches: { $0["amenity"] == "cafe" })
+            return Definition(group: .other, genericLabel: "Café", emoji: "☕", overpassSelectors: ["nwr[\"amenity\"=\"cafe\"]"])
         case .bakery:
-            return Definition(group: .other, genericLabel: "Boulangerie", emoji: "🥖", overpassSelectors: ["nwr[\"shop\"=\"bakery\"]"], matches: { $0["shop"] == "bakery" })
+            return Definition(group: .other, genericLabel: "Boulangerie", emoji: "🥖", overpassSelectors: ["nwr[\"shop\"=\"bakery\"]"])
         case .supermarket:
-            return Definition(group: .other, genericLabel: "Supermarché", emoji: "🛒", overpassSelectors: ["nwr[\"shop\"=\"supermarket\"]"], matches: { $0["shop"] == "supermarket" })
+            return Definition(group: .other, genericLabel: "Supermarché", emoji: "🛒", overpassSelectors: ["nwr[\"shop\"=\"supermarket\"]"])
         case .pharmacy:
-            return Definition(group: .other, genericLabel: "Pharmacie", emoji: "💊", overpassSelectors: ["nwr[\"amenity\"=\"pharmacy\"]"], matches: { $0["amenity"] == "pharmacy" })
+            return Definition(group: .other, genericLabel: "Pharmacie", emoji: "💊", overpassSelectors: ["nwr[\"amenity\"=\"pharmacy\"]"])
         case .hotel:
             return Definition(group: .other, genericLabel: "Hôtel", emoji: "🏨",
-                              overpassSelectors: ["nwr[\"tourism\"~\"^(hotel|motel)$\"]"],
-                              matches: { ["hotel", "motel"].contains($0["tourism"] ?? "") })
+                              overpassSelectors: ["nwr[\"tourism\"~\"^(hotel|motel)$\"]"])
         case .campsite:
-            return Definition(group: .other, genericLabel: "Camping", emoji: "⛺", overpassSelectors: ["nwr[\"tourism\"=\"camp_site\"]"], matches: { $0["tourism"] == "camp_site" })
+            return Definition(group: .other, genericLabel: "Camping", emoji: "⛺", overpassSelectors: ["nwr[\"tourism\"=\"camp_site\"]"])
         case .trainStation:
             return Definition(group: .other, genericLabel: "Gare", emoji: "🚉",
-                              overpassSelectors: ["nwr[\"railway\"~\"^(station|halt)$\"]"],
-                              matches: { ["station", "halt"].contains($0["railway"] ?? "") })
+                              overpassSelectors: ["nwr[\"railway\"~\"^(station|halt)$\"]"])
         case .school:
-            return Definition(group: .other, genericLabel: "École", emoji: "🏫", overpassSelectors: ["nwr[\"amenity\"=\"school\"]"], matches: { $0["amenity"] == "school" })
+            return Definition(group: .other, genericLabel: "École", emoji: "🏫", overpassSelectors: ["nwr[\"amenity\"=\"school\"]"])
         case .cemetery:
             return Definition(group: .other, genericLabel: "Cimetière", emoji: "🪦",
-                              overpassSelectors: ["nwr[\"landuse\"=\"cemetery\"]", "nwr[\"amenity\"=\"grave_yard\"]"],
-                              matches: { $0["landuse"] == "cemetery" || $0["amenity"] == "grave_yard" })
+                              overpassSelectors: ["nwr[\"landuse\"=\"cemetery\"]", "nwr[\"amenity\"=\"grave_yard\"]"])
         case .memorial:
             return Definition(group: .other, genericLabel: "Monument", emoji: "🎖️",
-                              overpassSelectors: ["nwr[\"historic\"~\"^(memorial|monument)$\"]"],
-                              matches: { ["memorial", "monument"].contains($0["historic"] ?? "") })
+                              overpassSelectors: ["nwr[\"historic\"~\"^(memorial|monument)$\"]"])
         case .windTurbine:
-            return Definition(group: .other, genericLabel: "Éolienne", emoji: "🌀", overpassSelectors: ["nwr[\"generator:source\"=\"wind\"]"], matches: { $0["generator:source"] == "wind" })
+            return Definition(group: .other, genericLabel: "Éolienne", emoji: "🌀", overpassSelectors: ["nwr[\"generator:source\"=\"wind\"]"])
         case .antenna:
             return Definition(group: .other, genericLabel: "Antenne", emoji: "📡",
-                              overpassSelectors: ["nwr[\"man_made\"~\"^(mast|communications_tower)$\"]", "nwr[\"man_made\"=\"tower\"][\"tower:type\"=\"communication\"]"],
-                              matches: { ["mast", "communications_tower"].contains($0["man_made"] ?? "") || ($0["man_made"] == "tower" && $0["tower:type"] == "communication") })
+                              overpassSelectors: ["nwr[\"man_made\"~\"^(mast|communications_tower)$\"]", "nwr[\"man_made\"=\"tower\"][\"tower:type\"=\"communication\"]"])
         case .lighthouse:
-            return Definition(group: .other, genericLabel: "Phare", emoji: "🔦", overpassSelectors: ["nwr[\"man_made\"=\"lighthouse\"]"], matches: { $0["man_made"] == "lighthouse" })
+            return Definition(group: .other, genericLabel: "Phare", emoji: "🔦", overpassSelectors: ["nwr[\"man_made\"=\"lighthouse\"]"])
         case .tower:
             return Definition(group: .other, genericLabel: "Tour", emoji: "🗼",
-                              overpassSelectors: ["nwr[\"man_made\"=\"tower\"]"],
-                              matches: { $0["man_made"] == "tower" && $0["tower:type"] != "communication" })
+                              overpassSelectors: ["nwr[\"man_made\"=\"tower\"]"])
         }
     }
 
@@ -182,26 +164,12 @@ enum RoadbookLandmarkCategory: String, Codable, Equatable, CaseIterable, Identif
     var emoji: String { definition.emoji }
     var isEnabledByDefault: Bool { RoadBookConstants.landmarkDefaultEnabledCategories.contains(self) }
 
-    /// Un panneau ne vaut que pour le sens de circulation qu'il regarde (vu de dos : ignoré).
-    var isDirectional: Bool {
-        switch self {
-        case .citySign, .stopSign, .giveWaySign, .trafficSignals: return true
-        default: return false
-        }
-    }
-
-    /// Élément posé SUR une chaussée : il ne concerne le pilote que si cette chaussée est la sienne
-    /// (route porteuse dans l'axe de sa trajectoire) — le stop de la rue qui débouche sur la sienne
-    /// est à quelques mètres de la trace mais ne le concerne pas.
-    var requiresRoadAlignment: Bool {
-        switch self {
-        case .citySign, .stopSign, .giveWaySign, .trafficSignals, .levelCrossing, .speedBump: return true
-        default: return false
-        }
-    }
-
-    /// Posé SUR la route (traverse la chaussée) : jamais de côté gauche/droite.
-    var isOnRoad: Bool { group == .infrastructure || self == .levelCrossing }
+    /// Posé SUR une chaussée : ne concerne le pilote que si cette chaussée est dans l'axe de sa
+    /// trajectoire (règle du module partagé ; ici pour la requête Overpass, qui charge alors la
+    /// géométrie des routes porteuses).
+    var requiresRoadAlignment: Bool { SharedRoadbook.landmarkCategory(self).requiresRoadAlignment }
+    /// Un panneau ne vaut que pour le sens de circulation qu'il regarde (module partagé).
+    var isDirectional: Bool { SharedRoadbook.landmarkCategory(self).isDirectional }
 }
 
 /// Côté du repère par rapport au SENS DE MARCHE.
@@ -249,64 +217,28 @@ struct RoadbookLandmarkInfo: Codable, Equatable, Hashable {
 }
 
 /// Classification PURE d'un élément OSM en repère du catalogue — `nil` = hors catalogue (ou
-/// panneau de SORTIE d'agglomération). Aucun accès réseau ici, voir
-/// `RoadbookLandmarkOverpassService`.
+/// panneau de SORTIE d'agglomération). Règles de reconnaissance et libellés précis dans le module
+/// partagé (`shared/.../roadbook/RoadbookLandmarks.kt`, `LandmarkCatalog`, it33). Aucun réseau ici,
+/// voir `RoadbookLandmarkOverpassService`.
 enum RoadbookLandmark {
-    /// Libellés précis produits par `label(for:tags:)` en plus des libellés génériques (clés
-    /// françaises traduites à l'affichage, voir `L10n.dynamic`).
-    static let specificLabelKeys = ["Clocher", "Chapelle", "Lieu de culte", "Oratoire"]
+    /// Libellés précis produits en plus des libellés génériques (clés françaises traduites à
+    /// l'affichage, voir `L10n.dynamic`).
+    static var specificLabelKeys: [String] { GPXroadShared.LandmarkCatalog.shared.SPECIFIC_LABEL_KEYS }
 
-    /// Valeurs de `traffic_sign` d'un panneau d'entrée d'agglomération (comparées sans casse, en
-    /// préfixe : "FR:EB10[Hundsbach]") — générique, français, allemand (région frontalière).
-    static let citySignValues: [String] = ["city_limit", "FR:EB10", "DE:310"]
-    static let speedBumps: Set<String> = ["bump", "hump", "table", "cushion"]
+    /// Valeurs de `traffic_sign` d'un panneau d'entrée d'agglomération (sélecteurs Overpass).
+    static var citySignValues: [String] { GPXroadShared.LandmarkCatalog.shared.CITY_SIGN_VALUES }
 
-    /// Panneau d'ENTRÉE d'agglomération (`traffic_sign` ou sa variante `:forward`/`:backward`) —
-    /// jamais le panneau de sortie (`city_limit=end`).
-    /// Formes rencontrées (it29) : `traffic_sign[:forward|:backward]=city_limit|FR:EB10|DE:310`
-    /// (casse libre, valeurs multiples), `highway=city_limit` (hors norme mais utilisé), ou
-    /// `city_limit=begin|both` seul.
+    /// Panneau d'ENTRÉE d'agglomération — jamais le panneau de sortie (`city_limit=end`).
     static func isCityEntrySign(_ tags: [String: String]) -> Bool {
-        guard tags["city_limit"] != "end" else { return false }
-        let signValues = [tags["traffic_sign"], tags["traffic_sign:forward"], tags["traffic_sign:backward"]]
-            .compactMap { $0 }
-            .flatMap { $0.split(whereSeparator: { $0 == ";" || $0 == "," }).map { String($0).trimmingCharacters(in: .whitespaces).lowercased() } }
-        let isSign = signValues.contains { value in citySignValues.contains { value.hasPrefix($0.lowercased()) } }
-        return isSign || tags["highway"] == "city_limit" || ["begin", "both"].contains(tags["city_limit"] ?? "")
+        GPXroadShared.LandmarkCatalog.shared.isCityEntrySign(tags: tags)
     }
 
-    /// Catégorie (première du catalogue qui reconnaît l'élément) + libellé affiché.
+    /// Catégorie (première du catalogue qui reconnaît l'élément) + libellé affiché (nom OSM, ou clé
+    /// générique précise).
     static func classify(_ tags: [String: String]) -> (category: RoadbookLandmarkCategory, label: String)? {
-        guard let category = RoadbookLandmarkCategory.allCases.first(where: { $0.definition.matches(tags) }) else { return nil }
-        return (category, label(for: category, tags: tags))
-    }
-
-    /// Nom OSM s'il existe (pour une entrée d'agglomération, le `name` du panneau = la localité),
-    /// sinon un libellé générique PRÉCIS (Chapelle, Clocher, Oratoire...). Exceptions : un panneau
-    /// ou un aménagement de chaussée n'a pas de nom propre (un `name` sur un nœud de feux est
-    /// celui du carrefour) ; un pont/tunnel routier porte le nom de SA route ("Route de Kembs"),
-    /// seul `bridge:name`/`tunnel:name` est un vrai nom d'ouvrage.
-    private static func label(for category: RoadbookLandmarkCategory, tags: [String: String]) -> String {
-        let name = tags["name"].flatMap { $0.isEmpty ? nil : $0 }
-        switch category {
-        case .stopSign, .giveWaySign, .trafficSignals, .levelCrossing, .speedBump:
-            return category.genericLabel
-        case .bridge:
-            return tags["bridge:name"] ?? category.genericLabel
-        case .tunnel:
-            return tags["tunnel:name"] ?? category.genericLabel
-        case .church:
-            if let name { return name }
-            if tags["man_made"] == "bell_tower" { return "Clocher" }
-            if tags["building"] == "chapel" { return "Chapelle" }
-            if let religion = tags["religion"], religion != "christian" { return "Lieu de culte" }
-            return category.genericLabel
-        case .fuel, .chargingStation:
-            return name ?? tags["brand"] ?? tags["operator"] ?? category.genericLabel
-        case .waysideCross:
-            return name ?? (tags["historic"] == "wayside_shrine" ? "Oratoire" : category.genericLabel)
-        default:
-            return name ?? category.genericLabel
-        }
+        guard let result = GPXroadShared.LandmarkCatalog.shared.classify(tags: tags),
+              let category = result.first, let label = result.second
+        else { return nil }
+        return (SharedRoadbook.landmarkCategory(category), label as String)
     }
 }

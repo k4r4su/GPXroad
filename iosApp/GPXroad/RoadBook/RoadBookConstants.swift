@@ -1,5 +1,6 @@
 import CoreGraphics
 import Foundation
+import GPXroadShared
 
 /// Constantes du Road Book et de son export PDF (spec "roadbook-mode", it23) — domaine
 /// entièrement nouveau, fichier dédié plutôt qu'ajouté à `RideConstants`/`NavigationConstants`
@@ -16,7 +17,7 @@ enum RoadBookConstants {
     /// `liveManeuverReachedRadiusMeters` ci-avant) : voir `RoadbookLiveProgress.nextManeuver`,
     /// qui bascule désormais sur la manœuvre atteinte elle-même puis la maintient cette durée —
     /// SAUF virages enchaînés (voir ce même fichier), où le maintien serait contre-productif.
-    static let liveManeuverHoldAfterMeters: Double = 15
+    static let liveManeuverHoldAfterMeters: Double = GPXroadShared.RoadbookConstants.shared.LIVE_MANEUVER_HOLD_AFTER_METERS
 
     // MARK: - Overpass (OSM public, gratuit, aucune clé)
 
@@ -29,60 +30,24 @@ enum RoadBookConstants {
     /// Catégories ACTIVÉES par défaut (menu Réglages > Repères du Road Book, "Réinitialiser") —
     /// toutes les autres catégories du catalogue (`RoadbookLandmarkCategory`, famille "Autres")
     /// sont désactivées par défaut.
-    static let landmarkDefaultEnabledCategories: Set<RoadbookLandmarkCategory> = [
-        .citySign, .stopSign, .giveWaySign, .trafficSignals, .levelCrossing,
-        .speedBump, .bridge, .tunnel,
-        .church, .townHall, .waterTower, .mill, .waysideCross, .castle,
-        .fuel, .chargingStation,
-    ]
-    /// Rayon de VISIBILITÉ par catégorie (m, distance à la trace) : petit pour ce qui est SUR la
-    /// route (panneau, ralentisseur), large pour ce qui se voit de loin (clocher, château d'eau,
-    /// éolienne) ; pour un service, rayon de DÉTOUR raisonnable (la distance est affichée).
-    /// Catégorie absente : jamais retenue.
-    static let landmarkVisibilityRadiusMeters: [RoadbookLandmarkCategory: Double] = [
-        // Panneaux
-        .citySign: 30, .stopSign: 20, .giveWaySign: 20, .trafficSignals: 25, .levelCrossing: 20,
-        // Infrastructure
-        .speedBump: 12, .bridge: 8, .tunnel: 8,
-        // Bâtiments et ouvrages
-        .church: 150, .townHall: 60, .waterTower: 200, .mill: 150, .waysideCross: 30, .castle: 250,
-        // Services
-        .fuel: 250, .chargingStation: 250,
-        // Autres
-        .parking: 40, .restArea: 80, .drinkingWater: 20, .restaurant: 40, .cafe: 40, .bakery: 30,
-        .supermarket: 80, .pharmacy: 30, .hotel: 60, .campsite: 150, .trainStation: 120, .school: 60,
-        .cemetery: 100, .memorial: 30, .windTurbine: 500, .antenna: 300, .lighthouse: 500, .tower: 200,
-    ]
-    /// Priorité FIXE entre familles, de la plus forte à la plus faible — le carrefour lui-même
-    /// (la manœuvre, rond-point compris) passe avant tout repère. À famille égale : ordre du
-    /// catalogue (`RoadbookLandmarkCategory.allCases`), puis le plus proche de la trace.
-    static let landmarkGroupPriority: [RoadbookLandmarkCategory.Group] = [.sign, .infrastructure, .service, .building, .other]
-    /// Services (carburant, recharge) : jamais soumis à la limite de densité des repères de
-    /// repérage ni rattachés à un virage — seul un doublon de la même catégorie à moins de ça
-    /// (station cartographiée en nœud ET en surface) est fusionné.
-    static let landmarkServiceMergeMeters: Double = 100
-    /// Service : distance à la trace affichée ("à droite, 120 m") au-delà de ça.
-    static let landmarkServiceShowDistanceFromMeters: Double = 30
-    /// Un repère à moins de ça (le long de la trace) d'un changement de direction sert à
-    /// identifier CE carrefour : affiché avec la manœuvre (le plus prioritaire seulement), jamais
-    /// en ligne séparée.
-    static let landmarkJunctionRadiusMeters: Double = 40
-    /// Au plus N repères en ligne dédiée par tronçon entre deux changements de direction.
-    static let landmarkMaxPerSegment = 1
-    /// Deux repères à moins de ça l'un de l'autre : seul le plus prioritaire reste.
-    static let landmarkMergeMeters: Double = 150
-    /// Élément posé sur une chaussée (panneau, passage piéton, ralentisseur...) : retenu seulement si
-    /// sa route porteuse est dans l'axe de la trajectoire d'ARRIVÉE du pilote à cette tolérance près
-    /// (degrés, dans un sens ou l'autre). Validé sur une trace réelle : sans ce filtre, les stops et
-    /// cédez-le-passage des rues latérales ressortaient tout au long des lignes droites.
-    static let landmarkRoadAlignmentToleranceDegrees: Double = 30
-    /// Trajectoire d'arrivée = corde des N derniers mètres avant le repère (sens, côté, alignement).
-    static let landmarkApproachMeters: Double = 30
-    /// Sous cette distance latérale, le repère est SUR la route (passage piéton, pont) : pas de côté.
-    static let landmarkSideMinOffsetMeters: Double = 4
-    /// Panneau avec `direction=<cap>` : il FAIT FACE aux usagers concernés — retenu si le sens de
-    /// marche est opposé à ce cap à cette tolérance près (degrés).
-    static let landmarkSignFacingToleranceDegrees: Double = 80
+    /// Familles Panneaux, Infrastructure, Bâtiments et Services — règle du module partagé
+    /// (`LandmarkCategory.isEnabledByDefault`, it33).
+    static let landmarkDefaultEnabledCategories: Set<RoadbookLandmarkCategory> = Set(
+        RoadbookLandmarkCategory.allCases.filter { SharedRoadbook.landmarkCategory($0).isEnabledByDefault }
+    )
+    /// Rayon de VISIBILITÉ par catégorie (m, distance à la trace) — défini dans le module partagé
+    /// (`LandmarkCategory.visibilityRadiusMeters`, it33) avec toutes les règles de sélection
+    /// (priorité, densité, rattachement au carrefour, côté : `LandmarkConstants`). Ici pour la
+    /// requête Overpass, qui interroge ce rayon autour de la trace.
+    static var landmarkVisibilityRadiusMeters: [RoadbookLandmarkCategory: Double] {
+        Dictionary(uniqueKeysWithValues: RoadbookLandmarkCategory.allCases.map { ($0, SharedRoadbook.landmarkCategory($0).visibilityRadiusMeters) })
+    }
+    /// Priorité fixe entre familles (module partagé), de la plus forte à la plus faible.
+    static var landmarkGroupPriority: [RoadbookLandmarkCategory.Group] {
+        GPXroadShared.LandmarkConstants.shared.GROUP_PRIORITY.compactMap { RoadbookLandmarkCategory.Group(rawValue: $0.key) }
+    }
+    /// Au plus N repères en ligne dédiée par tronçon entre deux changements de direction (module partagé).
+    static var landmarkMaxPerSegment: Int { Int(GPXroadShared.LandmarkConstants.shared.MAX_PER_SEGMENT) }
     /// Requête Overpass : trace échantillonnée tous les N m (au moins), plafonnée en points ; le
     /// rayon interrogé = pas + rayon de visibilité de la catégorie.
     static let landmarkQuerySampleSpacingMeters: Double = 250
@@ -109,35 +74,17 @@ enum RoadBookConstants {
     /// autres instances publiques testées (private.coffee, kumi.systems) : plus lentes, autant de
     /// 504 — pas de bascule d'instance.
     static let landmarkRetryDelaysSeconds: [Double] = [5, 15, 30]
-    /// Repli "Entrée de <localité>" (it29) — ACTIF par défaut. Diagnostic sur la trace de test
-    /// réelle (27 km, 11 villages traversés) : UN SEUL panneau `city_limit` cartographié dans OSM
-    /// (Hundsbach) ; les autres villages n'en ont aucun. Le repli place l'entrée là où la trace
-    /// entre dans la ZONE BÂTIE (`landuse=residential`, ou polygone `place` s'il existe) — là où se
-    /// dresse le vrai panneau : à Hundsbach, zone bâtie à 18,91 km, panneau OSM à 18,90 km — et la
-    /// nomme d'après le nœud `place` le plus proche. Un panneau cartographié gagne toujours.
-    static let landmarkCityEntryFallbackEnabled = true
-    /// Échantillonnage de la trace pour détecter l'entrée dans une zone bâtie.
-    static let landmarkCityEntrySampleMeters: Double = 10
-    /// Deux passages en zone bâtie séparés de moins de ça = une seule traversée (zones
-    /// résidentielles morcelées d'un même village).
-    static let landmarkCityEntryMergeGapMeters: Double = 300
-    /// Traversée plus courte que ça (après fusion) : ferme ou lotissement isolé, pas une entrée.
-    static let landmarkCityEntryMinRunMeters: Double = 150
-    /// Dans une zone bâtie, la localité (nœud `place` le plus proche) est réévaluée tous les N m :
-    /// villages mitoyens dont les zones bâties se touchent.
-    static let landmarkCityEntryNameCheckMeters: Double = 50
-    /// Un changement de localité à l'intérieur d'une zone bâtie doit tenir au moins ça (hystérésis).
-    static let landmarkCityEntryNameMinStretchMeters: Double = 100
-    /// Portée d'un nœud `place` : il nomme une zone bâtie jusqu'à cette distance du point d'entrée
-    /// — une ville a son nœud au centre, loin de ses bords. Un `suburb` n'est retenu que hors de
-    /// portée de toute ville (`town`/`city`) : on entre dans "Mulhouse", pas dans un quartier ;
-    /// mais dans "Oberdorf" (ancien village d'une commune nouvelle).
-    static let landmarkCityEntryPlaceReachMeters: [RoadbookPlace.Kind: Double] = [.city: 5000, .town: 3000, .village: 1500, .suburb: 1500]
-    /// Nœud `village` avec un `suburb` à moins de ça : siège d'une commune nouvelle (Illtal), écarté
-    /// au profit des anciens villages (`suburb`) dont les panneaux portent le nom.
-    static let landmarkCityEntryParentSeatMeters: Double = 500
-    /// Panneau cartographié à moins de ça d'une entrée calculée : le panneau seul est affiché.
-    static let landmarkCityEntrySignDedupMeters: Double = 400
+    /// Repli "Entrée de <localité>" (it29) — ACTIF par défaut : l'entrée est placée au bord de la
+    /// zone bâtie traversée, nommée d'après la localité (règles et réglages : module partagé,
+    /// `CityEntryDetector`/`LandmarkConstants.CITY_ENTRY_*`).
+    static var landmarkCityEntryFallbackEnabled: Bool { GPXroadShared.LandmarkConstants.shared.CITY_ENTRY_FALLBACK_ENABLED }
+    /// Portée d'un nœud `place` (module partagé) — la requête Overpass des localités la couvre.
+    static var landmarkCityEntryPlaceReachMeters: [RoadbookPlace.Kind: Double] {
+        [.city: reach(.city), .town: reach(.town), .village: reach(.village), .suburb: reach(.suburb)]
+    }
+    private static func reach(_ kind: GPXroadShared.PlaceKind) -> Double {
+        GPXroadShared.LandmarkConstants.shared.placeReachMeters(kind: kind)
+    }
     /// La requête Overpass des nœuds `place` couvre ces portées (au-delà du pas d'échantillonnage).
 
     // MARK: - Export PDF

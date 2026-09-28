@@ -9,9 +9,8 @@ import kotlin.math.min
 import kotlin.math.sqrt
 
 /**
- * Portage it32 (pilote KMP) de la partie de `TrackProjector` (Swift) utilisée par la géométrie du
- * Road Book. Même ordre d'opérations que l'original ; parité vérifiée côté iOS par
- * `SharedRoadbookParityTests` (distances : voir `geodesicDistanceMeters`).
+ * Géométrie d'une trace (portage de `TrackProjector`, it32-it33) : distances cumulées, projection
+ * d'une position, passages près d'un point, interpolation. Distances : [geodesicDistanceMeters].
  */
 object TrackGeometry {
 
@@ -48,6 +47,53 @@ object TrackGeometry {
             }
         }
         return Projection(bestIndex, bestDistance, bestCumulative)
+    }
+
+    /**
+     * Tous les PASSAGES de la trace à moins de [maxDistanceMeters] de [coordinate], dans l'ordre du
+     * trajet — un passage = segments consécutifs tous à portée, représenté par sa meilleure
+     * projection. Une boucle ou un aller-retour qui repasse au même endroit en produit plusieurs.
+     */
+    fun passes(
+        coordinate: LatLon,
+        points: List<LatLon>,
+        cumulativeDistances: DoubleArray,
+        maxDistanceMeters: Double,
+        minimumCumulativeDistanceMeters: Double = 0.0,
+    ): List<Projection> {
+        if (points.size <= 1 || points.size != cumulativeDistances.size) return emptyList()
+        val result = mutableListOf<Projection>()
+        var currentPassBest: Projection? = null
+        for (i in 0 until points.size - 1) {
+            if (cumulativeDistances[i + 1] < minimumCumulativeDistanceMeters) continue
+            val segmentLength = cumulativeDistances[i + 1] - cumulativeDistances[i]
+            val minT = if (segmentLength > 0) max((minimumCumulativeDistanceMeters - cumulativeDistances[i]) / segmentLength, 0.0) else 0.0
+            val (distance, t) = distanceFromPointToSegment(coordinate, points[i], points[i + 1], minT)
+            if (distance > maxDistanceMeters) {
+                currentPassBest?.let { result.add(it) }
+                currentPassBest = null
+                continue
+            }
+            val candidate = Projection(i, distance, cumulativeDistances[i] + segmentLength * t)
+            if (distance < (currentPassBest?.distanceToTrackMeters ?: Double.MAX_VALUE)) currentPassBest = candidate
+        }
+        currentPassBest?.let { result.add(it) }
+        return result
+    }
+
+    /** Point de la trace le plus proche à VOL D'OISEAU de [coordinate], parmi TOUS ses points. */
+    fun nearestPointByAirDistance(coordinate: LatLon, points: List<LatLon>, cumulativeDistances: DoubleArray): Int? {
+        if (points.isEmpty() || points.size != cumulativeDistances.size) return null
+        var bestIndex = 0
+        var bestDistance = Double.MAX_VALUE
+        for ((index, point) in points.withIndex()) {
+            val distance = geodesicDistanceMeters(coordinate, point)
+            if (distance < bestDistance) {
+                bestDistance = distance
+                bestIndex = index
+            }
+        }
+        return bestIndex
     }
 
     /** Position INTERPOLÉE sur la trace à une distance cumulée donnée. `null` hors de la trace. */

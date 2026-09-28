@@ -1,9 +1,13 @@
 import Foundation
+import GPXroadShared
 
 /// Constantes du roadbook rebuilt from scratch (spec "roadbook-angle-buckets-replay", it14,
 /// Bloc 4) — regroupées ici plutôt que dans RideConstants.swift comme demandé explicitement
 /// par le prompt d'itération ("Constantes exposées dans Config/NavigationConstants.swift").
 /// Tout le reste des constantes Ride (hors roadbook) reste dans RideConstants.swift, inchangé.
+/// It33 : les seuils du Road Book (`roadbook*`) sont définis UNE fois dans le module partagé
+/// (`shared/.../roadbook/RoadbookModel.kt`, `RoadbookConstants`, communs à iOS et Android) et
+/// relus ici — les commentaires ci-dessous gardent l'historique de chaque valeur.
 enum NavigationConstants {
 
     // MARK: - Fenêtre de mesure de la tangente (ROADBOOK_WINDOW_BEFORE_M / AFTER_M)
@@ -15,8 +19,8 @@ enum NavigationConstants {
     /// Fix "roadbook-turn-angle-from-heading-chords" : ce sont désormais les longueurs des
     /// cordes AVANT/APRÈS (cap moyen) comparées en chaque point, positions interpolées — 40 m
     /// (fiche : "~30-50 m"), au lieu de 60 m sommés segment par segment.
-    static let roadbookWindowBeforeMetersDefault: Double = 40
-    static let roadbookWindowAfterMetersDefault: Double = 40
+    static let roadbookWindowBeforeMetersDefault: Double = GPXroadShared.RoadbookConstants.shared.WINDOW_BEFORE_METERS_DEFAULT
+    static let roadbookWindowAfterMetersDefault: Double = GPXroadShared.RoadbookConstants.shared.WINDOW_AFTER_METERS_DEFAULT
     static let roadbookWindowRange: ClosedRange<Double> = 30...80
 
     // MARK: - Paliers d'angle (segmentation type Waze/MUTCD)
@@ -24,44 +28,44 @@ enum NavigationConstants {
     /// < ce seuil : rien (tout droit, pas affiché) — SEUIL MINIMAL d'un checkpoint, pour la
     /// géométrie ET pour les manœuvres Valhalla (règle produit : pas de vrai changement de cap =
     /// pas de checkpoint). 25° (fiche : "~20-25°", 30° avant) : en dessous, une route qui ondule.
-    static let roadbookLightThresholdDegreesDefault: Double = 25
+    static let roadbookLightThresholdDegreesDefault: Double = GPXroadShared.RoadbookConstants.shared.LIGHT_THRESHOLD_DEGREES_DEFAULT
     /// [light, marked[ = virage léger ; [marked, hard[ = virage prononcé ; [hard, veryHard[ =
     /// virage fort ; ≥ veryHard = virage très serré (avec son sens). Le demi-tour n'est PLUS un
     /// palier d'angle (it26 point 2, voir `roadbookUTurn*` ci-dessous). Clé de réglage persistée
     /// inchangée (`settings.roadbookUTurnThresholdDegrees`) : la valeur choisie avant it26 borne
     /// désormais le palier "très serré".
-    static let roadbookMarkedThresholdDegreesDefault: Double = 45
-    static let roadbookHardThresholdDegreesDefault: Double = 90
-    static let roadbookVeryHardThresholdDegreesDefault: Double = 135
+    static let roadbookMarkedThresholdDegreesDefault: Double = GPXroadShared.RoadbookConstants.shared.MARKED_THRESHOLD_DEGREES_DEFAULT
+    static let roadbookHardThresholdDegreesDefault: Double = GPXroadShared.RoadbookConstants.shared.HARD_THRESHOLD_DEGREES_DEFAULT
+    static let roadbookVeryHardThresholdDegreesDefault: Double = GPXroadShared.RoadbookConstants.shared.VERY_HARD_THRESHOLD_DEGREES_DEFAULT
 
     /// Deux candidats de virage à moins de cette distance (le long de la trace) forment une seule
     /// grappe : un seul checkpoint dans le sens du virage net, ou aucun si le virage net reste
     /// sous le seuil minimal (zigzag parasite). Fiche : "~30-50 m" — 50 : à 40, les deux coins
     /// d'une épingle tracée à 40 m d'écart (40,07 m sur l'ellipsoïde) ressortaient en deux
     /// "Virage fort" au lieu d'une épingle "très serré".
-    static let roadbookTurnClusterMeters: Double = 50
+    static let roadbookTurnClusterMeters: Double = GPXroadShared.RoadbookConstants.shared.TURN_CLUSTER_METERS
 
     /// Changement de ROUTE (noms Valhalla avant/après disjoints) : checkpoint "Changement de
     /// direction" même sous le seuil minimal, si la trace tourne d'au moins ça (fiche : "le nom de
     /// la route change ET le cap change sensiblement"). La classe de route n'est pas disponible
     /// dans `/trace_route` (seulement dans `/trace_attributes`, non utilisé).
-    static let roadbookRoadChangeMinTurnDegrees: Double = 10
+    static let roadbookRoadChangeMinTurnDegrees: Double = GPXroadShared.RoadbookConstants.shared.ROAD_CHANGE_MIN_TURN_DEGREES
 
     // MARK: - Demi-tour (it26 point 2, fix "roadbook-no-false-uturn")
 
     /// Règle métier non négociable : un demi-tour = repartir en sens inverse sur la MÊME route
     /// — en suivant une trace, ça ne doit quasiment jamais arriver. Repli géométrique : angle
     /// cumulé au moins égal à ce seuil (degrés)...
-    static let roadbookUTurnMinDegrees: Double = 175
+    static let roadbookUTurnMinDegrees: Double = GPXroadShared.RoadbookConstants.shared.U_TURN_MIN_DEGREES
     /// ...ET la trace repart sur son propre tracé : le point situé une fenêtre APRÈS le virage
     /// passe à moins de cette distance (m) du tracé des mètres PRÉCÉDENTS. Vérifié sur les traces
     /// réelles du propriétaire : les épingles/lacets repartent à 35-225 m de leur autre branche,
     /// même avec un angle cumulé ≥ 175° — l'angle seul en laissait 5 sur un seul trajet de 110 km.
-    static let roadbookUTurnSamePathMaxMeters: Double = 12
+    static let roadbookUTurnSamePathMaxMeters: Double = GPXroadShared.RoadbookConstants.shared.U_TURN_SAME_PATH_MAX_METERS
     /// Un demi-tour (géométrique OU Valhalla) dans les premiers/derniers mètres de la trace est
     /// une manœuvre de stationnement (sortie de place, cour), pas une instruction de parcours :
     /// ignoré. Seul demi-tour Valhalla du cache réel du propriétaire : à 20 m du départ.
-    static let roadbookUTurnEndpointGuardMeters: Double = 200
+    static let roadbookUTurnEndpointGuardMeters: Double = GPXroadShared.RoadbookConstants.shared.U_TURN_ENDPOINT_GUARD_METERS
 
     // MARK: - Manœuvres route-aware (map matching Valhalla)
 
@@ -71,13 +75,13 @@ enum NavigationConstants {
     /// que ça signifie que Valhalla a recalé une route qui n'est pas celle de la trace (route
     /// parallèle), jamais un virage à annoncer. Assez large pour une trace planifiée simplifiée
     /// qui coupe légèrement les courbes entre deux points.
-    static let roadbookMapMatchMaxOffTrackMeters: Double = 60
+    static let roadbookMapMatchMaxOffTrackMeters: Double = GPXroadShared.RoadbookConstants.shared.MAP_MATCH_MAX_OFF_TRACK_METERS
     /// Aller-retour par la même route : un carrefour repassé au retour est aussi proche de
     /// l'aller que du retour. Si sa meilleure projection retombe sur la manœuvre précédente
     /// (doublon), un passage PLUS LOIN de la trace est retenu à la place — seulement s'il n'est
     /// pas plus éloigné du carrefour que de cette marge (m), pour ne jamais repousser à tort un
     /// vrai second carrefour rapproché sur une route parcourue une seule fois.
-    static let roadbookMapMatchRepassToleranceMeters: Double = 15
+    static let roadbookMapMatchRepassToleranceMeters: Double = GPXroadShared.RoadbookConstants.shared.MAP_MATCH_REPASS_TOLERANCE_METERS
 
     // MARK: - Flash / mise en avant
 

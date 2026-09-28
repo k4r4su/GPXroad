@@ -1,4 +1,5 @@
 import Foundation
+import GPXroadShared
 
 /// Énumération EXACTE `DirectionsLeg_Maneuver_Type` de Valhalla (spec "nav-classic-rebuild",
 /// it21 : "les valeurs exactes de l'énumération type doivent être vérifiées contre la
@@ -99,57 +100,20 @@ enum ValhallaManeuverType: Int, CaseIterable {
         self == .destination || self == .destinationRight || self == .destinationLeft
     }
 
-    /// Filtrage + choix de palier "route-aware" (spec "roadbook-route-aware-maneuvers", it24,
-    /// point 1) — retour terrain : "une courbe progressive sur le même axe peut déclencher un
-    /// événement à tort" côté map matching, root cause identifiée ici : AVANT it24, TOUTE
-    /// manœuvre intermédiaire Valhalla devenait un événement roadbook, y compris `.continueStraight`
-    /// (route qui continue sans virage) et `.becomes` (la route change de nom SANS tourner) — les
-    /// deux exclus explicitement par la fiche. `nil` = pas une vraie décision de conduite, à
-    /// écarter (voir `ValhallaMapMatchingService.intermediateManeuvers`, seul point d'appel).
-    /// Non-`nil` = le `RoadbookTier` à assigner : `.roundabout`/`.fork`/`.merge` reprennent la
-    /// sémantique Valhalla EXACTE (rond-point/fourche avec choix réel — `stayStraight/Right/Left`
-    /// désignent un VRAI point de décision à un embranchement, pas un simple "tout droit" —
-    /// /bretelle-fusion) plutôt qu'un angle géométrique bruité ; `.uTurn` reste le palier
-    /// EXISTANT ("à conserver tel quel", demande explicite de la fiche) ; les virages classiques
-    /// et les ferries retombent sur `.lightDirectionChange`, le palier "panneau" déjà en place
-    /// depuis it20 pour "pas un virage géométrique classique".
+    /// Palier Road Book "route-aware" (it24) — `nil` = pas une vraie décision de conduite (continuer
+    /// tout droit, la route change seulement de nom, départ/arrivée), à écarter (voir
+    /// `ValhallaMapMatchingService.intermediateManeuvers`). Règle dans le module partagé
+    /// (`shared/.../roadbook/ValhallaManeuverType.kt`, it33).
     var roadbookTier: RoadbookTier? {
-        switch self {
-        case .roundaboutEnter, .roundaboutExit:
-            return .roundabout
-        case .stayStraight, .stayRight, .stayLeft:
-            return .fork
-        case .merge, .rampStraight, .rampRight, .rampLeft, .exitRight, .exitLeft:
-            return .merge
-        case .uturnRight, .uturnLeft:
-            return .uTurn
-        case .slightRight, .right, .sharpRight, .slightLeft, .left, .sharpLeft, .ferryEnter, .ferryExit:
-            return .lightDirectionChange
-        case .none, .start, .startRight, .startLeft, .destination, .destinationRight, .destinationLeft,
-             .becomes, .continueStraight,
-             .transit, .transitTransfer, .transitRemainOn, .transitConnectionStart,
-             .transitConnectionTransfer, .transitConnectionDestination, .postTransitConnectionDestination:
-            return nil
-        }
+        shared.roadbookTier.map(SharedRoadbook.tier)
     }
 
-    /// Direction dérivée du type Valhalla LUI-MÊME (spec it24, point 1) — remplace, pour les
-    /// manœuvres de map matching, l'ancien calcul basé sur l'angle géométrique mesuré au point
-    /// (`RoadbookAnalyzer.windowedTurn`) : peu fiable pour une décision route-aware qui peut être
-    /// un simple changement de rue sans angle visuellement marqué sur le tracé GPS. `.merge`
-    /// (aucune variante directionnelle côté Valhalla, voir plus haut) et les ronds-points (la
-    /// surbrillance du pictogramme pilote déjà le sens pris, voir `roadbookTier`) retombent sur
-    /// `.straight`, une valeur neutre jamais interprétée comme un vrai virage affiché.
+    /// Sens déduit du type Valhalla lui-même ; rond-point et fusion : neutre (`.straight`).
     var roadbookDirection: TurnDirection {
-        switch self {
-        case .right, .slightRight, .sharpRight, .rampRight, .exitRight, .stayRight, .startRight, .destinationRight:
-            return .right
-        case .left, .slightLeft, .sharpLeft, .rampLeft, .exitLeft, .stayLeft, .startLeft, .destinationLeft:
-            return .left
-        case .uturnRight, .uturnLeft:
-            return .uTurn
-        default:
-            return .straight
-        }
+        SharedRoadbook.direction(shared.roadbookDirection)
+    }
+
+    private var shared: GPXroadShared.ValhallaManeuverType {
+        GPXroadShared.ValhallaManeuverType.companion.fromRawValue(rawValue: Int32(rawValue))
     }
 }

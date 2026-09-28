@@ -1,4 +1,5 @@
 import Foundation
+import GPXroadShared
 
 /// Toutes les constantes réglables du mode Ride sont centralisées ici.
 /// Valeurs de départ raisonnables — à ajuster après tests terrain (route + piste).
@@ -220,8 +221,9 @@ enum RideConstants {
     /// remplace l'ancienne hystérésis à seuil unique (50 m) + temporelle (20 s ou 2 fixs
     /// stables) : la bande ENTER-EXIT (30 m > distance > 25 m) EST l'anti-rebond, aucun état
     /// ne change tant que la distance y reste, donc plus besoin de bookkeeping temporel séparé.
-    static let horsTraceEnterMeters: Double = 30
-    static let horsTraceExitMeters: Double = 25
+    /// Valeurs (30 m / 25 m) définies UNE fois dans le module partagé (it33, `RoadbookConstants`).
+    static let horsTraceEnterMeters: Double = GPXroadShared.RoadbookConstants.shared.OFF_TRACK_ENTER_METERS
+    static let horsTraceExitMeters: Double = GPXroadShared.RoadbookConstants.shared.OFF_TRACK_EXIT_METERS
 
     /// Chip hors-trace compact (spec "offtrack-compact-chip", it18, Bloc 1) : titre seul tant
     /// que ce délai n'est pas dépassé, distance de reprise affichée en plus au-delà — voir
