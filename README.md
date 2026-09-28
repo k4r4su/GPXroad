@@ -67,7 +67,13 @@ Beaucoup de sorties moto ou rando se font là où le réseau mobile ne suit pas.
 
 - SwiftUI, iOS 16+
 - [MapLibre Native](https://maplibre.org/) pour la carte (tuiles OSM ou fond vectoriel, hors-ligne)
-- Aucune dépendance tierce hors MapLibre
+- Logique partagée en [Kotlin Multiplatform](https://kotlinlang.org/docs/multiplatform.html),
+  en préparation d'une version Android : le calcul des virages du Road Book en est le premier
+  morceau (itération 32)
+- Aucune autre dépendance tierce que MapLibre et la bibliothèque standard Kotlin
+
+Le dépôt contient trois dossiers : `iosApp/` (l'app iPhone), `shared/` (le code commun) et
+`androidApp/` (l'app Android, pour l'instant un simple écran de test).
 
 ---
 

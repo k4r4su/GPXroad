@@ -1,5 +1,29 @@
 # TODO
 
+## Itération 32 — audit et socle Kotlin Multiplatform — v0.0.32
+
+Commits `monorepo-move-ios-to-iosapp`, `kmp-migration-audit`, `kmp-monorepo-gradle-skeleton`,
+`kmp-pilot-roadbook-geometry`. Aucune fonctionnalité utilisateur ; tutoriel inchangé (seul ajout
+d'interface : un sélecteur debug dans Réglages > Avancé). Livrable d'audit :
+`shared/MIGRATION_AUDIT.md` (verdict du pilote inclus). Checklist manuelle :
+- [ ] iPhone : l'app se lance normalement (framework Kotlin lié) — non vérifiable ici, téléphone
+      verrouillé au moment de l'installation.
+- [ ] Sortie réelle (ou replay debug) sur une trace connue, moteur « Kotlin partagé » (défaut) :
+      Road Book, bannière latérale et épingles comme d'habitude.
+- [ ] Même trace, Réglages > Avancé > Moteur géométrie Road Book > « Swift natif » : liste Road
+      Book identique (même nombre de lignes, mêmes virages, mêmes distances à 10 m près).
+- [ ] Android : `./gradlew :androidApp:assembleDebug`, installer l'APK sur un téléphone Android
+      ou l'émulateur `gpxroad_test` → écran « GPXroad shared Android ».
+
+Décisions ouvertes :
+- **Distance géodésique commune** : iOS garde `CLLocation` (non déterministe, formule inconnue),
+  Android utilise Vincenty. Les unifier (Vincenty partout) = Road Book identique sur les deux
+  plateformes, mais quelques événements déplacés sur les longues traces. À trancher avant le
+  premier Road Book Android. Voir MIGRATION_AUDIT.md constat 1.
+- **Supprimer `RoadbookAnalyzer.nativeGeometricEvents`** une fois la validation terrain faite.
+- Prochain portage suggéré : reste du Road Book pur (audit, ordre étape 2), après refactors ⚠︎
+  si besoin.
+
 ## Renommage GPXlibre → GPXroad
 
 Fait : projet `GPXroad.xcodeproj`, cible et schéma `GPXroad`/`GPXroadTests`, dossiers `GPXroad/`
@@ -13,7 +37,10 @@ Volontairement NON changé :
   la clé Valhalla (trousseau `com.olivier.gpxlibre.valhalla`) sera à ressaisir.
 - Écran « À propos » : n'existe pas (seul le splash affiche nom et version).
 - Infra : service docker `gpxlibre-blockages`, dossier NAS `~/gpxlibre-tuiles` (renommer casserait
-  un déploiement existant), dépôt GitHub et dossier local `~/Developer/GPXlibre`.
+  un déploiement existant), dossier local `~/Developer/GPXlibre`. Le dépôt GitHub a été renommé
+  `k4r4su/GPXroad` par le propriétaire ; le remote local pointe encore l'ancienne adresse (le push
+  passe par la redirection GitHub) : `git remote set-url origin https://github.com/k4r4su/GPXroad.git`
+  à lancer par le propriétaire.
 
 ## Itération 31 — dossiers, proposition d'enregistrement, tutoriel, traductions — v0.0.31
 

@@ -23,17 +23,24 @@ pendant.
 
 ## Constats transverses (à régler une fois pour toutes)
 
-1. **Distance géodésique : `CLLocation.distance(from:)` n'est pas reproductible.** Mesuré à
-   it32 : ce n'est ni une sphère de rayon fixe, ni Vincenty, ni la formule du rayon de courbure
-   moyen. L'écart avec Vincenty est de 4·10⁻⁸ m sur 18 m, mais de 11,6 m sur 18 km : Apple
-   utilise une approximation locale non documentée.
-   Toute la géométrie de trace passe par `RoadbookAnalyzer.distanceMeters` (distances cumulées,
-   fusion, ralliement). Décision :
-   - `expect fun geodesicDistanceMeters(...)` ;
-   - `actual` iOS = `CLLocation` via l'interop Kotlin/Native → parité STRICTE avec le Swift ;
-   - `actual` JVM/Android = Vincenty WGS84 → écart négligeable sur des segments de trace.
-     Paliers, sens et indices restent identiques ; seules les distances diffèrent de quelques
-     10⁻⁸ m.
+1. **Distance géodésique : `CLLocation.distance(from:)` n'est pas reproductible.** Toute la
+   géométrie de trace passe par `RoadbookAnalyzer.distanceMeters` (distances cumulées, fusion,
+   ralliement). Ce qu'on a mesuré à it32 :
+   - ce n'est ni une sphère de rayon fixe, ni Vincenty, ni la formule du rayon de courbure
+     moyen. L'écart avec Vincenty est de 4·10⁻⁸ m sur 18 m, mais de 11,6 m sur 18 km ;
+   - ce n'est même PAS déterministe dans le simulateur : une même paire de points donne deux
+     résultats selon le moment (3,44308 m puis 3,44367 m), jusqu'à 1,6·10⁻⁴ d'écart relatif
+     sur un segment court.
+
+   Décision du pilote :
+   - `expect fun geodesicDistanceMeters` ;
+   - `actual` iOS = `CLLocation` via l'interop Kotlin/Native → Road Book identique à celui
+     validé (it28) ;
+   - `actual` Android = Vincenty WGS84.
+
+   **Décision produit ouverte** : passer iOS à Vincenty rendrait le Road Book déterministe et
+   identique sur les deux plateformes. Mais cela déplace quelques événements sur les longues
+   traces (avec des réglages extrêmes : vosges-tour passe de 203 à 201 événements, sur 151 km).
 2. **`CLLocationCoordinate2D` partout** (≈ 60 fichiers). En commun : un type `LatLon`. La
    conversion se fait à la frontière Swift, pas dans la logique.
 3. **Libellés localisés dans des types de logique** (`TurnDirection.label`,
@@ -198,9 +205,45 @@ La logique métier réellement partageable représente environ 40 % du code. Ell
 dans le Road Book, le routage et les formats de fichiers, c'est-à-dire ce qu'on ne veut surtout
 pas voir diverger entre les deux apps.
 
+## Résultat du pilote (it32)
+
+**Verdict : approche validée.** La chaîne de build fonctionne de bout en bout, la parité est
+atteinte, et le coût est faible. Kotlin Multiplatform reste l'approche retenue pour la suite.
+
+- **Chaîne de build** :
+  - Kotlin → `GPXroadShared.xcframework` (statique) → Swift : `RoadbookAnalyzer` l'utilise par
+    défaut, `print(greeting())` au lancement ;
+  - Kotlin → `androidApp` (Compose) : APK de 11,5 Mo ;
+  - tests Kotlin verts sur simulateur iOS ET JVM Android (21 tests, dont 20 portés des tests
+    Swift).
+- **Parité** (`SharedRoadbookParityTests`, Swift natif vs Kotlin) :
+  - 400 traces aléatoires, 15 traces réelles du propriétaire × 2 sens × 3 jeux de réglages,
+    les géométries des tests du Road Book ;
+  - 39 861 événements structurellement identiques (nombre, palier, sens, index, coordonnée) ;
+  - écarts max : 0,008° d'angle et 1,9·10⁻⁴ de distance relative. Ils viennent du
+    non-déterminisme de `CLLocation` (constat 1) et de `sin`/`cos` fusionnés en
+    `__sincos_stret` (un ulp d'écart, comme Swift `-O`) ;
+  - la suite iOS complète (495 tests, dont le garde-fou du jalon it28) passe avec le moteur
+    Kotlin.
+- **Coût** :
+  - framework de 1,9 Mo par architecture avant élagage ;
+  - 20 000 points : Kotlin 29-37 ms contre 65 ms en Swift Debug ;
+  - build iOS sans changement Kotlin : +0,1 s ;
+  - après une modification Kotlin : 11 s de reconstruction du framework ;
+  - premier build d'un clone neuf : plusieurs minutes (téléchargement de Gradle et de
+    Kotlin/Native, ~2 Go).
+- **Pièges rencontrés, corrigés et documentés** (CLAUDE.md, section Monorepo) :
+  - Xcode liait l'ancien framework dans le build même qui le reconstruisait → sorties du
+    script déclarées ;
+  - `generic/platform=iOS Simulator` compile aussi x86_64, que le framework n'a pas ;
+  - le BOM Compose 2026.09 impose compileSdk 37.
+- **Reste à valider sur le terrain** : Road Book d'une vraie sortie avec le moteur Kotlin (défaut)
+  puis le Swift natif (Réglages > Avancé), comparés. L'implémentation Swift n'est supprimée
+  qu'après cette validation.
+
 ## Ordre de portage suggéré
 
-1. **Pilote (it32)** : géométrie du Road Book. `RoadbookAnalyzer` sans la fusion Valhalla, plus
+1. **Pilote (it32, FAIT — voir ci-dessus)** : géométrie du Road Book. `RoadbookAnalyzer` sans la fusion Valhalla, plus
    `TrackProjector` (distances cumulées, interpolation, projection), `TierThresholds`/paliers et
    les seuils de `NavigationConstants`.
    Pourquoi ce choix : zéro réseau, zéro état, une seule dépendance Apple (la distance,

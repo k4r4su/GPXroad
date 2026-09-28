@@ -8,6 +8,11 @@ Claude Code sur ce dépôt. Le lire en entier avant de toucher au code.
 `defaults` vise donc `com.olivier.gpxlibre`. Le produit s'appelle `GPXroad.app`, le module Swift
 `GPXroad` (`@testable import GPXroad`).
 
+**Monorepo depuis it32** : `iosApp/` (projet Xcode : `GPXroad/`, `GPXroadTests/`, `project.yml`,
+`scripts/`), `shared/` (logique Kotlin Multiplatform), `androidApp/` (Compose), plus `server/`,
+`docs/` et la documentation à la racine. Les chemins `GPXroad/...` de ce fichier sont relatifs à
+`iosApp/`. Voir la section "Monorepo et Kotlin Multiplatform".
+
 ## Philosophie propriétaire (mot pour mot, ne pas dévier)
 
 > « Le but de l'app c'est d'afficher une trace de façon simple, pouvoir la suivre, la
@@ -289,12 +294,64 @@ docs/             Docs livrables pour le propriétaire (pas du pense-bête inter
                    regionales.md (manuel Planetiler/osmium à exécuter sur le NAS)
 ```
 
-Hors GPXroad/ : `scripts/l10n_check.py` (it31) — vérification des traductions, voir
-"Traductions" plus bas.
+Hors GPXroad/ : `iosApp/scripts/l10n_check.py` (it31) — vérification des traductions, voir
+"Traductions" plus bas ; `iosApp/scripts/build_shared.sh` (it32) — framework Kotlin.
 
-`project.yml` (xcodegen) est la source de vérité du projet Xcode. **Après tout ajout ou
+`iosApp/project.yml` (xcodegen, à lancer DEPUIS `iosApp/`) est la source de vérité du projet Xcode. **Après tout ajout ou
 suppression de fichier Swift, lancer `xcodegen generate`** avant de builder — ne jamais
 éditer `GPXroad.xcodeproj` à la main.
+
+## Monorepo et Kotlin Multiplatform (it32)
+
+```
+iosApp/      projet Xcode (déplacé tel quel à it32, aucun fichier de logique modifié)
+shared/      module KMP : commonMain / iosMain / androidMain / commonTest ; MIGRATION_AUDIT.md
+androidApp/  app Jetpack Compose (écran de test unique à it32)
+gradle/, settings.gradle.kts, build.gradle.kts, gradlew   build Gradle (racine)
+```
+
+- **Audit** : `shared/MIGRATION_AUDIT.md` — chaque fichier Swift classé A/B/C, ordre de portage.
+  À tenir à jour à chaque portage.
+- **Outils** : JDK = celui d'Android Studio (`export JAVA_HOME="/Applications/Android
+  Studio.app/Contents/jbr/Contents/Home"`), SDK Android dans `~/Library/Android/sdk`
+  (`local.properties`, non versionné). Versions dans `gradle/libs.versions.toml` (Kotlin 2.4.20,
+  AGP 9.4.1, Gradle 9.8.0, compileSdk 37 exigé par le BOM Compose).
+- **Commandes** (depuis la racine) : `./gradlew :shared:iosSimulatorArm64Test
+  :shared:testAndroidHostTest` (tests Kotlin sur les deux plateformes),
+  `./gradlew :androidApp:assembleDebug` (APK).
+- **Consommation iOS** : `GPXroadShared.xcframework` (framework STATIQUE, rien à embarquer),
+  construit par la cible agrégée `SharedKotlin` (dépendance de l'app ET des tests) via
+  `iosApp/scripts/build_shared.sh`, qui ne lance Gradle QUE si `shared/src`, `shared/build.gradle.kts`
+  ou le catalogue de versions ont changé (0,1 s sinon, 11 s après une modification Kotlin).
+  Ses `outputFiles` sont déclarés : sans eux, Xcode liait l'ANCIEN framework dans le build même
+  qui le reconstruisait (constaté). Premier build d'un clone neuf : JDK + réseau nécessaires
+  (téléchargement Gradle et chaîne Kotlin/Native, plusieurs minutes, ~2 Go dans `~/.konan`).
+- **Pilote porté** : partie géométrique de `RoadbookAnalyzer` + `TrackProjector` utile →
+  `shared/.../roadbook/` (`RoadbookGeometry`, `TrackGeometry`). Côté Swift :
+  `SharedRoadbookGeometryBridge` (seule frontière) ; `RoadbookGeometryEngine` `.shared` (défaut) /
+  `.native` (implémentation Swift d'origine, `RoadbookAnalyzer.nativeGeometricEvents`, gardée
+  tant que la parité n'est pas validée sur le terrain ; choix en Réglages > Avancé, build DEBUG).
+  **Tant que les deux existent, toute modification de l'une se reporte dans l'autre** —
+  `SharedRoadbookParityTests` casse sinon.
+- **Parité — ce qui a été mesuré (ne pas re-découvrir)** :
+  - `CLLocation.distance(from:)` n'est égal à aucune formule standard (ni sphère, ni Vincenty :
+    +11 m sur 18 km) et n'est PAS déterministe dans le simulateur (même paire de points, deux
+    résultats selon le moment, jusqu'à 1,6·10⁻⁴ relatif sur 3 m). Le Road Book validé en dépend.
+  - D'où `geodesicDistanceMeters` expect/actual : `CLLocation` sur iOS (Road Book inchangé),
+    Vincenty sur Android. Tout passer en Vincenty rendrait le calcul déterministe et identique
+    sur les deux plateformes, mais déplace des événements sur les longues traces (vosges-tour :
+    203 → 201 événements avec des réglages extrêmes) — DÉCISION PRODUIT OUVERTE (TODO.md).
+  - `sin`/`cos` d'un même argument → `__sincos_stret` (1 ulp d'écart) en Kotlin/Native ET en
+    Swift `-O`, pas en Swift Debug : l'égalité au bit près n'existe même pas entre deux builds
+    Swift. Critère retenu : structure STRICTEMENT égale (nombre, palier, sens, index,
+    coordonnée), angle ≤ 0,05°, distance ≤ 10⁻³ relatif (écarts réels : 0,008°, 1,9·10⁻⁴).
+  - Validation réelle : `TEST_RUNNER_GPXROAD_PARITY_GPX_DIR=<dossier de .gpx> xcodebuild test
+    -only-testing:GPXroadTests/SharedRoadbookParityTests` — 15 traces du propriétaire × 2 sens ×
+    3 réglages, 23 563 événements identiques (it32).
+- **Coût** : framework 1,9 Mo par architecture avant élagage ; 20 000 points → Kotlin 29-37 ms,
+  Swift Debug 65 ms.
+- Kotlin : jamais de texte affiché ni de SF Symbol dans `shared/` (libellés et traductions
+  restent natifs, voir audit constat 3).
 
 ## Moteur de carte
 
@@ -430,7 +487,8 @@ Caméra stable. **Toute itération suivante doit rester verte sur cette base** :
 avant chaque livraison, sans test désactivé ni skip ajouté pour "faire passer". Le seul skip
 possible, `SharedBlockageLiveServerTests`, se lève en lançant `server/app.py` localement (copie
 hors dépôt : `python3 -m uvicorn app:app --port 8000`). Au jalon, le run était de 413 tests,
-0 échec, 0 skip ; à it29, 452 tests, 0 échec, 0 skip ; à it30, 470 tests ; à it31, 491 tests, 0 échec, 0 skip. Le résultat attendu de
+0 échec, 0 skip ; à it29, 452 tests, 0 échec, 0 skip ; à it30, 470 tests ; à it31, 491 tests, 0 échec, 0 skip ; à it32, 495 tests, 0 échec, 0 skip (toute la suite
+tourne avec le moteur géométrique Kotlin). Le résultat attendu de
 `RoadbookStableRegressionTests` n'a pas changé à it29. Le repli "Entrée de <localité>" (actif
 par défaut depuis it29) fait désormais partie du comportement validé : `RoadbookCityEntryTests`.
 
@@ -473,7 +531,7 @@ dès qu'on quitte l'onglet Ride, et rien ne tournait en arrière-plan. Règles d
   `String(localized:)` ne suit PAS la langue choisie (constaté par test). Texte connu seulement à
   l'exécution (libellé de repère stocké en clé française) : `L10n.dynamic`, clé ajoutée à
   `L10n.dynamicKeys`. Puis ajouter la traduction dans les 4 `Localizable.strings` et lancer
-  `python3 scripts/l10n_check.py` (0 manquante attendu ; il signale aussi un `String(localized:)`
+  `python3 iosApp/scripts/l10n_check.py` (0 manquante attendu ; il signale aussi un `String(localized:)`
   sans bundle). `LocalizationTests` vérifie mêmes clés et mêmes variables dans les 4 langues.
 - Dates : `AppLanguageBundle.locale` + `setLocalizedDateFormatFromTemplate`, jamais `fr_FR` en
   dur. Services externes : `AppLanguageBundle.bcp47` (Valhalla, voix), `currentCode`
@@ -548,7 +606,7 @@ version.
   — impossible de taper à travers l'UI. Vérification honnête : soit forcer un état via une
   modification de code TEMPORAIRE (annulée juste après, jamais commitée), soit documenter la
   limite plutôt que prétendre avoir vérifié visuellement quelque chose qui ne l'a pas été.
-- Build : `xcodebuild -project GPXroad.xcodeproj -scheme GPXroad -destination
+- Build (depuis `iosApp/`) : `xcodebuild -project GPXroad.xcodeproj -scheme GPXroad -destination
   'platform=iOS Simulator,id=<udid>' build` (simulateur) et `-destination
   'generic/platform=iOS' build CODE_SIGNING_ALLOWED=NO` (device, compile-only). Les deux
   doivent être verts avant tout commit.
@@ -574,7 +632,10 @@ changement touche l'interface utilisateur, au même titre que CLAUDE.md/TODO.md.
 décrit une fonctionnalité disparue ou modifiée est pire que pas de tutoriel. Tout texte ajouté
 ou modifié y est aussi traduit (voir "Traductions").
 
-**Vérifier les traductions** : `python3 scripts/l10n_check.py` → 0 manquante.
+**Vérifier les traductions** : `python3 iosApp/scripts/l10n_check.py` → 0 manquante.
+
+**Kotlin partagé** (it32) : `./gradlew :shared:iosSimulatorArm64Test :shared:testAndroidHostTest
+:androidApp:assembleDebug` vert, et `shared/MIGRATION_AUDIT.md` à jour si un fichier a été porté.
 
 **Mettre à jour `README.md`** (demande explicite du propriétaire, it17) si une nouvelle
 feature utilisateur clé a été ajoutée/changée — c'est la vitrine du dépôt sur GitHub, pas un
