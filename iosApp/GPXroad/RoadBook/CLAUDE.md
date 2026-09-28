@@ -671,3 +671,17 @@ en roulant**. Jamais une limite de commune, un lieu-dit sans panneau, un commerc
   de `RoadbookFocusedView` en 390×560 (portrait) et 700×300 + `verticalSizeClass = .compact`
   (paysage), dans un test TEMPORAIRE — les listes défilantes n'y apparaissent pas (limite
   d'`ImageRenderer`), elles se vérifient sur le simulateur en portrait.
+
+## Itération 33 bis — vrais carrefours, ronds-points dessinés, Overpass auto-hébergé
+
+- **Route connue** (manœuvres Valhalla présentes) : événements = points de décision Valhalla
+  SEULEMENT (`RoadbookAnalyzer.routeAwareEvents`, Kotlin). Diagnostic terrain : tous les faux
+  virages (« on reste sur la même route ») venaient de la géométrie, et un « virage fort »
+  géométrique écrasait le rond-point Valhalla voisin. Détails de la règle : CLAUDE.md racine.
+- **Rond-point dessiné** : `RoadbookRoundaboutDrawing` (Swift, écran ET PDF) sur la géométrie
+  partagée `RoundaboutPictogram` (Kotlin) — entrée en bas, trajet par la droite (circulation à
+  droite) jusqu'à la sortie placée au VIRAGE NET réel de la trace (plus la convention « 45° par
+  rang »), sorties passées en gris quand leur nombre est connu, numéro au centre. Même dessin dans
+  la bannière latérale du Ride (`LateralCapBannerView.checkpoint`).
+- **Overpass** : `OverpassConfiguration` — instance du propriétaire d'abord (Basic Auth), publique
+  en secours à chaque essai, identifiants jamais envoyés à la publique.

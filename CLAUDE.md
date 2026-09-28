@@ -294,6 +294,10 @@ docs/             Docs livrables pour le propriétaire (pas du pense-bête inter
                    regionales.md (manuel Planetiler/osmium à exécuter sur le NAS)
 ```
 
+**Overpass** : instance auto-hébergée du propriétaire (`overpass.zim.ovh`, Basic Auth optionnel dans
+le Trousseau) en premier, publique en secours, identifiants jamais envoyés à la publique —
+`OverpassConfiguration`, Réglages > Avancé > Serveur Overpass.
+
 Hors GPXroad/ : `iosApp/scripts/l10n_check.py` (it31) — vérification des traductions, voir
 "Traductions" plus bas ; `iosApp/scripts/build_shared.sh` (it32) — framework Kotlin.
 
@@ -356,6 +360,15 @@ gradle/, settings.gradle.kts, build.gradle.kts, gradlew   build Gradle (racine)
   sur 18 km) et n'est pas déterministe dans le simulateur. Effet de la bascule sur 15 traces réelles
   × 2 sens (7 722 virages) : 1 virage ancré 8 points GPX plus tôt, distances ±2,5 m. Le compteur
   GPS et l'espacement d'enregistrement restent sur `CLLocation` (mesures GPS, pas de trace).
+- **Route connue = seulement les vrais carrefours (it33 bis, retour terrain)** — quand des
+  manœuvres Valhalla (map matching) existent, `RoadbookAnalyzer.routeAwareEvents` ne produit QUE
+  des points de décision Valhalla : jamais une courbe de la route (« si on suit la route, il n'y a
+  pas de changement de direction »). Manœuvres à < 50 m = un carrefour (angle NET de la trace) ;
+  même nom de route avant/après = gardé seulement si ≥ 90° ; rond-point = entrée + sortie en un
+  événement, sortie réelle (virage net) et numéro. Sans map matching : détection géométrique
+  inchangée (fusion à 150 m). Diagnostic fait avec le cache Valhalla de l'iPhone (lecture seule,
+  `devicectl device copy from … Documents/RoadbookMapMatchCache`) : ne JAMAIS re-valider une
+  règle du Road Book sans rejouer ces traces réelles.
 - **Instantanés** : `RoadbookStableRegressionTests` (iOS, chaîne complète Overpass → Road Book) et
   `RoadbookReferenceSnapshotTest` (Kotlin, même trace, mêmes lignes). `SharedRoadbookCatalogTests`
   garde les catalogues Swift (affichage) et Kotlin (règles) alignés.

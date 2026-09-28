@@ -1,5 +1,28 @@
 # TODO
 
+## Itération 33 bis — retour terrain du 28/09 : vrais carrefours, ronds-points, Overpass
+
+Commits `roadbook-junctions-only-when-route-known`, `overpass-self-hosted-basic-auth`.
+Checklist manuelle (iPhone, Valhalla activé — badge vert) :
+- [ ] Wahlbach travail full : plus de « virage léger » à 1,5 km (on reste sur la Rue de Franken),
+      ni sur les courbes de la D 419 (10,5 / 16,1 / 16,6 km).
+- [ ] Riespach (wahlbach-moulin-bas, dans les deux sens) : seul le vrai carrefour est annoncé,
+      assez tôt, sans « virage » intermédiaire dans la courbe de la D 463.
+- [ ] Ronds-points (Road Book, bannière Ride, PDF) : rond-point dessiné, trajet jusqu'à la bonne
+      sortie, numéro de sortie au centre ; la sortie dessinée correspond à celle prise.
+- [ ] Réglages > Avancé > Serveur Overpass : saisir l'identifiant et le mot de passe Basic Auth,
+      « Tester la connexion » → « Connecté » ; les repères du Road Book se chargent vite.
+- [ ] Sans Valhalla (désactivé) : le Road Book reste celui d'avant (détection géométrique).
+
+Choix faits, à valider sur le terrain :
+- Virage en restant sur la même route (même nom avant/après) : gardé seulement s'il est franc
+  (≥ palier « fort », 90°) — cas d'une route qui tourne à un carrefour où une autre continue.
+- Deux manœuvres Valhalla à moins de 50 m = un seul carrefour (angle net) ; au-delà, deux
+  annonces distinctes, même rapprochées (plus de fusion à 150 m entre vrais carrefours).
+- Ronds-points : sortie « tout droit » sous 20° d'écart ; au-delà, dessinée à l'angle réel.
+- Chemin des Prés (Wahlbach travail, 18,5 km) : décalage d'axe de 5-13° entre deux rues, non
+  annoncé (sous le seuil de 10° d'un changement de route).
+
 ## Itération 33 — Road Book en Kotlin, rejoindre la trace, lisibilité — v0.0.33
 
 Commits `single-geodesic-formula-vincenty`, `roadbook-logic-in-shared-kotlin`,
@@ -92,8 +115,7 @@ Commits `library-folders`, `ride-start-recording-prompt`, `in-app-tutorial`,
 - [ ] Guidage Valhalla « Aller à » > Itinéraire en anglais : instructions et voix en anglais.
 
 Identifié, NON traité :
-- **Overpass auto-hébergé** : l'URL de ton instance n'a pas été fournie ; l'app interroge
-  toujours overpass-api.de (`RoadBookConstants.overpassBaseURLString`).
+- **Overpass auto-hébergé** : fait (it33 bis), voir ci-dessus.
 - **« Ramage scroll »** (lot bugfix Road Book cité par la fiche) : non identifié ; les autres
   points de ce lot (agglomération, sélecteur en lecture seule, progression enrichie) sont faits
   depuis it29.
