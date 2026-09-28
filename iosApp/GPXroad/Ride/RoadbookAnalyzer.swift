@@ -1,5 +1,6 @@
 import Foundation
 import CoreLocation
+import GPXroadShared
 
 /// Analyse une trace GPX une seule fois au chargement pour produire les événements du roadbook
 /// (changements de cap). Ne modifie jamais la trace elle-même.
@@ -39,8 +40,7 @@ enum RoadbookAnalyzer {
         hardThresholdDegrees: Double,
         veryHardThresholdDegrees: Double,
         mergeMinDistanceMeters: Double,
-        mapMatchedManeuvers: [MapMatchedManeuver] = [],
-        engine: RoadbookGeometryEngine = .current
+        mapMatchedManeuvers: [MapMatchedManeuver] = []
     ) -> [Checkpoint] {
         let points = track.points
         guard points.count > 2, windowBeforeMeters > 0, windowAfterMeters > 0 else { return [] }
@@ -48,30 +48,15 @@ enum RoadbookAnalyzer {
         let cumulativeDistances = TrackProjector.cumulativeDistances(for: points)
         let thresholds = TierThresholds(light: lightThresholdDegrees, marked: markedThresholdDegrees, hard: hardThresholdDegrees, veryHard: veryHardThresholdDegrees)
 
-        // It32 (pilote Kotlin Multiplatform) : la partie GÉOMÉTRIQUE vient par défaut du module
-        // partagé `shared/` ; l'implémentation Swift d'origine reste disponible (`.native`) tant que
-        // la parité n'est pas validée en conditions réelles. La fusion Valhalla ci-dessous reste en
-        // Swift et s'applique au résultat, quel que soit le moteur.
-        let geometricEvents: [Checkpoint]
-        switch engine {
-        case .shared:
-            geometricEvents = SharedRoadbookGeometryBridge.geometricEvents(
-                points: points,
-                windowBeforeMeters: windowBeforeMeters,
-                windowAfterMeters: windowAfterMeters,
-                thresholds: thresholds,
-                mergeMinDistanceMeters: mergeMinDistanceMeters
-            )
-        case .native:
-            geometricEvents = nativeGeometricEvents(
-                points: points,
-                cumulativeDistances: cumulativeDistances,
-                windowBeforeMeters: windowBeforeMeters,
-                windowAfterMeters: windowAfterMeters,
-                thresholds: thresholds,
-                mergeMinDistanceMeters: mergeMinDistanceMeters
-            )
-        }
+        // Partie GÉOMÉTRIQUE : module Kotlin partagé (`shared/`, pilote it32 validé sur le terrain).
+        // La fusion Valhalla ci-dessous s'applique au résultat.
+        let geometricEvents = SharedRoadbookGeometryBridge.geometricEvents(
+            points: points,
+            windowBeforeMeters: windowBeforeMeters,
+            windowAfterMeters: windowAfterMeters,
+            thresholds: thresholds,
+            mergeMinDistanceMeters: mergeMinDistanceMeters
+        )
         guard !mapMatchedManeuvers.isEmpty else { return geometricEvents }
 
         return mergingMapMatchedDirectionChanges(
@@ -84,54 +69,6 @@ enum RoadbookAnalyzer {
             windowAfterMeters: windowAfterMeters,
             mergeMinDistanceMeters: mergeMinDistanceMeters
         )
-    }
-
-    /// Partie géométrique en Swift natif — implémentation d'origine (it14 → it26), conservée à
-    /// l'identique comme référence de parité du portage Kotlin (it32). Ne pas modifier sans
-    /// reporter le changement dans `shared/.../RoadbookGeometry.kt`.
-    static func nativeGeometricEvents(
-        points: [GPXPoint],
-        cumulativeDistances: [Double],
-        windowBeforeMeters: Double,
-        windowAfterMeters: Double,
-        thresholds: TierThresholds,
-        mergeMinDistanceMeters: Double
-    ) -> [Checkpoint] {
-        let lightThresholdDegrees = thresholds.light
-
-        // Fix "roadbook-turn-angle-from-heading-chords" : changement de cap RÉEL en chaque
-        // sommet (voir `headingChange`), candidats au-delà du seuil minimal, puis regroupés.
-        var candidates: [(pointIndex: Int, angle: Double)] = []
-        for i in 1..<(points.count - 1) {
-            guard let angle = headingChange(
-                atCumulativeDistance: cumulativeDistances[i],
-                points: points,
-                cumulativeDistances: cumulativeDistances,
-                windowBeforeMeters: windowBeforeMeters,
-                windowAfterMeters: windowAfterMeters
-            ), abs(angle) >= lightThresholdDegrees else { continue }
-            candidates.append((i, angle))
-        }
-
-        var raw: [(coordinate: CLLocationCoordinate2D, angle: Double, direction: TurnDirection, tier: RoadbookTier, pointIndex: Int)] = []
-        for candidate in clustered(candidates, points: points, cumulativeDistances: cumulativeDistances, windowBeforeMeters: windowBeforeMeters, windowAfterMeters: windowAfterMeters, minimumTurnDegrees: lightThresholdDegrees) {
-            let i = candidate.pointIndex
-            let absAngle = abs(candidate.angle)
-
-            // Fix "roadbook-no-false-uturn" (it26 point 2) : le demi-tour n'est plus un palier
-            // d'angle (≥ 135° avant, ce qui classait toute épingle en demi-tour) — il faut que la
-            // trace reparte réellement sur SON PROPRE tracé. Au départ/à l'arrivée, c'est une
-            // manœuvre de stationnement : ignorée.
-            let reversesOnSamePath = absAngle >= NavigationConstants.roadbookUTurnMinDegrees
-                && returnsOnSamePath(at: i, points: points, cumulativeDistances: cumulativeDistances, probeMeters: min(windowBeforeMeters, windowAfterMeters))
-            if reversesOnSamePath, isNearTrackEndpoint(cumulativeDistances[i], cumulativeDistances: cumulativeDistances) { continue }
-
-            let tier = reversesOnSamePath ? .uTurn : thresholds.tier(forAbsoluteAngle: absAngle)
-            let direction: TurnDirection = tier == .uTurn ? .uTurn : (candidate.angle > 0 ? .right : .left)
-            raw.append((points[i].coordinate, absAngle, direction, tier, i))
-        }
-
-        return mergeNearby(raw, minDistanceMeters: mergeMinDistanceMeters, cumulativeDistances: cumulativeDistances)
     }
 
     /// Fusionne les points de map matching dans la liste géométrique déjà produite, DANS
@@ -502,9 +439,11 @@ enum RoadbookAnalyzer {
         }
     }
 
+    /// Distance géodésique de l'app pour tout ce qui se mesure le long d'une trace : Vincenty, la
+    /// MÊME fonction que le module partagé (it33 : une seule formule sur iOS et Android — plus
+    /// `CLLocation.distance`, non documentée et non déterministe, voir shared/LatLon.kt).
     static func distanceMeters(_ a: CLLocationCoordinate2D, _ b: CLLocationCoordinate2D) -> Double {
-        CLLocation(latitude: a.latitude, longitude: a.longitude)
-            .distance(from: CLLocation(latitude: b.latitude, longitude: b.longitude))
+        LatLonKt.geodesicDistanceMeters(latitude1: a.latitude, longitude1: a.longitude, latitude2: b.latitude, longitude2: b.longitude)
     }
 
     static func bearing(from: CLLocationCoordinate2D, to: CLLocationCoordinate2D) -> Double {

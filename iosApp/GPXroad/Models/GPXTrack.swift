@@ -53,11 +53,10 @@ struct GPXTrack: Identifiable, Codable, Hashable {
 
     var totalDistanceMeters: Double {
         guard points.count > 1 else { return 0 }
-        var total: CLLocationDistance = 0
+        // Même formule que le Road Book (it33) : la longueur affichée = sa dernière distance cumulée.
+        var total: Double = 0
         for i in 1..<points.count {
-            let a = CLLocation(latitude: points[i - 1].latitude, longitude: points[i - 1].longitude)
-            let b = CLLocation(latitude: points[i].latitude, longitude: points[i].longitude)
-            total += a.distance(from: b)
+            total += RoadbookAnalyzer.distanceMeters(points[i - 1].coordinate, points[i].coordinate)
         }
         return total
     }

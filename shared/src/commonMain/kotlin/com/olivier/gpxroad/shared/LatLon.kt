@@ -4,14 +4,16 @@ package com.olivier.gpxroad.shared
 data class LatLon(val latitude: Double, val longitude: Double)
 
 /**
- * Distance géodésique (m) entre deux coordonnées.
+ * Distance géodésique (m) entre deux coordonnées : Vincenty sur l'ellipsoïde WGS84, la MÊME sur
+ * iOS et Android (décision it33 : une seule formule, une seule logique à maintenir).
  *
- * iOS : `CLLocation.distance(from:)`, comme le Swift natif (`RoadbookAnalyzer.distanceMeters`) —
- * condition pour que le Road Book reste celui validé (it28). Mesuré à it32 : cette formule Apple
- * n'est pas documentée, ne correspond à aucune formule standard et varie légèrement selon le
- * moment de l'appel ; passer à Vincenty déplace de quelques dixièmes de mètre les distances
- * cumulées d'une longue trace, assez pour ajouter ou retirer un événement (2 sur 203 sur
- * vosges-tour). Android : Vincenty WGS84 (formule explicite, déterministe). Unifier les deux
- * plateformes = décision produit à prendre (voir MIGRATION_AUDIT.md, constat 1).
+ * Remplace `CLLocation.distance(from:)` partout où l'app mesure le long d'une trace — mesuré à
+ * it32 : la formule d'Apple n'est pas documentée, ne correspond à aucune formule standard (+11 m
+ * sur 18 km par rapport à Vincenty) et varie légèrement d'un appel à l'autre dans le simulateur.
  */
-expect fun geodesicDistanceMeters(a: LatLon, b: LatLon): Double
+fun geodesicDistanceMeters(a: LatLon, b: LatLon): Double =
+    vincentyDistanceMeters(a.latitude, a.longitude, b.latitude, b.longitude)
+
+/** Variante sans allocation, pour les appels depuis Swift (une par segment de trace). */
+fun geodesicDistanceMeters(latitude1: Double, longitude1: Double, latitude2: Double, longitude2: Double): Double =
+    vincentyDistanceMeters(latitude1, longitude1, latitude2, longitude2)

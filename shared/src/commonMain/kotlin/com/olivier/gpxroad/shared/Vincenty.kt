@@ -9,14 +9,14 @@ import kotlin.math.sin
 import kotlin.math.sqrt
 import kotlin.math.tan
 
-/** Distance de Vincenty (formule inverse) sur l'ellipsoïde WGS84 — `geodesicDistanceMeters` hors iOS. */
-internal fun vincentyDistanceMeters(a: LatLon, b: LatLon): Double {
+/** Distance de Vincenty (formule inverse) sur l'ellipsoïde WGS84 */
+internal fun vincentyDistanceMeters(lat1: Double, lon1: Double, lat2: Double, lon2: Double): Double {
     val semiMajor = 6_378_137.0
     val flattening = 1 / 298.257223563
     val semiMinor = (1 - flattening) * semiMajor
-    val l = (b.longitude - a.longitude) * PI / 180
-    val u1 = atan((1 - flattening) * tan(a.latitude * PI / 180))
-    val u2 = atan((1 - flattening) * tan(b.latitude * PI / 180))
+    val l = (lon2 - lon1) * PI / 180
+    val u1 = atan((1 - flattening) * tan(lat1 * PI / 180))
+    val u2 = atan((1 - flattening) * tan(lat2 * PI / 180))
     val sinU1 = sin(u1)
     val cosU1 = cos(u1)
     val sinU2 = sin(u2)

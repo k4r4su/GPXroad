@@ -625,8 +625,3 @@
 "à gauche" = "on the left";
 "Langue" = "Language";
 "Français, English, Deutsch, Español, Italiano. En automatique, une langue d'appareil non prise en charge affiche l'app en français." = "Français, English, Deutsch, Español, Italiano. In automatic mode, an unsupported device language shows the app in French.";
-
-/* It32 — pilote Kotlin Multiplatform (Réglages > Avancé, build DEBUG) */
-"Moteur géométrie Road Book" = "Road Book geometry engine";
-"Kotlin partagé" = "Shared Kotlin";
-"Swift natif" = "Native Swift";

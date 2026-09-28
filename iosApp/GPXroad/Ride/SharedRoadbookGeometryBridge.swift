@@ -2,21 +2,6 @@ import Foundation
 import CoreLocation
 import GPXroadShared
 
-/// Moteur de la partie géométrique du Road Book (it32, pilote Kotlin Multiplatform) — `.shared`
-/// (module Kotlin `shared/`, par défaut) ou `.native` (implémentation Swift d'origine, gardée tant
-/// que la parité n'est pas validée en conditions réelles). Choix de debug : Réglages > Avancé.
-enum RoadbookGeometryEngine: String, CaseIterable, Identifiable {
-    case shared, native
-
-    static let defaultsKey = "debug.roadbookGeometryEngine"
-
-    static var current: RoadbookGeometryEngine {
-        UserDefaults.standard.string(forKey: defaultsKey).flatMap(RoadbookGeometryEngine.init(rawValue:)) ?? .shared
-    }
-
-    var id: String { rawValue }
-}
-
 /// Seule frontière Swift ↔ Kotlin du Road Book : convertit la trace en tableaux, appelle
 /// `RoadbookGeometry` (Kotlin) et reconvertit ses événements en `Checkpoint`.
 enum SharedRoadbookGeometryBridge {
