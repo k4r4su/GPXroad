@@ -1,5 +1,27 @@
 # TODO
 
+## À venir — serveurs Valhalla et Overpass intégrés par défaut pour tous (demande du 29/09)
+
+Objectif du propriétaire : ses serveurs Valhalla et Overpass « built in » dans l'app, sans que
+chaque utilisateur ait à les saisir. **Jamais de mot de passe dans l'app** : tout ce qui est
+embarqué dans le binaire (iOS ou Android) s'extrait en quelques minutes — même règle que « aucun
+secret dans le dépôt ».
+
+- **Étape 1 (TestFlight, petit groupe)** : adresses publiques des deux serveurs intégrées par
+  défaut, SANS authentification côté app ; protection côté serveur par un reverse proxy (nginx) :
+  limite de débit par client, taille/durée maximale des requêtes Overpass, seuls les chemins
+  utiles exposés (`/api/interpreter`, `/api/status`, `/trace_route`, `/route`), blocage des abus.
+  Option : clé d'app changeable à distance (configuration lue au démarrage) — un frein, pas un secret.
+- **Étape 2 (sortie publique)** : attestation d'app — App Attest (iOS, probablement le compte
+  développeur payant, comme TestFlight/CarPlay) et Play Integrity (Android). Petite passerelle
+  sur le serveur qui vérifie l'attestation et délivre un jeton court ; Valhalla/Overpass
+  n'acceptent que ce jeton.
+- **Garder** : Overpass public en secours, champs des Réglages pour saisir son propre serveur
+  (le propriétaire, ou un utilisateur auto-hébergé). L'adresse LAN de la maison reste un réglage
+  personnel, jamais une valeur par défaut.
+- **À mesurer avant** : charge et bande passante du serveur de la maison si tous les utilisateurs
+  y passent (Overpass surtout) ; exposition de l'IP de la maison.
+
 ## Itération 33 bis — retour terrain du 28/09 : vrais carrefours, ronds-points, Overpass
 
 Commits `roadbook-junctions-only-when-route-known`, `overpass-self-hosted-basic-auth`.
