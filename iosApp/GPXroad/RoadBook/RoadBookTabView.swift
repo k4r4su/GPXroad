@@ -49,6 +49,8 @@ struct RoadBookTabView: View {
     /// trajet déjà map-matché depuis l'onglet Ride dans le même sens profite d'un cache-hit
     /// immédiat ici, et vice-versa.
     @State private var mapMatchedManeuvers: [MapMatchedManeuver] = []
+    /// Portions recalées par Valhalla (it33 bis) — `nil` : pas de map matching.
+    @State private var mapMatchCoverage: [ClosedRange<Double>]?
     @State private var mapMatchCache = RoadbookMapMatchCache()
     @State private var mapMatchingProvider: MapMatchingProvider = ValhallaMapMatchingProvider()
     @State private var mapMatchingTask: Task<Void, Never>?
@@ -79,7 +81,8 @@ struct RoadBookTabView: View {
             hardThresholdDegrees: settings.roadbookHardThresholdDegrees,
             veryHardThresholdDegrees: settings.roadbookVeryHardThresholdDegrees,
             mergeMinDistanceMeters: settings.turnMergeMinDistanceMeters,
-            mapMatchedManeuvers: mapMatchedManeuvers
+            mapMatchedManeuvers: mapMatchedManeuvers,
+            mapMatchCoverage: mapMatchCoverage
         )
     }
 
@@ -259,6 +262,7 @@ struct RoadBookTabView: View {
         .task(id: selectedTrack?.traversalKey) {
             guard let track = selectedTrack else {
                 mapMatchedManeuvers = []
+                mapMatchCoverage = nil
                 return
             }
             triggerMapMatchingIfNeeded(for: track)
@@ -295,27 +299,33 @@ struct RoadBookTabView: View {
 
         guard let configuration = currentValhallaConfiguration else {
             mapMatchedManeuvers = []
+            mapMatchCoverage = nil
             return
         }
 
-        if let cached = mapMatchCache.maneuvers(for: track) {
-            mapMatchedManeuvers = cached
+        if let cached = mapMatchCache.entry(for: track) {
+            mapMatchedManeuvers = cached.maneuvers
+            mapMatchCoverage = cached.coverage
             return
         }
 
         mapMatchedManeuvers = []
+        mapMatchCoverage = nil
         let sampled = Self.downsampledForMapMatching(track.points.map(\.coordinate))
+        let trackPoints = track.points
         let provider = mapMatchingProvider
 
         mapMatchingTask = Task {
-            guard let matched = try? await provider.matchRoute(coordinates: sampled, configuration: configuration) else { return }
+            guard let result = try? await provider.matchRoute(coordinates: sampled, configuration: configuration) else { return }
+            let coverage = SharedRoadbook.coverage(trackPoints: trackPoints, matchedShapes: result.matchedShapes)
             guard !Task.isCancelled else { return }
             await MainActor.run {
                 guard selectedTrack?.traversalKey == traversalKey else { return }
-                mapMatchCache.store(traversalKey: traversalKey, maneuvers: matched)
-                mapMatchedManeuvers = matched
+                mapMatchCache.store(traversalKey: traversalKey, maneuvers: result.maneuvers, coverage: coverage)
+                mapMatchedManeuvers = result.maneuvers
+                mapMatchCoverage = coverage
                 #if DEBUG
-                RoadbookDebugDump.log(trackName: selectedTrack?.name ?? "", maneuvers: maneuvers, mapMatched: matched)
+                RoadbookDebugDump.log(trackName: selectedTrack?.name ?? "", maneuvers: maneuvers, mapMatched: result.maneuvers)
                 #endif
             }
         }

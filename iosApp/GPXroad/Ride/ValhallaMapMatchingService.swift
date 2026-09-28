@@ -73,8 +73,8 @@ enum ValhallaMapMatchingService {
     static func matchRoute(
         coordinates: [CLLocationCoordinate2D],
         configuration: ValhallaConfiguration
-    ) async throws -> [MapMatchedManeuver] {
-        guard coordinates.count > 1 else { return [] }
+    ) async throws -> MapMatchResult {
+        guard coordinates.count > 1 else { return MapMatchResult(maneuvers: [], matchedShapes: []) }
         guard let url = ValhallaRoutingService.endpointURL(configuration.endpointURLString, path: "trace_route") else {
             throw ValhallaRoutingError.invalidEndpoint
         }
@@ -105,9 +105,10 @@ enum ValhallaMapMatchingService {
             throw ValhallaRoutingError.noRoute
         }
 
-        return matchedManeuvers(legs: decoded.trip.legs.map { leg in
+        let legs = decoded.trip.legs.map { leg in
             (maneuvers: leg.maneuvers ?? [], coordinates: ValhallaRoutingService.decodePolyline6(leg.shape))
-        })
+        }
+        return MapMatchResult(maneuvers: matchedManeuvers(legs: legs), matchedShapes: legs.map(\.coordinates))
     }
 
     /// Manœuvres retenues de TOUS les tronçons (`legs`) de la réponse, chacune avec sa
@@ -164,11 +165,20 @@ enum ValhallaMapMatchingService {
 /// `RideSessionManager.mapMatchingProvider` d'être remplacé par un provider factice en test,
 /// sans jamais dépendre d'un vrai réseau Valhalla.
 protocol MapMatchingProvider {
-    func matchRoute(coordinates: [CLLocationCoordinate2D], configuration: ValhallaConfiguration) async throws -> [MapMatchedManeuver]
+    func matchRoute(coordinates: [CLLocationCoordinate2D], configuration: ValhallaConfiguration) async throws -> MapMatchResult
+}
+
+/// Résultat du map matching (it33 bis) : manœuvres retenues ET géométrie réellement recalée
+/// (un tracé par tronçon) — Valhalla ne recale parfois qu'une PARTIE de la trace ; la couverture
+/// qui en découle (`SharedRoadbook.coverage`) limite la règle « seuls les vrais carrefours » aux
+/// portions recalées.
+struct MapMatchResult {
+    let maneuvers: [MapMatchedManeuver]
+    let matchedShapes: [[CLLocationCoordinate2D]]
 }
 
 struct ValhallaMapMatchingProvider: MapMatchingProvider {
-    func matchRoute(coordinates: [CLLocationCoordinate2D], configuration: ValhallaConfiguration) async throws -> [MapMatchedManeuver] {
+    func matchRoute(coordinates: [CLLocationCoordinate2D], configuration: ValhallaConfiguration) async throws -> MapMatchResult {
         try await ValhallaMapMatchingService.matchRoute(coordinates: coordinates, configuration: configuration)
     }
 }

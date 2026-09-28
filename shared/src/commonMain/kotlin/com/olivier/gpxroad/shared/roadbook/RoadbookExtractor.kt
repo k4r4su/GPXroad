@@ -23,8 +23,9 @@ object RoadbookExtractor {
         points: List<LatLon>,
         settings: RoadbookSettings,
         mapMatchedManeuvers: List<MapMatchedManeuver> = emptyList(),
+        coverage: List<CoveredRange>? = null,
     ): List<RoadbookManeuver> {
-        val checkpoints = RoadbookAnalyzer.buildRoadbookEvents(points, settings, mapMatchedManeuvers)
+        val checkpoints = RoadbookAnalyzer.buildRoadbookEvents(points, settings, mapMatchedManeuvers, coverage)
         if (checkpoints.isEmpty()) return emptyList()
         val cumulative = TrackGeometry.cumulativeDistances(points)
         var previousCumulative = 0.0

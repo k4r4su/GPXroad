@@ -22,7 +22,8 @@ enum RoadbookAnalyzer {
         hardThresholdDegrees: Double,
         veryHardThresholdDegrees: Double,
         mergeMinDistanceMeters: Double,
-        mapMatchedManeuvers: [MapMatchedManeuver] = []
+        mapMatchedManeuvers: [MapMatchedManeuver] = [],
+        mapMatchCoverage: [ClosedRange<Double>]? = nil
     ) -> [Checkpoint] {
         let settings = SharedRoadbook.settings(
             windowBeforeMeters: windowBeforeMeters,
@@ -31,7 +32,7 @@ enum RoadbookAnalyzer {
             mergeMinDistanceMeters: mergeMinDistanceMeters
         )
         return GPXroadShared.RoadbookAnalyzer.shared
-            .buildRoadbookEvents(points: SharedRoadbook.latLons(track.points), settings: settings, mapMatchedManeuvers: mapMatchedManeuvers.map(SharedRoadbook.mapMatched))
+            .buildRoadbookEvents(points: SharedRoadbook.latLons(track.points), settings: settings, mapMatchedManeuvers: mapMatchedManeuvers.map(SharedRoadbook.mapMatched), coverage: SharedRoadbook.sharedCoverage(mapMatchCoverage))
             .map(SharedRoadbook.checkpoint)
     }
 

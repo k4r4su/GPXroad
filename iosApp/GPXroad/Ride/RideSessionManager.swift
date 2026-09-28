@@ -121,6 +121,8 @@ final class RideSessionManager: NSObject, ObservableObject, CLLocationManagerDel
     /// sans `Task.sleep` arbitraire.
     var mapMatchingTask: Task<Void, Never>?
     private(set) var mapMatchedDirectionChangePoints: [MapMatchedManeuver] = []
+    /// Portions de la trace réellement recalées par Valhalla (it33 bis) — `nil` : pas de map matching.
+    private(set) var mapMatchCoverage: [ClosedRange<Double>]?
 
     /// Guidage arrêté (spec "stop-guidance-semantics", it14, Bloc 3) — DISTINCT de
     /// l'enregistrement de la sortie (`RideRecorder`, jamais touché par Stop : il continue). Masque roadbook/bannières de guidage (voir RideView)
@@ -392,6 +394,7 @@ final class RideSessionManager: NSObject, ObservableObject, CLLocationManagerDel
             mapMatchingTask?.cancel()
             mapMatchedTraversalKey = nil
             mapMatchedDirectionChangePoints = []
+            mapMatchCoverage = nil
             // "Reprendre ici" est spécifique au Mode Trace (Bloc 3) — quitter vers le Mode Nav
             // purge tout guidage en cours, jamais laissé orphelin.
             resumeTask?.cancel()
@@ -433,6 +436,7 @@ final class RideSessionManager: NSObject, ObservableObject, CLLocationManagerDel
             mapMatchingTask?.cancel()
             mapMatchedTraversalKey = nil
             mapMatchedDirectionChangePoints = []
+            mapMatchCoverage = nil
             // "Reprendre ici" est spécifique au Mode Trace (Bloc 3) — quitter vers le Mode Nav
             // purge tout guidage en cours, jamais laissé orphelin.
             resumeTask?.cancel()
@@ -596,7 +600,8 @@ final class RideSessionManager: NSObject, ObservableObject, CLLocationManagerDel
             hardThresholdDegrees: settings.roadbookHardThresholdDegrees,
             veryHardThresholdDegrees: settings.roadbookVeryHardThresholdDegrees,
             mergeMinDistanceMeters: settings.turnMergeMinDistanceMeters,
-            mapMatchedManeuvers: mapMatchedDirectionChangePoints
+            mapMatchedManeuvers: mapMatchedDirectionChangePoints,
+            mapMatchCoverage: mapMatchCoverage
         )
         checkpoints = events
         inflectionPoints = events
@@ -620,27 +625,33 @@ final class RideSessionManager: NSObject, ObservableObject, CLLocationManagerDel
 
         guard let configuration = currentValhallaConfiguration else {
             mapMatchedDirectionChangePoints = []
+            mapMatchCoverage = nil
             return
         }
 
-        if let cached = mapMatchCache.maneuvers(for: track) {
+        if let cached = mapMatchCache.entry(for: track) {
             // Pas de rebuildCheckpoints() ici : l'appelant (start/switchMode) en fait déjà un
             // juste après avoir appelé cette fonction, qui lira cette valeur à jour.
-            mapMatchedDirectionChangePoints = cached
+            mapMatchedDirectionChangePoints = cached.maneuvers
+            mapMatchCoverage = cached.coverage
             return
         }
 
         mapMatchedDirectionChangePoints = []
+        mapMatchCoverage = nil
         let sampled = Self.downsampledForMapMatching(track.points.map(\.coordinate))
+        let trackPoints = track.points
         let provider = mapMatchingProvider
 
         mapMatchingTask = Task { [weak self] in
-            guard let matched = try? await provider.matchRoute(coordinates: sampled, configuration: configuration) else { return }
+            guard let result = try? await provider.matchRoute(coordinates: sampled, configuration: configuration) else { return }
+            let coverage = SharedRoadbook.coverage(trackPoints: trackPoints, matchedShapes: result.matchedShapes)
             guard !Task.isCancelled else { return }
             await MainActor.run {
                 guard let self, self.track?.traversalKey == traversalKey else { return }
-                self.mapMatchCache.store(traversalKey: traversalKey, maneuvers: matched)
-                self.mapMatchedDirectionChangePoints = matched
+                self.mapMatchCache.store(traversalKey: traversalKey, maneuvers: result.maneuvers, coverage: coverage)
+                self.mapMatchedDirectionChangePoints = result.maneuvers
+                self.mapMatchCoverage = coverage
                 // Contrairement au cas cache-hit ci-dessus, le rebuildCheckpoints() de
                 // start/switchMode a déjà eu lieu SANS ces points (réponse réseau arrivée après
                 // coup) — celui-ci est nécessaire pour les faire apparaître.

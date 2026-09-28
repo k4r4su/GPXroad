@@ -38,7 +38,7 @@ final class RoadbookMapMatchCacheTests: XCTestCase {
     }
 
     func testManeuversReturnsNilForAnUnknownTrack() {
-        XCTAssertNil(makeCache().maneuvers(for: makeTrack()))
+        XCTAssertNil(makeCache().entry(for: makeTrack()))
     }
 
     func testStoreThenManeuversRoundTrips() {
@@ -49,28 +49,43 @@ final class RoadbookMapMatchCacheTests: XCTestCase {
             MapMatchedManeuver(coordinate: CLLocationCoordinate2D(latitude: 45.2, longitude: 5.3), type: .roundaboutExit, roundaboutExitCount: 2),
         ]
 
-        cache.store(traversalKey: track.traversalKey, maneuvers: maneuvers)
+        cache.store(traversalKey: track.traversalKey, maneuvers: maneuvers, coverage: [0...250, 900...1400])
 
-        let result = cache.maneuvers(for: track)
+        let result = cache.entry(for: track)?.maneuvers
         XCTAssertEqual(result?.count, 2)
         XCTAssertEqual(result?[0].coordinate.latitude ?? -1, 45.1, accuracy: 0.0000001)
         XCTAssertEqual(result?[1].coordinate.longitude ?? -1, 5.3, accuracy: 0.0000001)
         XCTAssertEqual(result?[0].type, .right)
         XCTAssertEqual(result?[1].type, .roundaboutExit)
         XCTAssertEqual(result?[1].roundaboutExitCount, 2)
+        XCTAssertEqual(cache.entry(for: track)?.coverage, [0...250, 900...1400])
+    }
+
+    /// It33 bis : une entrée d'avant la couverture (manœuvres seules) ne dit pas OÙ Valhalla a
+    /// recalé la trace — elle est ignorée pour forcer un nouveau map matching, jamais servie comme
+    /// si toute la trace était couverte (cause du Road Book réduit aux villages).
+    func testAnEntryWithoutCoverageIsIgnoredSoTheTrackIsMatchedAgain() throws {
+        let track = makeTrack()
+        try FileManager.default.createDirectory(at: tempDirectory, withIntermediateDirectories: true)
+        let legacyJSON = """
+        [{"traversalKey":"\(track.traversalKey)","maneuvers":[]}]
+        """
+        try legacyJSON.data(using: .utf8)!.write(to: tempDirectory.appendingPathComponent("index.json"))
+
+        XCTAssertNil(makeCache().entry(for: track))
     }
 
     func testStoringAgainForTheSameTrackReplacesRatherThanDuplicates() {
         let cache = makeCache()
         let track = makeTrack()
 
-        cache.store(traversalKey: track.traversalKey, maneuvers: [MapMatchedManeuver(coordinate: CLLocationCoordinate2D(latitude: 1, longitude: 1), type: .right, roundaboutExitCount: nil)])
+        cache.store(traversalKey: track.traversalKey, maneuvers: [MapMatchedManeuver(coordinate: CLLocationCoordinate2D(latitude: 1, longitude: 1), type: .right, roundaboutExitCount: nil)], coverage: [0...100])
         cache.store(traversalKey: track.traversalKey, maneuvers: [
             MapMatchedManeuver(coordinate: CLLocationCoordinate2D(latitude: 2, longitude: 2), type: .left, roundaboutExitCount: nil),
             MapMatchedManeuver(coordinate: CLLocationCoordinate2D(latitude: 3, longitude: 3), type: .left, roundaboutExitCount: nil),
-        ])
+        ], coverage: [0...100])
 
-        XCTAssertEqual(cache.maneuvers(for: track)?.count, 2)
+        XCTAssertEqual(cache.entry(for: track)?.maneuvers.count, 2)
     }
 
     /// Cœur du besoin terrain : une nouvelle instance (nouveau lancement de l'app) doit
@@ -78,11 +93,11 @@ final class RoadbookMapMatchCacheTests: XCTestCase {
     func testANewInstancePicksUpEntriesWrittenByAPreviousInstanceOnTheSameDirectory() {
         let track = makeTrack()
         let cache1 = makeCache()
-        cache1.store(traversalKey: track.traversalKey, maneuvers: [MapMatchedManeuver(coordinate: CLLocationCoordinate2D(latitude: 45.5, longitude: 5.5), type: .right, roundaboutExitCount: nil)])
+        cache1.store(traversalKey: track.traversalKey, maneuvers: [MapMatchedManeuver(coordinate: CLLocationCoordinate2D(latitude: 45.5, longitude: 5.5), type: .right, roundaboutExitCount: nil)], coverage: [0...100])
 
         let cache2 = makeCache()
 
-        XCTAssertEqual(cache2.maneuvers(for: track)?.count, 1)
+        XCTAssertEqual(cache2.entry(for: track)?.maneuvers.count, 1)
     }
 
     /// Fix "mapmatch-cache-direction-aware" : un résultat map-matché dans le sens A→B (types
@@ -95,10 +110,10 @@ final class RoadbookMapMatchCacheTests: XCTestCase {
         let reversed = forward.reordered(using: TrackRideSettings(isReversed: true))
         XCTAssertEqual(forward.id, reversed.id)
 
-        cache.store(traversalKey: forward.traversalKey, maneuvers: [MapMatchedManeuver(coordinate: CLLocationCoordinate2D(latitude: 45.001, longitude: 5.0), type: .right, roundaboutExitCount: nil)])
+        cache.store(traversalKey: forward.traversalKey, maneuvers: [MapMatchedManeuver(coordinate: CLLocationCoordinate2D(latitude: 45.001, longitude: 5.0), type: .right, roundaboutExitCount: nil)], coverage: [0...100])
 
-        XCTAssertNotNil(cache.maneuvers(for: forward))
-        XCTAssertNil(cache.maneuvers(for: reversed), "le sens inverse doit déclencher son propre map matching, jamais réutiliser les types du sens A→B")
+        XCTAssertNotNil(cache.entry(for: forward)?.maneuvers)
+        XCTAssertNil(cache.entry(for: reversed)?.maneuvers, "le sens inverse doit déclencher son propre map matching, jamais réutiliser les types du sens A→B")
     }
 
     /// Sur une boucle, le premier point est au même endroit dans les deux sens — la clé doit
@@ -132,6 +147,6 @@ final class RoadbookMapMatchCacheTests: XCTestCase {
 
         let cache = makeCache()
 
-        XCTAssertNil(cache.maneuvers(for: track))
+        XCTAssertNil(cache.entry(for: track)?.maneuvers)
     }
 }

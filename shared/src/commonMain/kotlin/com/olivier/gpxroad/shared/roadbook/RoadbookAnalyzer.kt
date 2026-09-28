@@ -25,10 +25,16 @@ import kotlin.math.sin
  */
 object RoadbookAnalyzer {
 
+    /**
+     * @param coverage portions de la trace réellement recalées par le map matching
+     *   ([MapMatchCoverage]) ; `null` = inconnue : toute la trace est considérée couverte dès qu'il y
+     *   a des manœuvres (tests, anciens appels).
+     */
     fun buildRoadbookEvents(
         points: List<LatLon>,
         settings: RoadbookSettings,
         mapMatchedManeuvers: List<MapMatchedManeuver> = emptyList(),
+        coverage: List<CoveredRange>? = null,
     ): List<Checkpoint> {
         val windowBefore = settings.windowBeforeMeters
         val windowAfter = settings.windowAfterMeters
@@ -36,8 +42,30 @@ object RoadbookAnalyzer {
         val cumulative = TrackGeometry.cumulativeDistances(points)
         // Route connue (map matching Valhalla) : seuls les vrais carrefours comptent — « si on reste
         // sur la même route, même si elle tourne, il n'y a pas de changement de direction » (retour
-        // terrain it33). La géométrie seule ne sert que sans map matching (hors ligne, désactivé).
-        if (mapMatchedManeuvers.isNotEmpty()) return routeAwareEvents(mapMatchedManeuvers, points, cumulative, settings)
+        // terrain it33). MAIS seulement là où Valhalla a réellement recalé la trace (it33 bis : un
+        // recalage partiel faisait disparaître tous les changements de route du reste) — ailleurs,
+        // la géométrie de la trace, comme sans map matching.
+        if (coverage == null) {
+            if (mapMatchedManeuvers.isNotEmpty()) return routeAwareEvents(mapMatchedManeuvers, points, cumulative, settings)
+            return geometricEvents(points, cumulative, settings)
+        }
+        if (coverage.isEmpty()) return geometricEvents(points, cumulative, settings)
+        val routeAware = routeAwareEvents(mapMatchedManeuvers, points, cumulative, settings)
+        val routePositions = routeAware.map { it.trackCumulativeDistanceMeters ?: 0.0 }
+        val outside = geometricEvents(points, cumulative, settings).filter { event ->
+            val position = event.cumulativeDistanceMeters(cumulative) ?: return@filter false
+            coverage.none { it.contains(position) } &&
+                routePositions.none { abs(it - position) < settings.mergeMinDistanceMeters }
+        }
+        return (routeAware + outside)
+            .sortedBy { it.cumulativeDistanceMeters(cumulative) ?: 0.0 }
+            .mapIndexed { index, checkpoint -> checkpoint.copy(sequenceIndex = index + 1) }
+    }
+
+    /** Détection par la géométrie de la trace seule (virages, grappes, vrai demi-tour, fusion). */
+    private fun geometricEvents(points: List<LatLon>, cumulative: DoubleArray, settings: RoadbookSettings): List<Checkpoint> {
+        val windowBefore = settings.windowBeforeMeters
+        val windowAfter = settings.windowAfterMeters
         val thresholds = settings.thresholds
 
         val candidates = mutableListOf<Candidate>()

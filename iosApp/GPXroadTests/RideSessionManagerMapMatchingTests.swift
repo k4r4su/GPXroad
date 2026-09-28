@@ -22,18 +22,21 @@ final class RideSessionManagerMapMatchingTests: XCTestCase {
 
     private final class FakeMapMatchingProvider: MapMatchingProvider {
         let maneuversToReturn: [MapMatchedManeuver]
+        let shapesToReturn: [[CLLocationCoordinate2D]]?
         private(set) var callCount = 0
 
         /// `type: .right` par défaut — une vraie décision de conduite (`roadbookTier` non `nil`,
         /// voir it24 point 1), pour ne pas avoir à répéter ce détail dans chaque test qui ne
         /// s'intéresse qu'au déclenchement/cache, pas au filtrage type.
-        init(coordinatesToReturn: [CLLocationCoordinate2D], type: ValhallaManeuverType = .right) {
+        init(coordinatesToReturn: [CLLocationCoordinate2D], type: ValhallaManeuverType = .right, shapes: [[CLLocationCoordinate2D]]? = nil) {
             maneuversToReturn = coordinatesToReturn.map { MapMatchedManeuver(coordinate: $0, type: type, roundaboutExitCount: nil) }
+            shapesToReturn = shapes
         }
 
-        func matchRoute(coordinates: [CLLocationCoordinate2D], configuration: ValhallaConfiguration) async throws -> [MapMatchedManeuver] {
+        /// Tracé recalé = la trace envoyée : toute la trace est couverte par le map matching.
+        func matchRoute(coordinates: [CLLocationCoordinate2D], configuration: ValhallaConfiguration) async throws -> MapMatchResult {
             callCount += 1
-            return maneuversToReturn
+            return MapMatchResult(maneuvers: maneuversToReturn, matchedShapes: shapesToReturn ?? (maneuversToReturn.isEmpty ? [] : [coordinates]))
         }
     }
 
@@ -92,7 +95,7 @@ final class RideSessionManagerMapMatchingTests: XCTestCase {
 
         XCTAssertEqual(provider.callCount, 1)
         XCTAssertEqual(session.mapMatchedDirectionChangePoints.count, 1)
-        XCTAssertEqual(session.mapMatchCache.maneuvers(for: matchedTrack)?.count, 1, "le résultat doit être écrit dans le cache disque")
+        XCTAssertEqual(session.mapMatchCache.entry(for: matchedTrack)?.maneuvers.count, 1, "le résultat doit être écrit dans le cache disque")
     }
 
     /// Fix "mapmatch-cache-direction-aware" : inverser le sens de parcours (Réglages de trace →
@@ -115,8 +118,8 @@ final class RideSessionManagerMapMatchingTests: XCTestCase {
         await session.mapMatchingTask?.value
 
         XCTAssertEqual(provider.callCount, 2, "sens inversé : nouveau map matching, jamais les types du sens A→B")
-        XCTAssertNotNil(session.mapMatchCache.maneuvers(for: forward))
-        XCTAssertNotNil(session.mapMatchCache.maneuvers(for: reversed))
+        XCTAssertNotNil(session.mapMatchCache.entry(for: forward)?.maneuvers)
+        XCTAssertNotNil(session.mapMatchCache.entry(for: reversed)?.maneuvers)
     }
 
     /// Retour d'onglet (Ride→Biblio→Ride) : `switchMode` est appelé pour la MÊME trace, le map
@@ -192,5 +195,25 @@ final class RideSessionManagerMapMatchingTests: XCTestCase {
         await session.mapMatchingTask?.value
 
         XCTAssertTrue(session.checkpoints.contains { $0.tier == .fork })
+    }
+
+    /// It33 bis (retour terrain "Travail maison déviation" : plus que les villages) : Valhalla n'a
+    /// recalé que le début de la trace — le reste garde la détection géométrique, un vrai virage à
+    /// angle droit hors de la partie recalée reste annoncé.
+    func testATurnOutsideThePartValhallaMatchedIsStillAnnounced() async {
+        let session = makeSession(valhallaEnabled: true)
+        let north = (0...10).map { GPXPoint(latitude: 45.0 + Double($0) * 0.0009, longitude: 5.0) }
+        let east = (1...10).map { GPXPoint(latitude: 45.009, longitude: 5.0 + Double($0) * 0.00127) }
+        let partiallyMatched = GPXTrack(id: UUID(), name: "Partiel", fileName: "p.gpx", importDate: Date(), points: north + east, waypoints: [])
+        let matchedStart = Array(north.prefix(5)).map(\.coordinate)
+        let provider = FakeMapMatchingProvider(coordinatesToReturn: [north[2].coordinate], type: .stayRight, shapes: [matchedStart])
+        session.mapMatchingProvider = provider
+
+        session.start(track: partiallyMatched)
+        await session.mapMatchingTask?.value
+
+        XCTAssertEqual(session.mapMatchCoverage?.count, 1)
+        XCTAssertTrue(session.checkpoints.contains { $0.tier == .fork }, "carrefour Valhalla dans la partie recalée")
+        XCTAssertTrue(session.checkpoints.contains { $0.tier == .hard || $0.tier == .marked }, "virage à droite hors couverture : détection géométrique conservée")
     }
 }

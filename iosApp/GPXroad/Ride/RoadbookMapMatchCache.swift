@@ -42,11 +42,14 @@ struct CachedMapMatchedManeuver: Codable {
 struct CachedMapMatch: Codable {
     let traversalKey: String
     let maneuvers: [CachedMapMatchedManeuver]
+    /// Portions de la trace réellement recalées (`[début, fin]` en m, it33 bis). Absent dans les
+    /// caches antérieurs : l'entrée est alors ignorée et le map matching refait une fois.
+    let coveredRanges: [[Double]]?
 }
 
 @MainActor
 final class RoadbookMapMatchCache {
-    private var entries: [String: [CachedMapMatchedManeuver]] = [:]
+    private var entries: [String: (maneuvers: [CachedMapMatchedManeuver], coveredRanges: [[Double]])] = [:]
 
     private let fileManager = FileManager.default
     private let directoryOverride: URL?
@@ -72,8 +75,11 @@ final class RoadbookMapMatchCache {
         loadIndex()
     }
 
-    func maneuvers(for track: GPXTrack) -> [MapMatchedManeuver]? {
-        entries[track.traversalKey]?.map {
+    /// Manœuvres et couverture en cache pour ce parcours — `nil` si absent (ou cache antérieur à
+    /// la couverture, it33 bis : à refaire).
+    func entry(for track: GPXTrack) -> (maneuvers: [MapMatchedManeuver], coverage: [ClosedRange<Double>])? {
+        guard let entry = entries[track.traversalKey] else { return nil }
+        let maneuvers = entry.maneuvers.map {
             MapMatchedManeuver(
                 coordinate: $0.coordinate.coordinate,
                 type: ValhallaManeuverType(rawValue: $0.maneuverTypeRawValue) ?? .none,
@@ -83,10 +89,12 @@ final class RoadbookMapMatchCache {
                 streetNamesAfter: $0.streetNamesAfter
             )
         }
+        let coverage = entry.coveredRanges.compactMap { pair in pair.count == 2 && pair[0] <= pair[1] ? pair[0]...pair[1] : nil }
+        return (maneuvers, coverage)
     }
 
-    func store(traversalKey: String, maneuvers: [MapMatchedManeuver]) {
-        entries[traversalKey] = maneuvers.map {
+    func store(traversalKey: String, maneuvers: [MapMatchedManeuver], coverage: [ClosedRange<Double>]) {
+        entries[traversalKey] = (maneuvers.map {
             CachedMapMatchedManeuver(
                 coordinate: CLLocationCoordinate2DCodable($0.coordinate),
                 maneuverTypeRawValue: $0.type.rawValue,
@@ -95,18 +103,18 @@ final class RoadbookMapMatchCache {
                 streetNamesBefore: $0.streetNamesBefore,
                 streetNamesAfter: $0.streetNamesAfter
             )
-        }
+        }, coverage.map { [$0.lowerBound, $0.upperBound] })
         saveIndex()
     }
 
     private func loadIndex() {
         guard let data = try? Data(contentsOf: indexFileURL),
               let decoded = try? JSONDecoder().decode([CachedMapMatch].self, from: data) else { return }
-        entries = Dictionary(decoded.map { ($0.traversalKey, $0.maneuvers) }, uniquingKeysWith: { _, latest in latest })
+        entries = Dictionary(decoded.compactMap { entry in entry.coveredRanges.map { (entry.traversalKey, (entry.maneuvers, $0)) } }, uniquingKeysWith: { _, latest in latest })
     }
 
     private func saveIndex() {
-        let encoded = entries.map { CachedMapMatch(traversalKey: $0.key, maneuvers: $0.value) }
+        let encoded = entries.map { CachedMapMatch(traversalKey: $0.key, maneuvers: $0.value.maneuvers, coveredRanges: $0.value.coveredRanges) }
         guard let data = try? JSONEncoder().encode(encoded) else { return }
         try? data.write(to: indexFileURL)
     }

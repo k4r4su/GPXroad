@@ -148,6 +148,19 @@ enum SharedRoadbook {
         )
     }
 
+    // MARK: - Couverture du map matching (it33 bis)
+
+    /// Portions de la trace (m) réellement recalées par Valhalla — `MapMatchCoverage` (Kotlin).
+    static func coverage(trackPoints: [GPXPoint], matchedShapes: [[CLLocationCoordinate2D]]) -> [ClosedRange<Double>] {
+        GPXroadShared.MapMatchCoverage.shared
+            .coveredRanges(trackPoints: latLons(trackPoints), matchedShapes: matchedShapes.map { $0.map(latLon) })
+            .map { $0.startMeters...$0.endMeters }
+    }
+
+    static func sharedCoverage(_ coverage: [ClosedRange<Double>]?) -> [GPXroadShared.CoveredRange]? {
+        coverage?.map { GPXroadShared.CoveredRange(startMeters: $0.lowerBound, endMeters: $0.upperBound) }
+    }
+
     // MARK: - Manœuvres (mémorisées)
 
     /// Dernières manœuvres calculées, par parcours + réglages + manœuvres Valhalla : l'écran Road Book
@@ -160,9 +173,10 @@ enum SharedRoadbook {
     static func maneuvers(
         for track: GPXTrack,
         settings: GPXroadShared.RoadbookSettings,
-        mapMatchedManeuvers: [MapMatchedManeuver]
+        mapMatchedManeuvers: [MapMatchedManeuver],
+        coverage: [ClosedRange<Double>]? = nil
     ) -> [RoadbookManeuver] {
-        let key = memoKey(track: track, settings: settings, mapMatched: mapMatchedManeuvers)
+        let key = memoKey(track: track, settings: settings, mapMatched: mapMatchedManeuvers) + "|cov:\(coverage.map { $0.map { "\($0.lowerBound)-\($0.upperBound)" }.joined(separator: ",") } ?? "nil")"
         memoLock.lock()
         if let cached = memo[key] {
             memoLock.unlock()
@@ -171,7 +185,7 @@ enum SharedRoadbook {
         memoLock.unlock()
 
         let result = GPXroadShared.RoadbookExtractor.shared
-            .maneuvers(points: latLons(track.points), settings: settings, mapMatchedManeuvers: mapMatchedManeuvers.map(mapMatched))
+            .maneuvers(points: latLons(track.points), settings: settings, mapMatchedManeuvers: mapMatchedManeuvers.map(mapMatched), coverage: sharedCoverage(coverage))
             .map(maneuver)
 
         memoLock.lock()

@@ -381,6 +381,14 @@ gradle/, settings.gradle.kts, build.gradle.kts, gradlew   build Gradle (racine)
   inchangée (fusion à 150 m). Diagnostic fait avec le cache Valhalla de l'iPhone (lecture seule,
   `devicectl device copy from … Documents/RoadbookMapMatchCache`) : ne JAMAIS re-valider une
   règle du Road Book sans rejouer ces traces réelles.
+- **Seulement là où Valhalla a recalé la trace (it33 bis, retour terrain "plus que les villages")**
+  — Valhalla ne recale parfois qu'une PARTIE de la trace (vu : "Travail maison déviation", 3
+  manœuvres au départ à Bâle, rien ensuite). `MapMatchCoverage` (Kotlin) déduit des tracés recalés
+  (`MapMatchResult.matchedShapes`) les tronçons couverts (point de trace à < 40 m d'un tracé, trous
+  < 150 m comblés, tronçons < 200 m ignorés) ; `buildRoadbookEvents(coverage:)` : route-aware DANS
+  la couverture, géométrie AILLEURS (à ≥ fusion min d'un événement route-aware). Le cache disque
+  garde la couverture (`coveredRanges`) ; une entrée sans couverture (avant ce fix) est ignorée →
+  nouveau map matching une fois.
 - **Instantanés** : `RoadbookStableRegressionTests` (iOS, chaîne complète Overpass → Road Book) et
   `RoadbookReferenceSnapshotTest` (Kotlin, même trace, mêmes lignes). `SharedRoadbookCatalogTests`
   garde les catalogues Swift (affichage) et Kotlin (règles) alignés.
@@ -524,7 +532,7 @@ avant chaque livraison, sans test désactivé ni skip ajouté pour "faire passer
 possible, `SharedBlockageLiveServerTests`, se lève en lançant `server/app.py` localement (copie
 hors dépôt : `python3 -m uvicorn app:app --port 8000`). Au jalon, le run était de 413 tests,
 0 échec, 0 skip ; à it29, 452 tests, 0 échec, 0 skip ; à it30, 470 tests ; à it31, 491 tests, 0 échec, 0 skip ; à it32, 495 tests, 0 échec, 0 skip (toute la suite
-tourne avec le moteur géométrique Kotlin) ; à it33, 499 tests iOS + 29 tests Kotlin (iOS et
+tourne avec le moteur géométrique Kotlin) ; à it33 bis, 505 tests iOS + 36 tests Kotlin (iOS et
 Android), 0 échec, 0 skip. Le résultat attendu de
 `RoadbookStableRegressionTests` n'a pas changé à it29. Le repli "Entrée de <localité>" (actif
 par défaut depuis it29) fait désormais partie du comportement validé : `RoadbookCityEntryTests`.
