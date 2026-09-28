@@ -12,8 +12,8 @@ d'interface : un sélecteur debug dans Réglages > Avancé). Livrable d'audit :
       Road Book, bannière latérale et épingles comme d'habitude.
 - [ ] Même trace, Réglages > Avancé > Moteur géométrie Road Book > « Swift natif » : liste Road
       Book identique (même nombre de lignes, mêmes virages, mêmes distances à 10 m près).
-- [ ] Android : `./gradlew :androidApp:assembleDebug`, installer l'APK sur un téléphone Android
-      ou l'émulateur `gpxroad_test` → écran « GPXroad shared Android ».
+- [x] Android : APK installé et lancé sur l'émulateur `gpxroad_test` (Android 36, arm64) → écran
+      « GPXroad shared Android », aucun crash (vérifié it32). Reste : un vrai téléphone Android.
 
 Décisions ouvertes :
 - **Distance géodésique commune** : iOS garde `CLLocation` (non déterministe, formule inconnue),
