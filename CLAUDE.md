@@ -294,9 +294,21 @@ docs/             Docs livrables pour le propriétaire (pas du pense-bête inter
                    regionales.md (manuel Planetiler/osmium à exécuter sur le NAS)
 ```
 
-**Overpass** : instance auto-hébergée du propriétaire (`overpass.zim.ovh`, Basic Auth optionnel dans
-le Trousseau) en premier, publique en secours, identifiants jamais envoyés à la publique —
-`OverpassConfiguration`, Réglages > Avancé > Serveur Overpass.
+**Overpass** (it33 bis, même structure que Valhalla) : Réglages > Avancé > Serveur Overpass —
+toggle (désactivé par défaut), adresse publique HTTPS (Basic Auth), adresse du réseau de la maison
+(HTTP, sans auth), test de connexion, dernier serveur ayant répondu (`OverpassActivityMonitor`).
+`OverpassConfiguration.attempts` : maison (Wi-Fi seulement, `allowsCellularAccess = false`, 4 s,
+écartée 5 min après un échec) → adresse publique du propriétaire (Basic Auth) → instance publique
+OSM en secours, qui ne reçoit JAMAIS les identifiants. Réseau local : `NSLocalNetworkUsageDescription`
++ ATS `NSAllowsLocalNetworking` (project.yml), HTTPS obligatoire partout ailleurs.
+**Secrets — règle non négociable du propriétaire** : aucun identifiant ni mot de passe dans un
+fichier du dépôt (code, config, tests, docs, `.env`) ; adresses vides par défaut, identifiants
+saisis dans les Réglages et stockés dans le Trousseau (`ValhallaKeychainStore`, un `service` par
+serveur). Tests : identifiants FICTIFS et Trousseau de test. Avant tout commit qui touche à ces
+serveurs : `git grep -F -e '<valeur>'` sur l'arbre ET l'historique (`git rev-list --all`) → 0.
+Vérification réelle sans écrire les identifiants : compiler les vrais fichiers
+(`OverpassConfiguration.swift`, `ValhallaKeychainStore.swift`) dans un programme jetable du
+scratchpad qui lit les identifiants sur stdin, puis le supprimer.
 
 Hors GPXroad/ : `iosApp/scripts/l10n_check.py` (it31) — vérification des traductions, voir
 "Traductions" plus bas ; `iosApp/scripts/build_shared.sh` (it32) — framework Kotlin.

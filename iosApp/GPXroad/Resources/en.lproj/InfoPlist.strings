@@ -1,3 +1,4 @@
 "NSLocationWhenInUseUsageDescription" = "GPXroad shows your position on the track and records your ride when you ask it to, including with the screen locked or in another app while recording.";
 "NSMicrophoneUsageDescription" = "GPXroad uses the microphone to record a short optional voice note on a point of interest.";
 "Trace GPX" = "GPX track";
+"NSLocalNetworkUsageDescription" = "GPXroad queries your Overpass server on your home network to load Road Book landmarks faster.";

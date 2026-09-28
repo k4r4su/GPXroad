@@ -638,11 +638,24 @@
 "Rond-point, sortie %lld" = "Rotonda, salida %lld";
 
 /* It33 bis — serveur Overpass auto-hébergé */
-"Adresse invalide" = "Dirección no válida";
 "Connecté" = "Conectado";
 "Identifiants refusés (HTTP %lld)" = "Credenciales rechazadas (HTTP %lld)";
 "Réponse inattendue (HTTP %lld)" = "Respuesta inesperada (HTTP %lld)";
-"Sert aux repères du Road Book et aux limites de vitesse. Si ce serveur ne répond pas, l'app utilise le serveur public, sans jamais lui envoyer tes identifiants. Identifiants stockés dans le Trousseau iOS." = "Se usa para los puntos de referencia del Road Book y los límites de velocidad. Si este servidor no responde, la app usa el servidor público, sin enviarle nunca tus credenciales. Credenciales guardadas en el Llavero de iOS.";
 "Serveur Overpass" = "Servidor Overpass";
-"Serveur et identifiants" = "Servidor y credenciales";
-"URL du serveur Overpass" = "URL del servidor Overpass";
+
+/* It33 bis — serveur Overpass : maison (réseau local) + public (Basic Auth) */
+"Adresse locale (ex. http://192.168.1.10:8003/api/interpreter)" = "Dirección local (p. ej. http://192.168.1.10:8003/api/interpreter)";
+"Adresse publique (ex. https://overpass.mondomaine.fr/api/interpreter)" = "Dirección pública (p. ej. https://overpass.midominio.es/api/interpreter)";
+"Adresse vide ou invalide" = "Dirección vacía o no válida";
+"Dernier serveur Overpass ayant répondu" = "Último servidor Overpass que respondió";
+"Désactivé par défaut. Ordre d'essai : réseau de la maison (en Wi-Fi), puis ton adresse publique, puis le serveur public OpenStreetMap en secours — qui ne reçoit jamais tes identifiants." = "Desactivado por defecto. Orden de intento: red de casa (en wifi), luego tu dirección pública y, de reserva, el servidor público de OpenStreetMap, que nunca recibe tus credenciales.";
+"Hors de la maison" = "Fuera de casa";
+"Hors de la maison (HTTPS)" = "Fuera de casa (HTTPS)";
+"Les identifiants sont stockés dans le Trousseau iOS, jamais dans les réglages classiques." = "Las credenciales se guardan en el Llavero de iOS, nunca en los ajustes normales.";
+"Sans authentification, essayée en premier en Wi-Fi ; laissée de côté quelques minutes si elle ne répond pas (hors de chez toi). Vide : jamais utilisée." = "Sin autenticación, se prueba primero en wifi; se deja de lado unos minutos si no responde (fuera de casa). Vacía: nunca se usa.";
+"Serveur de la maison" = "Servidor de casa";
+"Serveur public (secours)" = "Servidor público (reserva)";
+"Ton serveur (hors de la maison)" = "Tu servidor (fuera de casa)";
+"Utiliser mon serveur Overpass" = "Usar mi servidor Overpass";
+"À la maison" = "En casa";
+"À la maison (réseau local)" = "En casa (red local)";

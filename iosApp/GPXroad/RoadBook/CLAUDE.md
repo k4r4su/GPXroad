@@ -683,5 +683,6 @@ en roulant**. Jamais une limite de commune, un lieu-dit sans panneau, un commerc
   droite) jusqu'à la sortie placée au VIRAGE NET réel de la trace (plus la convention « 45° par
   rang »), sorties passées en gris quand leur nombre est connu, numéro au centre. Même dessin dans
   la bannière latérale du Ride (`LateralCapBannerView.checkpoint`).
-- **Overpass** : `OverpassConfiguration` — instance du propriétaire d'abord (Basic Auth), publique
-  en secours à chaque essai, identifiants jamais envoyés à la publique.
+- **Overpass** : `OverpassConfiguration.attempts` — maison (réseau local, Wi-Fi) → adresse publique
+  du propriétaire (Basic Auth) → instance publique OSM, à chaque essai ; un échec du réseau local
+  l'écarte 5 min (`reportFailure`). Détails et règle sur les secrets : CLAUDE.md racine.

@@ -638,11 +638,24 @@
 "Rond-point, sortie %lld" = "Roundabout, exit %lld";
 
 /* It33 bis — serveur Overpass auto-hébergé */
-"Adresse invalide" = "Invalid address";
 "Connecté" = "Connected";
 "Identifiants refusés (HTTP %lld)" = "Credentials rejected (HTTP %lld)";
 "Réponse inattendue (HTTP %lld)" = "Unexpected response (HTTP %lld)";
-"Sert aux repères du Road Book et aux limites de vitesse. Si ce serveur ne répond pas, l'app utilise le serveur public, sans jamais lui envoyer tes identifiants. Identifiants stockés dans le Trousseau iOS." = "Used for Road Book landmarks and speed limits. If this server doesn't respond, the app uses the public server, without ever sending it your credentials. Credentials are stored in the iOS Keychain.";
 "Serveur Overpass" = "Overpass server";
-"Serveur et identifiants" = "Server and credentials";
-"URL du serveur Overpass" = "Overpass server URL";
+
+/* It33 bis — serveur Overpass : maison (réseau local) + public (Basic Auth) */
+"Adresse locale (ex. http://192.168.1.10:8003/api/interpreter)" = "Local address (e.g. http://192.168.1.10:8003/api/interpreter)";
+"Adresse publique (ex. https://overpass.mondomaine.fr/api/interpreter)" = "Public address (e.g. https://overpass.mydomain.com/api/interpreter)";
+"Adresse vide ou invalide" = "Empty or invalid address";
+"Dernier serveur Overpass ayant répondu" = "Last Overpass server that responded";
+"Désactivé par défaut. Ordre d'essai : réseau de la maison (en Wi-Fi), puis ton adresse publique, puis le serveur public OpenStreetMap en secours — qui ne reçoit jamais tes identifiants." = "Off by default. Order tried: home network (on Wi-Fi), then your public address, then the public OpenStreetMap server as a fallback — which never receives your credentials.";
+"Hors de la maison" = "Away from home";
+"Hors de la maison (HTTPS)" = "Away from home (HTTPS)";
+"Les identifiants sont stockés dans le Trousseau iOS, jamais dans les réglages classiques." = "Credentials are stored in the iOS Keychain, never in regular settings.";
+"Sans authentification, essayée en premier en Wi-Fi ; laissée de côté quelques minutes si elle ne répond pas (hors de chez toi). Vide : jamais utilisée." = "No authentication, tried first on Wi-Fi; set aside for a few minutes if it doesn't respond (away from home). Empty: never used.";
+"Serveur de la maison" = "Home server";
+"Serveur public (secours)" = "Public server (fallback)";
+"Ton serveur (hors de la maison)" = "Your server (away from home)";
+"Utiliser mon serveur Overpass" = "Use my Overpass server";
+"À la maison" = "At home";
+"À la maison (réseau local)" = "At home (local network)";

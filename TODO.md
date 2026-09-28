@@ -10,8 +10,13 @@ Checklist manuelle (iPhone, Valhalla activé — badge vert) :
       assez tôt, sans « virage » intermédiaire dans la courbe de la D 463.
 - [ ] Ronds-points (Road Book, bannière Ride, PDF) : rond-point dessiné, trajet jusqu'à la bonne
       sortie, numéro de sortie au centre ; la sortie dessinée correspond à celle prise.
-- [ ] Réglages > Avancé > Serveur Overpass : saisir l'identifiant et le mot de passe Basic Auth,
-      « Tester la connexion » → « Connecté » ; les repères du Road Book se chargent vite.
+- [ ] Réglages > Avancé > Serveur Overpass : activer, saisir l'adresse publique
+      (`https://overpass.zim.ovh/api/interpreter`), l'adresse locale
+      (`http://192.168.1.142:8003/api/interpreter`), l'identifiant et le mot de passe ;
+      « Tester la connexion » → « À la maison : Connecté » et « Hors de la maison : Connecté ».
+- [ ] iOS demande l'accès au réseau local : accepter.
+- [ ] À la maison (Wi-Fi) : repères chargés, « Dernier serveur » = « Serveur de la maison ».
+- [ ] En 4G : « Ton serveur (hors de la maison) » ; mauvais mot de passe → « Serveur public (secours) ».
 - [ ] Sans Valhalla (désactivé) : le Road Book reste celui d'avant (détection géométrique).
 
 Choix faits, à valider sur le terrain :

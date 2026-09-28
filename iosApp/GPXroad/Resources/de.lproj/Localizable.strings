@@ -638,11 +638,24 @@
 "Rond-point, sortie %lld" = "Kreisverkehr, Ausfahrt %lld";
 
 /* It33 bis — serveur Overpass auto-hébergé */
-"Adresse invalide" = "Ungültige Adresse";
 "Connecté" = "Verbunden";
 "Identifiants refusés (HTTP %lld)" = "Zugangsdaten abgelehnt (HTTP %lld)";
 "Réponse inattendue (HTTP %lld)" = "Unerwartete Antwort (HTTP %lld)";
-"Sert aux repères du Road Book et aux limites de vitesse. Si ce serveur ne répond pas, l'app utilise le serveur public, sans jamais lui envoyer tes identifiants. Identifiants stockés dans le Trousseau iOS." = "Wird für die Orientierungspunkte des Roadbooks und die Tempolimits verwendet. Antwortet dieser Server nicht, nutzt die App den öffentlichen Server, ohne ihm jemals deine Zugangsdaten zu senden. Zugangsdaten werden im iOS-Schlüsselbund gespeichert.";
 "Serveur Overpass" = "Overpass-Server";
-"Serveur et identifiants" = "Server und Zugangsdaten";
-"URL du serveur Overpass" = "URL des Overpass-Servers";
+
+/* It33 bis — serveur Overpass : maison (réseau local) + public (Basic Auth) */
+"Adresse locale (ex. http://192.168.1.10:8003/api/interpreter)" = "Lokale Adresse (z. B. http://192.168.1.10:8003/api/interpreter)";
+"Adresse publique (ex. https://overpass.mondomaine.fr/api/interpreter)" = "Öffentliche Adresse (z. B. https://overpass.meinedomain.de/api/interpreter)";
+"Adresse vide ou invalide" = "Adresse leer oder ungültig";
+"Dernier serveur Overpass ayant répondu" = "Zuletzt antwortender Overpass-Server";
+"Désactivé par défaut. Ordre d'essai : réseau de la maison (en Wi-Fi), puis ton adresse publique, puis le serveur public OpenStreetMap en secours — qui ne reçoit jamais tes identifiants." = "Standardmäßig deaktiviert. Reihenfolge: Heimnetz (im WLAN), dann deine öffentliche Adresse, dann der öffentliche OpenStreetMap-Server als Reserve – der nie deine Zugangsdaten erhält.";
+"Hors de la maison" = "Unterwegs";
+"Hors de la maison (HTTPS)" = "Unterwegs (HTTPS)";
+"Les identifiants sont stockés dans le Trousseau iOS, jamais dans les réglages classiques." = "Zugangsdaten werden im iOS-Schlüsselbund gespeichert, nie in den normalen Einstellungen.";
+"Sans authentification, essayée en premier en Wi-Fi ; laissée de côté quelques minutes si elle ne répond pas (hors de chez toi). Vide : jamais utilisée." = "Ohne Authentifizierung, im WLAN zuerst versucht; einige Minuten übergangen, wenn sie nicht antwortet (unterwegs). Leer: nie verwendet.";
+"Serveur de la maison" = "Server zu Hause";
+"Serveur public (secours)" = "Öffentlicher Server (Reserve)";
+"Ton serveur (hors de la maison)" = "Dein Server (unterwegs)";
+"Utiliser mon serveur Overpass" = "Meinen Overpass-Server verwenden";
+"À la maison" = "Zu Hause";
+"À la maison (réseau local)" = "Zu Hause (lokales Netz)";

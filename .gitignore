@@ -14,3 +14,8 @@ local.properties
 .idea/
 # Traces GPX réelles du propriétaire pour les tests locaux (jamais versionnées)
 .testdata/
+# Secrets locaux éventuels (identifiants, jetons) — jamais versionnés. Les identifiants des
+# serveurs (Valhalla, Overpass) vivent dans le Trousseau iOS, saisis dans les Réglages.
+.env
+.env.*
+*.secrets

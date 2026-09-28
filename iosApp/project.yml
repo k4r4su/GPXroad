@@ -97,6 +97,12 @@ targets:
         # bleu d'iOS). Voir `RideRecorder`/`CoreLocationRecordingSource`.
         UIBackgroundModes:
           - location
+        # It33 bis : serveur Overpass de la maison (HTTP, adresse locale) — autorisation « réseau
+        # local » d'iOS, et exception ATS limitée aux adresses locales (le HTTPS reste obligatoire
+        # partout ailleurs).
+        NSLocalNetworkUsageDescription: "GPXroad interroge ton serveur Overpass sur le réseau de la maison pour charger les repères du Road Book plus vite."
+        NSAppTransportSecurity:
+          NSAllowsLocalNetworking: true
         NSMicrophoneUsageDescription: "GPXroad utilise le micro pour enregistrer une courte note audio optionnelle sur un point d'intérêt."
         ITSAppUsesNonExemptEncryption: false
         LSSupportsOpeningDocumentsInPlace: true

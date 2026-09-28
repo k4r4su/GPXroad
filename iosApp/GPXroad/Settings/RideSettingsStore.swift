@@ -42,6 +42,9 @@ final class RideSettingsStore: ObservableObject {
         static let slopeWarningThresholdPercent = "settings.slopeWarningThresholdPercent"
         static let valhallaEnabled = "settings.valhallaEnabled"
         static let valhallaEndpointURLString = "settings.valhallaEndpointURLString"
+        static let overpassEnabled = OverpassConfiguration.enabledDefaultsKey
+        static let overpassEndpointURLString = OverpassConfiguration.endpointDefaultsKey
+        static let overpassLANEndpointURLString = OverpassConfiguration.lanEndpointDefaultsKey
         static let recordingDensityPreset = "settings.recordingDensityPreset"
         static let unsavedRideRetentionLimit = "settings.unsavedRideRetentionLimit"
         static let roadbookReadingMode = "settings.roadbookReadingMode"
@@ -253,6 +256,22 @@ final class RideSettingsStore: ObservableObject {
         didSet { defaults.set(valhallaEndpointURLString, forKey: Keys.valhallaEndpointURLString) }
     }
 
+    /// Serveur Overpass du propriétaire (it33 bis, même structure que Valhalla) : désactivé par
+    /// défaut — l'instance publique sert alors seule. Adresses non sensibles (UserDefaults), vides
+    /// par défaut, jamais codées en dur ; identifiants Basic Auth dans le Trousseau
+    /// (`OverpassConfiguration.keychainService`). Lus aussi par `OverpassConfiguration` (mêmes clés).
+    @Published var overpassEnabled: Bool {
+        didSet { defaults.set(overpassEnabled, forKey: Keys.overpassEnabled) }
+    }
+    /// Adresse publique (HTTPS, Basic Auth), ex. https://overpass.mondomaine.fr/api/interpreter.
+    @Published var overpassEndpointURLString: String {
+        didSet { defaults.set(overpassEndpointURLString, forKey: Keys.overpassEndpointURLString) }
+    }
+    /// Adresse sur le réseau de la maison (HTTP, sans authentification), essayée en premier en Wi-Fi.
+    @Published var overpassLANEndpointURLString: String {
+        didSet { defaults.set(overpassLANEndpointURLString, forKey: Keys.overpassLANEndpointURLString) }
+    }
+
     /// Spec "recording-density-setting" (it19) : `précis` reproduit exactement le comportement
     /// d'avant ce réglage — voir RecordingConstants.swift.
     @Published var recordingDensityPreset: RecordingDensityPreset {
@@ -393,6 +412,9 @@ final class RideSettingsStore: ObservableObject {
 
         valhallaEnabled = defaults.bool(forKey: Keys.valhallaEnabled)
         valhallaEndpointURLString = defaults.string(forKey: Keys.valhallaEndpointURLString) ?? ""
+        overpassEnabled = defaults.bool(forKey: Keys.overpassEnabled)
+        overpassEndpointURLString = defaults.string(forKey: Keys.overpassEndpointURLString) ?? ""
+        overpassLANEndpointURLString = defaults.string(forKey: Keys.overpassLANEndpointURLString) ?? ""
 
         if let rawDensity = defaults.string(forKey: Keys.recordingDensityPreset), let preset = RecordingDensityPreset(rawValue: rawDensity) {
             recordingDensityPreset = preset

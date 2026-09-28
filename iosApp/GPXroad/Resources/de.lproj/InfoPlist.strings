@@ -1,3 +1,4 @@
 "NSLocationWhenInUseUsageDescription" = "GPXroad zeigt deine Position auf dem Track und zeichnet deine Fahrt auf, wenn du es möchtest — auch bei gesperrtem Bildschirm oder in einer anderen App während der Aufzeichnung.";
 "NSMicrophoneUsageDescription" = "GPXroad verwendet das Mikrofon, um eine kurze optionale Sprachnotiz zu einem Point of Interest aufzunehmen.";
 "Trace GPX" = "GPX-Track";
+"NSLocalNetworkUsageDescription" = "GPXroad fragt deinen Overpass-Server im Heimnetz ab, um die Orientierungspunkte des Roadbooks schneller zu laden.";

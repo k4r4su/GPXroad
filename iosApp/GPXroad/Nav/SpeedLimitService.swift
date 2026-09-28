@@ -18,22 +18,22 @@ actor SpeedLimitService {
         lastRequestDate = Date()
 
         let query = "[out:json][timeout:8];way(around:\(Int(NavConstants.speedLimitSearchRadiusMeters)),\(coordinate.latitude),\(coordinate.longitude))[highway][maxspeed];out tags 1;"
-        // Instance du propriétaire (Basic Auth) — une limite de vitesse n'attend pas un secours.
-        guard let body = "data=\(query)".addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed).map({ Data($0.utf8) }),
-              let request = OverpassConfiguration.requests(formBody: body, timeout: 10).first
-        else { return nil }
-
-        do {
-            let (data, _) = try await URLSession.shared.data(for: request)
-            let decoded = try JSONDecoder().decode(OverpassResponse.self, from: data)
+        guard let body = "data=\(query)".addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed).map({ Data($0.utf8) }) else { return nil }
+        // Même ordre que les repères (maison → serveur du propriétaire → public) ; silencieux par
+        // conception : une limite de vitesse manquante ne doit jamais perturber le guidage.
+        for candidate in OverpassConfiguration.attempts(formBody: body, timeout: 10) {
+            guard let (data, response) = try? await URLSession.shared.data(for: candidate.request),
+                  (response as? HTTPURLResponse)?.statusCode == 200,
+                  let decoded = try? JSONDecoder().decode(OverpassResponse.self, from: data)
+            else {
+                OverpassConfiguration.reportFailure(of: candidate.kind)
+                continue
+            }
             let speed = decoded.elements.first?.tags.maxspeed.flatMap(Self.parseSpeedKmh)
             lastResult = (coordinate, speed)
             return speed
-        } catch {
-            // Silencieux par conception : une limite de vitesse manquante ne doit jamais
-            // perturber le guidage.
-            return nil
         }
+        return nil
     }
 
     private static func parseSpeedKmh(_ raw: String) -> Int? {

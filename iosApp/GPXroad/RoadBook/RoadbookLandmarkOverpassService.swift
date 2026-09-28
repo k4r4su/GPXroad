@@ -33,14 +33,20 @@ actor RoadbookLandmarkOverpassService {
               let encodedQuery = query.addingPercentEncoding(withAllowedCharacters: .overpassFormValueAllowed)
         else { return nil }
 
-        // Instance du propriétaire d'abord (Basic Auth), publique en secours — les deux à chaque essai.
-        let requests = OverpassConfiguration.requests(formBody: Data("data=\(encodedQuery)".utf8), timeout: RoadBookConstants.landmarkRequestTimeoutSeconds)
-
+        let formBody = Data("data=\(encodedQuery)".utf8)
         let retryDelays = RoadBookConstants.landmarkRetryDelaysSeconds
         for attempt in 0...retryDelays.count {
+            // Maison (Wi-Fi) → serveur du propriétaire (Basic Auth) → public, à chaque essai
+            // (voir `OverpassConfiguration`) ; l'ordre est recalculé : le réseau local peut avoir
+            // été écarté entre-temps.
             var downloaded: Data?
-            for request in requests where downloaded == nil {
-                downloaded = await Self.download(request, onBytes: { onEvent(.bytes($0)) })
+            for candidate in OverpassConfiguration.attempts(formBody: formBody, timeout: RoadBookConstants.landmarkRequestTimeoutSeconds) where downloaded == nil {
+                downloaded = await Self.download(candidate.request, onBytes: { onEvent(.bytes($0)) })
+                if downloaded == nil {
+                    OverpassConfiguration.reportFailure(of: candidate.kind)
+                } else {
+                    await OverpassActivityMonitor.shared.record(candidate.kind)
+                }
             }
             if let data = downloaded {
                 guard let parsed = Self.parse(data) else { return nil }

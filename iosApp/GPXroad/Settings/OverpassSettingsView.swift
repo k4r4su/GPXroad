@@ -1,19 +1,37 @@
 import SwiftUI
 
-/// Serveur Overpass (it33) : adresse de l'instance du propriétaire et identifiants Basic Auth
-/// (Trousseau), test de connexion. Appliqué en direct, comme le reste des réglages. Voir
-/// `OverpassConfiguration` (instance publique en secours, jamais avec les identifiants).
+/// Serveur Overpass du propriétaire (it33 bis) — MÊME structure que `ValhallaSettingsView` :
+/// toggle (désactivé par défaut), adresses (UserDefaults via `RideSettingsStore`, vides par défaut),
+/// identifiants Basic Auth en champs libres stockés dans le Trousseau (`ValhallaKeychainStore`,
+/// service `OverpassConfiguration.keychainService`, jamais de valeur par défaut), test de connexion,
+/// dernier serveur ayant répondu. Tout s'applique en direct.
 struct OverpassSettingsView: View {
-    @AppStorage(OverpassConfiguration.endpointDefaultsKey) private var endpoint = OverpassConfiguration.defaultEndpoint
+    @EnvironmentObject private var settings: RideSettingsStore
+    @ObservedObject private var activityMonitor = OverpassActivityMonitor.shared
+
     @State private var username = ""
     @State private var password = ""
-    @State private var result: (success: Bool, message: String)?
-    @State private var isTesting = false
+    @State private var lanResult: ConnectionTestResult?
+    @State private var publicResult: ConnectionTestResult?
+    @State private var isTestingConnection = false
+
+    private enum ConnectionTestResult {
+        case success(String)
+        case failure(String)
+    }
 
     var body: some View {
         Form {
             Section {
-                TextField("URL du serveur Overpass", text: $endpoint)
+                Toggle("Utiliser mon serveur Overpass", isOn: $settings.overpassEnabled)
+                    .longPressTooltip("Repères du Road Book et limites de vitesse depuis ton serveur — désactiver revient au serveur public OpenStreetMap")
+                activityRow
+            } footer: {
+                Text("Désactivé par défaut. Ordre d'essai : réseau de la maison (en Wi-Fi), puis ton adresse publique, puis le serveur public OpenStreetMap en secours — qui ne reçoit jamais tes identifiants.")
+            }
+
+            Section {
+                TextField("Adresse publique (ex. https://overpass.mondomaine.fr/api/interpreter)", text: $settings.overpassEndpointURLString)
                     .textInputAutocapitalization(.never)
                     .autocorrectionDisabled()
                     .keyboardType(.URL)
@@ -28,16 +46,27 @@ struct OverpassSettingsView: View {
                         ValhallaKeychainStore.save(username: username, password: newValue, service: OverpassConfiguration.keychainService)
                     }
             } header: {
-                Text("Serveur et identifiants")
+                Text("Hors de la maison (HTTPS)")
             } footer: {
-                Text("Sert aux repères du Road Book et aux limites de vitesse. Si ce serveur ne répond pas, l'app utilise le serveur public, sans jamais lui envoyer tes identifiants. Identifiants stockés dans le Trousseau iOS.")
+                Text("Les identifiants sont stockés dans le Trousseau iOS, jamais dans les réglages classiques.")
+            }
+
+            Section {
+                TextField("Adresse locale (ex. http://192.168.1.10:8003/api/interpreter)", text: $settings.overpassLANEndpointURLString)
+                    .textInputAutocapitalization(.never)
+                    .autocorrectionDisabled()
+                    .keyboardType(.URL)
+            } header: {
+                Text("À la maison (réseau local)")
+            } footer: {
+                Text("Sans authentification, essayée en premier en Wi-Fi ; laissée de côté quelques minutes si elle ne répond pas (hors de chez toi). Vide : jamais utilisée.")
             }
 
             Section {
                 Button {
                     testConnection()
                 } label: {
-                    if isTesting {
+                    if isTestingConnection {
                         HStack {
                             ProgressView().controlSize(.small)
                             Text("Test en cours…")
@@ -46,11 +75,10 @@ struct OverpassSettingsView: View {
                         Text("Tester la connexion (/status)")
                     }
                 }
-                .disabled(isTesting)
-                if let result {
-                    Label(result.message, systemImage: result.success ? "checkmark.circle.fill" : "xmark.octagon.fill")
-                        .foregroundStyle(result.success ? .green : .red)
-                }
+                .disabled(isTestingConnection)
+
+                resultRow(title: String(localized: "À la maison", bundle: .appLanguage), result: lanResult)
+                resultRow(title: String(localized: "Hors de la maison", bundle: .appLanguage), result: publicResult)
             }
         }
         .navigationTitle("Serveur Overpass")
@@ -61,30 +89,93 @@ struct OverpassSettingsView: View {
         }
     }
 
-    private func testConnection() {
-        guard let request = OverpassConfiguration.statusRequest(endpoint: endpoint, username: username, password: password) else {
-            result = (false, String(localized: "Adresse invalide", bundle: .appLanguage))
-            return
+    @ViewBuilder
+    private func resultRow(title: String, result: ConnectionTestResult?) -> some View {
+        switch result {
+        case .success(let message):
+            Label(title + " : " + message, systemImage: "checkmark.circle.fill")
+                .foregroundStyle(.green)
+        case .failure(let message):
+            Label(title + " : " + message, systemImage: "xmark.octagon.fill")
+                .foregroundStyle(.red)
+        case nil:
+            EmptyView()
         }
-        isTesting = true
-        result = nil
-        Task {
-            let outcome: (Bool, String)
-            do {
-                let (_, response) = try await URLSession.shared.data(for: request)
-                let status = (response as? HTTPURLResponse)?.statusCode ?? 0
-                switch status {
-                case 200: outcome = (true, String(localized: "Connecté", bundle: .appLanguage))
-                case 401, 403: outcome = (false, String(localized: "Identifiants refusés (HTTP \(status))", bundle: .appLanguage))
-                default: outcome = (false, String(localized: "Réponse inattendue (HTTP \(status))", bundle: .appLanguage))
+    }
+
+    /// Même rôle que la ligne « dernier service de routage » de Valhalla : quel serveur a vraiment
+    /// répondu à la dernière requête de repères ou de limite de vitesse.
+    private var activityRow: some View {
+        Label {
+            VStack(alignment: .leading, spacing: 2) {
+                Text("Dernier serveur Overpass ayant répondu")
+                    .font(.footnote)
+                    .foregroundStyle(.secondary)
+                HStack(spacing: 6) {
+                    Text(activityLabel)
+                        .fontWeight(.semibold)
+                        .foregroundStyle(activityColor)
+                    if let date = activityMonitor.lastEvent?.date {
+                        Text("· \(date.formatted(date: .omitted, time: .standard))")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    }
                 }
-            } catch {
-                outcome = (false, error.localizedDescription)
             }
+        } icon: {
+            Image(systemName: activityMonitor.lastEvent == nil ? "questionmark.circle" : "checkmark.circle.fill")
+                .foregroundStyle(activityColor)
+        }
+    }
+
+    private var activityLabel: String {
+        switch activityMonitor.lastEvent?.kind {
+        case .lan: return String(localized: "Serveur de la maison", bundle: .appLanguage)
+        case .own: return String(localized: "Ton serveur (hors de la maison)", bundle: .appLanguage)
+        case .publicFallback: return String(localized: "Serveur public (secours)", bundle: .appLanguage)
+        case nil: return String(localized: "Aucune requête récente", bundle: .appLanguage)
+        }
+    }
+
+    private var activityColor: Color {
+        switch activityMonitor.lastEvent?.kind {
+        case .lan, .own: return .green
+        case .publicFallback: return .orange
+        case nil: return .secondary
+        }
+    }
+
+    private func testConnection() {
+        isTestingConnection = true
+        lanResult = nil
+        publicResult = nil
+        let lanRequest = OverpassConfiguration.statusRequest(endpoint: settings.overpassLANEndpointURLString, username: "", password: "")
+        let publicRequest = OverpassConfiguration.statusRequest(endpoint: settings.overpassEndpointURLString, username: username, password: password)
+        Task {
+            async let lan = Self.check(lanRequest)
+            async let own = Self.check(publicRequest)
+            let (lanOutcome, publicOutcome) = await (lan, own)
             await MainActor.run {
-                result = outcome
-                isTesting = false
+                lanResult = lanOutcome
+                publicResult = publicOutcome
+                if case .success = lanOutcome { OverpassConfiguration.resetLANAvailability() }
+                isTestingConnection = false
             }
+        }
+    }
+
+    private static func check(_ request: URLRequest?) async -> ConnectionTestResult {
+        guard let request else { return .failure(String(localized: "Adresse vide ou invalide", bundle: .appLanguage)) }
+        do {
+            let (_, response) = try await URLSession.shared.data(for: request)
+            let status = (response as? HTTPURLResponse)?.statusCode ?? 0
+            switch status {
+            case 200: return .success(String(localized: "Connecté", bundle: .appLanguage))
+            case 401, 403: return .failure(String(localized: "Identifiants refusés (HTTP \(status))", bundle: .appLanguage))
+            default: return .failure(String(localized: "Réponse inattendue (HTTP \(status))", bundle: .appLanguage))
+            }
+        } catch {
+            return .failure(error.localizedDescription)
         }
     }
 }
