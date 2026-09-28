@@ -23,15 +23,15 @@ struct LateralCapBannerView: View {
     var body: some View {
         VStack(spacing: 8) {
             Image(systemName: tier.systemImageName(direction: direction))
-                .font(.system(size: 30, weight: .bold))
+                .font(.system(size: 38, weight: .bold))
                 .foregroundStyle(.white)
                 .rotationEffect(.degrees(tier.rotationDegrees(direction: direction) ?? 0))
             Text(Self.steppedDistanceText(distanceMeters))
-                .font(.system(size: 24, weight: .heavy, design: .rounded))
+                .font(.system(size: 30, weight: .heavy, design: .rounded))
                 .foregroundStyle(.white)
                 .monospacedDigit()
                 .lineLimit(1)
-                .minimumScaleFactor(0.7)
+                .minimumScaleFactor(0.6)
             Label("\(sequenceIndex)/\(totalCount)", systemImage: "flag.fill")
                 .font(.caption2.bold())
                 .foregroundStyle(.white.opacity(0.85))

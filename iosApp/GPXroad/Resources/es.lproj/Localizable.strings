@@ -481,7 +481,6 @@
 "Seuils personnalisés" = "Umbrales personalizados";
 "Seul ce qui se voit depuis la route est affiché : panneaux, ponts, églises, stations-service, entrées de village…" = "Solo se muestra lo que se ve desde la carretera: señales, puentes, iglesias, gasolineras, entradas de pueblo…";
 "Seul ce qui se voit depuis la route est proposé. Les ronds-points restent toujours affichés comme des changements de direction." = "Solo se propone lo que se ve desde la carretera. Las rotondas siempre se muestran como cambios de dirección.";
-"Si tu t'écartes de la trace, « Hors trace » remplace le prochain élément jusqu'à ton retour." = "Si te sales de la ruta, «Fuera de ruta» sustituye al siguiente elemento hasta que vuelvas.";
 "Si tu t'écartes de plus de 30 m, la puce « Hors trace » apparaît ; après 30 s, elle indique la distance pour rejoindre la trace." = "Si te alejas más de 30 m, aparece la etiqueta «Fuera de ruta»; tras 30 s, indica la distancia para volver a la ruta.";
 "Signaler" = "Avisar";
 "Signaler un danger, un bouchon ou un point d'attention" = "Avisar de un peligro, un atasco o un punto de atención";
@@ -631,3 +630,6 @@
 "Hors trace : chemin pour rejoindre la trace" = "Fuera de ruta: camino para volver a la ruta";
 "Rejoindre la trace — itinéraire indisponible" = "Volver a la ruta — itinerario no disponible";
 "Retour sur la trace" = "De vuelta en la ruta";
+"Si tu t'écartes de la trace, le Road Book te guide par la route jusqu'à elle : les virages du chemin, puis « Retour sur la trace », avec le badge « Hors trace »." = "Si te sales de la ruta, el Road Book te guía por carretera hasta ella: los giros del camino y luego «De vuelta en la ruta», con el distintivo «Fuera de ruta».";
+"Le point de retour est toujours devant toi sur la trace, jamais en arrière ; si tu le dépasses, un nouveau est calculé au bout de 10 s." = "El punto de regreso siempre está delante de ti en la ruta, nunca detrás; si lo pasas, se calcula uno nuevo a los 10 s.";
+"Au-delà de 100 m pendant 2 s, la bannière « Rejoindre la trace » te guide par la route vers le point de la trace le plus proche devant toi, virage par virage." = "A más de 100 m durante 2 s, el aviso «Volver a la ruta» te guía por carretera hasta el punto más cercano de la ruta por delante de ti, giro a giro.";

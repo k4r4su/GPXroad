@@ -826,7 +826,9 @@ private struct RoadbookTableRow: View {
             // point 3 : "priorité à la lisibilité — gants, plein soleil, coup d'œil rapide").
             VStack(spacing: 5) {
                 Text(unit.displayString(fromMeters: maneuver.cumulativeDistanceMeters))
-                    .font(.title3.monospacedDigit().bold())
+                    .font(.title2.monospacedDigit().bold())
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.7)
                 HStack(spacing: 5) {
                     Text("\(index + 1)")
                         .font(.caption.bold())
@@ -851,7 +853,7 @@ private struct RoadbookTableRow: View {
                 // de l'emoji de repère OSM (it23sexies) — HStack plutôt qu'un badge superposé,
                 // plus lisible dans une colonne déjà étroite.
                 HStack(spacing: 5) {
-                    RoadbookManeuverIcon(checkpoint: maneuver.checkpoint, size: 30)
+                    RoadbookManeuverIcon(checkpoint: maneuver.checkpoint, size: 36)
                         .foregroundStyle(isCurrent ? Color.accentColor : .primary)
                     if let landmark {
                         Text(landmark.category.emoji)
@@ -867,13 +869,17 @@ private struct RoadbookTableRow: View {
             verticalRule
 
             VStack(alignment: .leading, spacing: 3) {
+                // It33 : instructions agrandies (« y a encore de la place pour optimiser la lecture »).
                 Text(maneuver.checkpoint.tier.label)
-                    .font(.headline)
+                    .font(.title3.bold())
+                    .lineLimit(2)
+                    .minimumScaleFactor(0.7)
                 if let landmark {
                     Text(landmark.displayLabel)
-                        .font(.subheadline)
+                        .font(.body)
                         .foregroundStyle(.secondary)
                         .lineLimit(2)
+                        .minimumScaleFactor(0.8)
                 }
             }
             .frame(width: infoColumnWidth, alignment: .leading)
@@ -909,18 +915,21 @@ private struct RoadbookLandmarkTableRow: View {
         } label: {
             HStack(spacing: 0) {
                 Text(unit.displayString(fromMeters: landmark.cumulativeDistanceMeters))
-                    .font(.title3.monospacedDigit().bold())
+                    .font(.title2.monospacedDigit().bold())
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.7)
                     .frame(width: distanceColumnWidth)
                 Rectangle().fill(ruleColor).frame(width: 1)
-                RoadbookLandmarkIcon(category: landmark.info.category, size: 24)
+                RoadbookLandmarkIcon(category: landmark.info.category, size: 30)
                     .frame(width: headingColumnWidth)
                 Rectangle().fill(ruleColor).frame(width: 1)
                 VStack(alignment: .leading, spacing: 2) {
                     Text(landmark.info.localizedLabel)
-                        .font(.headline)
+                        .font(.title3.bold())
                         .lineLimit(2)
+                        .minimumScaleFactor(0.7)
                     Text(RoadbookLandmarkRowText.detail(landmark.info))
-                        .font(.caption)
+                        .font(.subheadline)
                         .foregroundStyle(.secondary)
                 }
                 .frame(width: infoColumnWidth, alignment: .leading)

@@ -246,16 +246,20 @@ private struct RoadbookBigLandmarkCard: View {
         } label: {
             if isLandscape {
                 HStack(spacing: 24) {
-                    RoadbookLandmarkIcon(category: landmark.info.category, size: 90)
+                    RoadbookLandmarkIcon(category: landmark.info.category, size: 110)
                     labels(alignment: .leading)
                     Spacer(minLength: 12)
-                    distanceText(size: 60)
+                    distanceText(size: 96)
+                        .layoutPriority(1)
                 }
                 .padding(.horizontal, 20)
             } else {
-                VStack(spacing: 16) {
-                    RoadbookLandmarkIcon(category: landmark.info.category, size: 110)
-                    distanceText(size: 64)
+                VStack(spacing: 12) {
+                    HStack(spacing: 16) {
+                        RoadbookLandmarkIcon(category: landmark.info.category, size: 110)
+                        distanceText(size: 80)
+                            .layoutPriority(1)
+                    }
                     labels(alignment: .center)
                 }
                 .padding(.horizontal, 24)
@@ -276,14 +280,15 @@ private struct RoadbookBigLandmarkCard: View {
     private func labels(alignment: HorizontalAlignment) -> some View {
         VStack(alignment: alignment, spacing: 4) {
             Text(landmark.info.localizedLabel)
-                .font(.title3.bold())
+                .font(.system(.title, design: .rounded).bold())
                 .multilineTextAlignment(alignment == .center ? .center : .leading)
                 .lineLimit(2)
                 .minimumScaleFactor(0.7)
             Text(RoadbookLandmarkRowText.detail(landmark.info))
-                .font(.subheadline)
+                .font(.title3)
                 .foregroundStyle(.secondary)
                 .lineLimit(1)
+                .minimumScaleFactor(0.7)
         }
     }
 }
@@ -361,38 +366,55 @@ private struct RoadbookBigManeuverCard: View {
         .buttonStyle(.plain)
     }
 
+    /// It33 (retour terrain : « augmenter la taille du texte pour les instructions, y a encore de la
+    /// place ») : flèche et distance CÔTE À CÔTE pour exploiter la largeur, tailles proportionnelles
+    /// à la place réellement disponible (hauteur de la carte, largeur de l'écran) — l'ancienne pile
+    /// verticale débordait déjà de la carte quand un repère s'ajoutait. La distance est prioritaire :
+    /// elle réduit en dernier (`layoutPriority`), jamais tronquée.
     private var cardContent: some View {
-        VStack(spacing: 16) {
-            // Pictogramme emoji du repère À CÔTÉ de la flèche (retour terrain it23sexies :
-            // "à côté de la flèche il y ait des pictogrammes afin d'augmenter l'aide au niveau
-            // du prochain virage") — HStack pour rester bien lisible même en très grande taille.
-            HStack(alignment: .center, spacing: 12) {
-                RoadbookManeuverIcon(checkpoint: maneuver.checkpoint, size: 120)
-                    .foregroundStyle(Color.accentColor)
-                if let landmark {
-                    Text(landmark.category.emoji)
-                        .font(.system(size: 64))
+        GeometryReader { geometry in
+            let side = min(geometry.size.height * 0.52, geometry.size.width * 0.42)
+            VStack(spacing: 10) {
+                Spacer(minLength: 0)
+                HStack(alignment: .center, spacing: 14) {
+                    ZStack(alignment: .bottomTrailing) {
+                        RoadbookManeuverIcon(checkpoint: maneuver.checkpoint, size: side)
+                            .foregroundStyle(Color.accentColor)
+                        if let landmark {
+                            Text(landmark.category.emoji)
+                                .font(.system(size: side * 0.36))
+                                .offset(x: side * 0.12, y: side * 0.06)
+                        }
+                    }
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text(unit.displayString(fromMeters: distanceRemainingMeters))
+                            .font(.system(size: side * 0.62, weight: .heavy, design: .rounded))
+                            .monospacedDigit()
+                            .minimumScaleFactor(0.4)
+                            .lineLimit(1)
+                        Text("Cap \(Int(maneuver.headingDegrees.rounded()))°")
+                            .font(.headline.monospacedDigit())
+                            .foregroundStyle(.secondary)
+                    }
+                    .layoutPriority(1)
                 }
+                Text(maneuver.checkpoint.tier.label)
+                    .font(.system(.title, design: .rounded).bold())
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.6)
+                if let landmark {
+                    Text(landmark.displayLabel)
+                        .font(.title3.bold())
+                        .foregroundStyle(.orange)
+                        .multilineTextAlignment(.center)
+                        .lineLimit(2)
+                        .minimumScaleFactor(0.7)
+                }
+                Spacer(minLength: 0)
             }
-            Text("Cap \(Int(maneuver.headingDegrees.rounded()))°")
-                .font(.headline.monospacedDigit())
-                .foregroundStyle(.secondary)
-            Text(unit.displayString(fromMeters: distanceRemainingMeters))
-                .font(.system(size: 64, weight: .heavy, design: .rounded))
-                .monospacedDigit()
-                .minimumScaleFactor(0.6)
-                .lineLimit(1)
-            Text(maneuver.checkpoint.tier.label)
-                .font(.title3.bold())
-                .foregroundStyle(.secondary)
-            if let landmark {
-                Text(landmark.displayLabel)
-                    .font(.subheadline.bold())
-                    .foregroundStyle(.orange)
-                    .multilineTextAlignment(.center)
-            }
+            .frame(width: geometry.size.width, height: geometry.size.height)
         }
-        .padding(.horizontal, 24)
+        .padding(.horizontal, 20)
     }
 }
 
@@ -425,12 +447,14 @@ private struct RoadbookBigManeuverCardLandscape: View {
 
     private var cardContent: some View {
         HStack(spacing: 24) {
-            VStack(spacing: 4) {
-                RoadbookManeuverIcon(checkpoint: maneuver.checkpoint, size: 120)
+            // It33 : flèche et distance agrandies à la hauteur réelle de la carte paysage.
+            ZStack(alignment: .bottomTrailing) {
+                RoadbookManeuverIcon(checkpoint: maneuver.checkpoint, size: 150)
                     .foregroundStyle(Color.accentColor)
                 if let landmark {
                     Text(landmark.category.emoji)
-                        .font(.system(size: 40))
+                        .font(.system(size: 48))
+                        .offset(x: 14, y: 6)
                 }
             }
 
@@ -440,31 +464,31 @@ private struct RoadbookBigManeuverCardLandscape: View {
             // "la flèche" et "la distance", pas ce texte. Revenu à sa taille d'origine
             // (`.headline`, qui tenait déjà correctement) + `minimumScaleFactor` en filet de
             // sécurité plutôt qu'une troncature "..." si jamais l'espace redevient juste.
-            VStack(alignment: .leading, spacing: 2) {
+            VStack(alignment: .leading, spacing: 4) {
                 Text(maneuver.checkpoint.tier.label)
-                    .font(.headline)
-                    .foregroundStyle(.secondary)
-                    .lineLimit(1)
-                    .minimumScaleFactor(0.7)
+                    .font(.system(.title2, design: .rounded).bold())
+                    .lineLimit(2)
+                    .minimumScaleFactor(0.6)
                 if let landmark {
                     Text(landmark.displayLabel)
-                        .font(.caption.bold())
+                        .font(.headline)
                         .foregroundStyle(.orange)
-                        .lineLimit(1)
+                        .lineLimit(2)
                         .minimumScaleFactor(0.7)
                 }
                 Text("Cap \(Int(maneuver.headingDegrees.rounded()))°")
-                    .font(.caption.monospacedDigit())
+                    .font(.subheadline.monospacedDigit())
                     .foregroundStyle(.secondary)
             }
 
             Spacer(minLength: 12)
 
             Text(unit.displayString(fromMeters: distanceRemainingMeters))
-                .font(.system(size: 60, weight: .heavy, design: .rounded))
+                .font(.system(size: 96, weight: .heavy, design: .rounded))
                 .monospacedDigit()
-                .minimumScaleFactor(0.5)
+                .minimumScaleFactor(0.4)
                 .lineLimit(1)
+                .layoutPriority(1)
         }
         .padding(.leading, 20)
         .padding(.trailing, 20)
@@ -495,44 +519,51 @@ private struct RoadbookUpcomingRow: View {
     private var rowContent: some View {
         HStack(spacing: 16) {
             Text("+\(rank - 1)")
-                .font(.caption.bold().monospacedDigit())
+                .font(.subheadline.bold().monospacedDigit())
                 .foregroundStyle(.secondary)
-                .frame(width: 28)
+                .frame(width: 32)
 
             HStack(spacing: 4) {
-                RoadbookManeuverIcon(checkpoint: maneuver.checkpoint, size: 28)
+                RoadbookManeuverIcon(checkpoint: maneuver.checkpoint, size: 38)
                     .foregroundStyle(.primary)
                 if let landmark {
                     Text(landmark.category.emoji)
-                        .font(.system(size: 22))
+                        .font(.system(size: 26))
                 }
             }
-            .frame(width: 60)
+            .frame(width: 72)
 
-            VStack(alignment: .leading, spacing: 1) {
+            VStack(alignment: .leading, spacing: 2) {
+                // Deux lignes plutôt qu'une troncature (« Virage prono… » à côté d'une distance longue).
                 Text(maneuver.checkpoint.tier.label)
-                    .font(.subheadline)
-                    .foregroundStyle(.secondary)
+                    .font(.body.weight(.semibold))
+                    .lineLimit(2)
+                    .minimumScaleFactor(0.85)
+                    .fixedSize(horizontal: false, vertical: true)
                 if let landmark {
                     Text(landmark.displayLabel)
-                        .font(.caption2)
+                        .font(.subheadline)
                         .foregroundStyle(.orange)
                         .lineLimit(1)
+                        .minimumScaleFactor(0.8)
                 }
             }
 
-            Spacer()
+            Spacer(minLength: 8)
 
             VStack(alignment: .trailing, spacing: 1) {
                 Text(unit.displayString(fromMeters: distanceFromNowMeters))
-                    .font(.headline.monospacedDigit())
+                    .font(.title2.bold().monospacedDigit())
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.7)
                 Text("\(Int(maneuver.headingDegrees.rounded()))°")
-                    .font(.caption2.monospacedDigit())
+                    .font(.caption.monospacedDigit())
                     .foregroundStyle(.secondary)
             }
+            .layoutPriority(1)
         }
         .padding(.horizontal, 20)
-        .padding(.vertical, 14)
+        .padding(.vertical, 12)
     }
 }
 
@@ -550,20 +581,24 @@ private struct RoadbookUpcomingLandmarkRow: View {
             navigationState.focusRideMap(on: landmark.coordinate)
         } label: {
             HStack(spacing: 16) {
-                Color.clear.frame(width: 28, height: 1)
-                RoadbookLandmarkIcon(category: landmark.info.category, size: 22)
-                    .frame(width: 60)
+                Color.clear.frame(width: 32, height: 1)
+                RoadbookLandmarkIcon(category: landmark.info.category, size: 28)
+                    .frame(width: 72)
                 VStack(alignment: .leading, spacing: 1) {
                     Text(landmark.info.localizedLabel)
-                        .font(.subheadline.bold())
+                        .font(.body.bold())
                         .lineLimit(1)
+                        .minimumScaleFactor(0.7)
                     Text(RoadbookLandmarkRowText.detail(landmark.info))
-                        .font(.caption2)
+                        .font(.caption)
                         .foregroundStyle(.secondary)
                 }
-                Spacer()
+                Spacer(minLength: 8)
                 Text(unit.displayString(fromMeters: distanceFromNowMeters))
-                    .font(.headline.monospacedDigit())
+                    .font(.title2.bold().monospacedDigit())
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.7)
+                    .layoutPriority(1)
             }
             .padding(.horizontal, 20)
             .padding(.vertical, 12)
@@ -623,16 +658,21 @@ private struct RoadbookRejoinArrivalRow: View {
 
     var body: some View {
         HStack(spacing: 16) {
-            Color.clear.frame(width: 28, height: 1)
+            Color.clear.frame(width: 32, height: 1)
             Image(systemName: "arrow.triangle.merge")
-                .font(.system(size: 24, weight: .bold))
+                .font(.system(size: 30, weight: .bold))
                 .foregroundStyle(Color.accentColor)
-                .frame(width: 60)
+                .frame(width: 72)
             Text("Retour sur la trace")
-                .font(.subheadline.bold())
-            Spacer()
+                .font(.body.bold())
+                .lineLimit(1)
+                .minimumScaleFactor(0.7)
+            Spacer(minLength: 8)
             Text(unit.displayString(fromMeters: distanceFromNowMeters))
-                .font(.headline.monospacedDigit())
+                .font(.title2.bold().monospacedDigit())
+                .lineLimit(1)
+                .minimumScaleFactor(0.7)
+                .layoutPriority(1)
         }
         .padding(.horizontal, 20)
         .padding(.vertical, 14)

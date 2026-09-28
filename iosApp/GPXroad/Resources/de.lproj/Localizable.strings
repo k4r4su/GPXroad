@@ -481,7 +481,6 @@
 "Seuils personnalisés" = "Eigene Schwellenwerte";
 "Seul ce qui se voit depuis la route est affiché : panneaux, ponts, églises, stations-service, entrées de village…" = "Nur was von der Straße aus sichtbar ist, wird angezeigt: Schilder, Brücken, Kirchen, Tankstellen, Ortseingänge…";
 "Seul ce qui se voit depuis la route est proposé. Les ronds-points restent toujours affichés comme des changements de direction." = "Nur was von der Straße aus sichtbar ist, wird angeboten. Kreisverkehre werden immer als Richtungswechsel angezeigt.";
-"Si tu t'écartes de la trace, « Hors trace » remplace le prochain élément jusqu'à ton retour." = "Wenn du den Track verlässt, ersetzt „Abseits des Tracks“ das nächste Element, bis du zurück bist.";
 "Si tu t'écartes de plus de 30 m, la puce « Hors trace » apparaît ; après 30 s, elle indique la distance pour rejoindre la trace." = "Wenn du mehr als 30 m abweichst, erscheint die Anzeige „Abseits des Tracks“; nach 30 s zeigt sie die Entfernung zurück zum Track.";
 "Signaler" = "Melden";
 "Signaler un danger, un bouchon ou un point d'attention" = "Gefahr, Stau oder Achtungspunkt melden";
@@ -631,3 +630,6 @@
 "Hors trace : chemin pour rejoindre la trace" = "Abseits des Tracks: Weg zurück zum Track";
 "Rejoindre la trace — itinéraire indisponible" = "Zurück zum Track – Route nicht verfügbar";
 "Retour sur la trace" = "Zurück auf dem Track";
+"Si tu t'écartes de la trace, le Road Book te guide par la route jusqu'à elle : les virages du chemin, puis « Retour sur la trace », avec le badge « Hors trace »." = "Wenn du den Track verlässt, führt dich das Roadbook über die Straße zurück: die Abbiegungen auf dem Weg, dann „Zurück auf dem Track“, mit dem Hinweis „Abseits des Tracks“.";
+"Le point de retour est toujours devant toi sur la trace, jamais en arrière ; si tu le dépasses, un nouveau est calculé au bout de 10 s." = "Der Rückkehrpunkt liegt immer vor dir auf dem Track, nie hinter dir; fährst du daran vorbei, wird nach 10 s ein neuer berechnet.";
+"Au-delà de 100 m pendant 2 s, la bannière « Rejoindre la trace » te guide par la route vers le point de la trace le plus proche devant toi, virage par virage." = "Ab 100 m für 2 s führt dich das Banner „Zurück zum Track“ über die Straße zum nächsten Punkt des Tracks vor dir, Abbiegung für Abbiegung.";

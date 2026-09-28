@@ -35,6 +35,7 @@ enum TutorialContent {
                     String(localized: "La trace active (cochée dans la Bibliothèque) est dessinée sur la carte, avec des chevrons dans le sens de parcours.", bundle: .appLanguage),
                     String(localized: "Le bandeau latéral annonce le prochain virage avec un compte à rebours ; l'écran flashe dans les 100 derniers mètres.", bundle: .appLanguage),
                     String(localized: "Si tu t'écartes de plus de 30 m, la puce « Hors trace » apparaît ; après 30 s, elle indique la distance pour rejoindre la trace.", bundle: .appLanguage),
+                    String(localized: "Au-delà de 100 m pendant 2 s, la bannière « Rejoindre la trace » te guide par la route vers le point de la trace le plus proche devant toi, virage par virage.", bundle: .appLanguage),
                 ]),
                 .init(title: String(localized: "Enregistrer la sortie", bundle: .appLanguage), points: [
                     String(localized: "Au démarrage du suivi, l'app propose d'enregistrer la sortie. C'est recommandé, mais tu peux refuser.", bundle: .appLanguage),
@@ -82,7 +83,8 @@ enum TutorialContent {
                     String(localized: "Assisté GPS : le prochain élément en grand, avec la distance qui diminue, puis la liste de ce qui suit.", bundle: .appLanguage),
                     String(localized: "Roadbook classique : toute la liste avec distances partielles et cumulées, comme sur papier.", bundle: .appLanguage),
                     String(localized: "Le prochain élément est toujours le plus proche, virage ou repère : un stop à 200 m passe avant un virage à 300 m.", bundle: .appLanguage),
-                    String(localized: "Si tu t'écartes de la trace, « Hors trace » remplace le prochain élément jusqu'à ton retour.", bundle: .appLanguage),
+                    String(localized: "Si tu t'écartes de la trace, le Road Book te guide par la route jusqu'à elle : les virages du chemin, puis « Retour sur la trace », avec le badge « Hors trace ».", bundle: .appLanguage),
+                    String(localized: "Le point de retour est toujours devant toi sur la trace, jamais en arrière ; si tu le dépasses, un nouveau est calculé au bout de 10 s.", bundle: .appLanguage),
                 ]),
                 .init(title: String(localized: "Repères", bundle: .appLanguage), points: [
                     String(localized: "Seul ce qui se voit depuis la route est affiché : panneaux, ponts, églises, stations-service, entrées de village…", bundle: .appLanguage),

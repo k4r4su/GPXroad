@@ -481,7 +481,6 @@
 "Seuils personnalisés" = "Custom thresholds";
 "Seul ce qui se voit depuis la route est affiché : panneaux, ponts, églises, stations-service, entrées de village…" = "Only what you can see from the road is shown: signs, bridges, churches, fuel stations, village entrances…";
 "Seul ce qui se voit depuis la route est proposé. Les ronds-points restent toujours affichés comme des changements de direction." = "Only what can be seen from the road is offered. Roundabouts are always shown as direction changes.";
-"Si tu t'écartes de la trace, « Hors trace » remplace le prochain élément jusqu'à ton retour." = "If you leave the track, “Off track” replaces the next item until you're back.";
 "Si tu t'écartes de plus de 30 m, la puce « Hors trace » apparaît ; après 30 s, elle indique la distance pour rejoindre la trace." = "If you stray more than 30 m, the “Off track” chip appears; after 30 s, it shows the distance to rejoin the track.";
 "Signaler" = "Report";
 "Signaler un danger, un bouchon ou un point d'attention" = "Report a danger, a traffic jam or a point of caution";
@@ -631,3 +630,6 @@
 "Hors trace : chemin pour rejoindre la trace" = "Off track: way back to the track";
 "Rejoindre la trace — itinéraire indisponible" = "Back to the track — route unavailable";
 "Retour sur la trace" = "Back on the track";
+"Si tu t'écartes de la trace, le Road Book te guide par la route jusqu'à elle : les virages du chemin, puis « Retour sur la trace », avec le badge « Hors trace »." = "If you leave the track, the Road Book guides you back to it by road: the turns on the way, then “Back on the track”, with the “Off track” badge.";
+"Le point de retour est toujours devant toi sur la trace, jamais en arrière ; si tu le dépasses, un nouveau est calculé au bout de 10 s." = "The rejoin point is always ahead of you on the track, never behind; if you pass it, a new one is calculated after 10 s.";
+"Au-delà de 100 m pendant 2 s, la bannière « Rejoindre la trace » te guide par la route vers le point de la trace le plus proche devant toi, virage par virage." = "Beyond 100 m for 2 s, the “Rejoin the track” banner guides you by road to the nearest point of the track ahead of you, turn by turn.";

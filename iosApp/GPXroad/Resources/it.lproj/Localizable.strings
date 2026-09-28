@@ -481,7 +481,6 @@
 "Seuils personnalisés" = "Soglie personalizzate";
 "Seul ce qui se voit depuis la route est affiché : panneaux, ponts, églises, stations-service, entrées de village…" = "Viene mostrato solo ciò che si vede dalla strada: segnali, ponti, chiese, distributori, ingressi di paese…";
 "Seul ce qui se voit depuis la route est proposé. Les ronds-points restent toujours affichés comme des changements de direction." = "Viene proposto solo ciò che si vede dalla strada. Le rotatorie sono sempre mostrate come cambi di direzione.";
-"Si tu t'écartes de la trace, « Hors trace » remplace le prochain élément jusqu'à ton retour." = "Se ti allontani dalla traccia, «Fuori traccia» sostituisce il prossimo elemento finché non torni.";
 "Si tu t'écartes de plus de 30 m, la puce « Hors trace » apparaît ; après 30 s, elle indique la distance pour rejoindre la trace." = "Se ti allontani di più di 30 m, compare l'etichetta «Fuori traccia»; dopo 30 s indica la distanza per rientrare nella traccia.";
 "Signaler" = "Segnala";
 "Signaler un danger, un bouchon ou un point d'attention" = "Segnala un pericolo, una coda o un punto di attenzione";
@@ -631,3 +630,6 @@
 "Hors trace : chemin pour rejoindre la trace" = "Fuori traccia: percorso per tornare alla traccia";
 "Rejoindre la trace — itinéraire indisponible" = "Tornare alla traccia — itinerario non disponibile";
 "Retour sur la trace" = "Di nuovo sulla traccia";
+"Si tu t'écartes de la trace, le Road Book te guide par la route jusqu'à elle : les virages du chemin, puis « Retour sur la trace », avec le badge « Hors trace »." = "Se esci dalla traccia, il Road Book ti riporta su di essa per strada: le svolte del percorso, poi «Di nuovo sulla traccia», con il badge «Fuori traccia».";
+"Le point de retour est toujours devant toi sur la trace, jamais en arrière ; si tu le dépasses, un nouveau est calculé au bout de 10 s." = "Il punto di rientro è sempre davanti a te sulla traccia, mai dietro; se lo superi, ne viene calcolato uno nuovo dopo 10 s.";
+"Au-delà de 100 m pendant 2 s, la bannière « Rejoindre la trace » te guide par la route vers le point de la trace le plus proche devant toi, virage par virage." = "Oltre 100 m per 2 s, il banner «Rientra nella traccia» ti guida per strada fino al punto più vicino della traccia davanti a te, svolta dopo svolta.";
