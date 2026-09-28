@@ -633,3 +633,6 @@
 "Si tu t'écartes de la trace, le Road Book te guide par la route jusqu'à elle : les virages du chemin, puis « Retour sur la trace », avec le badge « Hors trace »." = "Se esci dalla traccia, il Road Book ti riporta su di essa per strada: le svolte del percorso, poi «Di nuovo sulla traccia», con il badge «Fuori traccia».";
 "Le point de retour est toujours devant toi sur la trace, jamais en arrière ; si tu le dépasses, un nouveau est calculé au bout de 10 s." = "Il punto di rientro è sempre davanti a te sulla traccia, mai dietro; se lo superi, ne viene calcolato uno nuovo dopo 10 s.";
 "Au-delà de 100 m pendant 2 s, la bannière « Rejoindre la trace » te guide par la route vers le point de la trace le plus proche devant toi, virage par virage." = "Oltre 100 m per 2 s, il banner «Rientra nella traccia» ti guida per strada fino al punto più vicino della traccia davanti a te, svolta dopo svolta.";
+
+/* It33 bis — rond-point dessiné (accessibilité) */
+"Rond-point, sortie %lld" = "Rotatoria, uscita %lld";

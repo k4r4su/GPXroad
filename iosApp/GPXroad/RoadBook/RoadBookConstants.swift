@@ -126,14 +126,8 @@ enum RoadBookConstants {
     /// l'autre au fil des itérations.
     static let pdfAccentColorRGB: (red: CGFloat, green: CGFloat, blue: CGFloat) = (0.92, 0.35, 0.15)
 
-    // MARK: - Pictogrammes enrichis (spec "roadbook-route-aware-maneuvers", it24, point 2)
-
-    /// Rond-point : angle (degrés, 0 = tout droit/12h, sens HORAIRE positif) entre deux sorties
-    /// consécutives — convention visuelle FIXE, Valhalla ne fournit que le RANG de la sortie
-    /// prise (`roundabout_exit_count`), jamais la géométrie réelle des sorties intermédiaires.
-    /// 45° laisse la place à 7 sorties avant de boucler sur 315°, largement au-delà de la
-    /// quasi-totalité des ronds-points rencontrés en usage réel.
-    static let roundaboutExitSpacingDegrees: Double = 45
+    // Rond-point : sortie placée selon le virage réel de la trace depuis it33 (plus de convention
+    // « 45° par sortie ») — voir `RoadbookRoundaboutDrawing` et `RoundaboutPictogram` (Kotlin).
 
     // MARK: - Palette jour/nuit (spec "roadbook-ui-redesign", it25, point 0)
 

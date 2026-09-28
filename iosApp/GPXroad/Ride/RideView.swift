@@ -479,7 +479,8 @@ struct RideView: View {
                             tier: inflection.tier,
                             distanceMeters: distance,
                             sequenceIndex: inflection.sequenceIndex,
-                            totalCount: session.inflectionPoints.count
+                            totalCount: session.inflectionPoints.count,
+                            checkpoint: inflection
                         )
                         .transition(.ridePanel)
                     }

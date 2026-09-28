@@ -86,6 +86,15 @@ object RoadbookConstants {
     /** Premiers/derniers mètres de la trace : un demi-tour y est une manœuvre de stationnement. */
     const val U_TURN_ENDPOINT_GUARD_METERS = 200.0
 
+    /** Route connue : manœuvres Valhalla à moins de ça l'une de l'autre = un seul carrefour. */
+    const val JUNCTION_CLUSTER_METERS = 50.0
+
+    /** Rond-point : sortie cherchée au plus à cette distance de l'entrée (le long de la trace). */
+    const val ROUNDABOUT_MAX_SPAN_METERS = 400.0
+
+    /** Rond-point : sortie « tout droit » sous cet écart de cap entre l'approche et la sortie. */
+    const val ROUNDABOUT_STRAIGHT_TOLERANCE_DEGREES = 20.0
+
     /** Carrefour Valhalla plus loin que ça de la trace : hors parcours, ignoré. */
     const val MAP_MATCH_MAX_OFF_TRACK_METERS = 60.0
 

@@ -270,8 +270,11 @@ final class RoadbookMapMatchingTests: XCTestCase {
 
         let result = events(for: track, mapMatched: [first, second])
 
-        XCTAssertEqual(result.count, 1)
+        // It33 : route connue, deux carrefours à 100 m = deux décisions (seuls ceux à moins de
+        // `JUNCTION_CLUSTER_METERS`, 50 m, forment un même carrefour) — chacun à SA position.
+        XCTAssertEqual(result.count, 2)
         XCTAssertEqual(result.first?.trackCumulativeDistanceMeters ?? -1, 300, accuracy: 1)
+        XCTAssertEqual(result.last?.trackCumulativeDistanceMeters ?? -1, 400, accuracy: 1)
     }
 
     /// Deux carrefours éloignés sur le MÊME segment GPX (trace planifiée peu dense) partagent le
@@ -300,8 +303,10 @@ final class RoadbookMapMatchingTests: XCTestCase {
         let matchedCoordinate = track.points[1].coordinate
         let result = events(for: track, mapMatched: [matchedCoordinate])
 
-        XCTAssertEqual(result.count, 1, "le point de map matching coïncide avec un événement déjà détecté, pas de doublon")
-        XCTAssertEqual(result.first?.tier, .marked, "l'événement géométrique existant garde son palier, jamais écrasé par .lightDirectionChange")
+        // It33 : route connue — un seul événement, le carrefour Valhalla (ici une fourche) ; la
+        // géométrie ne crée jamais un second événement au même endroit.
+        XCTAssertEqual(result.count, 1, "le point de map matching coïncide avec la courbe géométrique, pas de doublon")
+        XCTAssertEqual(result.first?.tier, .fork)
     }
 
     /// Invariant it14 "source unique" : les événements fusionnés restent ordonnés par
@@ -326,9 +331,13 @@ final class RoadbookMapMatchingTests: XCTestCase {
         let matchedCoordinate = track.points[1].coordinate
         let result = events(for: track, mapMatched: [matchedCoordinate])
 
-        XCTAssertEqual(result.count, 2, "1 virage marqué géométrique + 1 léger changement de direction map matché")
-        XCTAssertEqual(result.map(\.sequenceIndex), [1, 2], "numérotation continue dans l'ordre de progression")
-        XCTAssertEqual(result.map(\.tier), [.fork, .marked], "le point de map matching (point 1) précède le virage géométrique (point 4) le long de la trace, malgré un ordre d'insertion inverse dans le code")
+        // It33 (retour terrain : « si on reste sur la même route, même si elle tourne, il n'y a pas de
+        // changement de direction ») : route connue, le virage géométrique du point 4 n'a AUCUN
+        // carrefour Valhalla — c'est la route qui tourne, il n'est plus annoncé. Seul le carrefour
+        // Valhalla (point 1) reste.
+        XCTAssertEqual(result.count, 1, "seul le carrefour Valhalla ; la courbe de la route n'est pas un changement de direction")
+        XCTAssertEqual(result.map(\.sequenceIndex), [1])
+        XCTAssertEqual(result.map(\.tier), [.fork])
     }
 
     // MARK: - Palier/direction pilotés par le type Valhalla (spec "roadbook-route-aware-maneuvers", it24, point 2)

@@ -633,3 +633,6 @@
 "Si tu t'écartes de la trace, le Road Book te guide par la route jusqu'à elle : les virages du chemin, puis « Retour sur la trace », avec le badge « Hors trace »." = "Wenn du den Track verlässt, führt dich das Roadbook über die Straße zurück: die Abbiegungen auf dem Weg, dann „Zurück auf dem Track“, mit dem Hinweis „Abseits des Tracks“.";
 "Le point de retour est toujours devant toi sur la trace, jamais en arrière ; si tu le dépasses, un nouveau est calculé au bout de 10 s." = "Der Rückkehrpunkt liegt immer vor dir auf dem Track, nie hinter dir; fährst du daran vorbei, wird nach 10 s ein neuer berechnet.";
 "Au-delà de 100 m pendant 2 s, la bannière « Rejoindre la trace » te guide par la route vers le point de la trace le plus proche devant toi, virage par virage." = "Ab 100 m für 2 s führt dich das Banner „Zurück zum Track“ über die Straße zum nächsten Punkt des Tracks vor dir, Abbiegung für Abbiegung.";
+
+/* It33 bis — rond-point dessiné (accessibilité) */
+"Rond-point, sortie %lld" = "Kreisverkehr, Ausfahrt %lld";

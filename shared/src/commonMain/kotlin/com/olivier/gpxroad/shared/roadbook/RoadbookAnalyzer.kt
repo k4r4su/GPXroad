@@ -34,6 +34,10 @@ object RoadbookAnalyzer {
         val windowAfter = settings.windowAfterMeters
         if (points.size <= 2 || windowBefore <= 0 || windowAfter <= 0) return emptyList()
         val cumulative = TrackGeometry.cumulativeDistances(points)
+        // Route connue (map matching Valhalla) : seuls les vrais carrefours comptent — « si on reste
+        // sur la même route, même si elle tourne, il n'y a pas de changement de direction » (retour
+        // terrain it33). La géométrie seule ne sert que sans map matching (hors ligne, désactivé).
+        if (mapMatchedManeuvers.isNotEmpty()) return routeAwareEvents(mapMatchedManeuvers, points, cumulative, settings)
         val thresholds = settings.thresholds
 
         val candidates = mutableListOf<Candidate>()
@@ -59,77 +63,148 @@ object RoadbookAnalyzer {
             raw.add(RawEvent(points[i], absAngle, direction, tier, i))
         }
 
-        val geometricEvents = mergeNearby(raw, settings.mergeMinDistanceMeters, cumulative)
-        if (mapMatchedManeuvers.isEmpty()) return geometricEvents
-        return mergingMapMatchedDirectionChanges(mapMatchedManeuvers, geometricEvents, points, cumulative, settings)
+        return mergeNearby(raw, settings.mergeMinDistanceMeters, cumulative)
+    }
+
+    /** Manœuvre Valhalla placée sur la trace (position exacte le long d'elle, segment porteur). */
+    private class Placed(val maneuver: MapMatchedManeuver, val projection: TrackGeometry.Projection, val order: Int) {
+        val cumulative: Double get() = projection.cumulativeDistanceMeters
+        val tier: RoadbookTier get() = maneuver.type.roadbookTier ?: RoadbookTier.LIGHT_DIRECTION_CHANGE
     }
 
     /**
-     * Fusionne les manœuvres de map matching dans la liste géométrique, dans l'ordre de progression :
-     * position = vrai carrefour projeté (distance INTERPOLÉE) sur le bon passage de la trace ;
-     * doublon mesuré le long de la trace ; libellé et sens issus de la géométrie de la trace.
+     * Road Book quand la ROUTE est connue (it33, retour terrain : virages annoncés sur une route qui ne
+     * fait que tourner, ronds-points écrasés par un « virage fort » géométrique, carrefours confus).
+     * Événements = uniquement les points de décision Valhalla, jamais une courbe de la route :
+     * - manœuvres à moins de [RoadbookConstants.JUNCTION_CLUSTER_METERS] l'une de l'autre = UN
+     *   carrefour (deux manœuvres Valhalla pour le même croisement décalé), qualifié par le virage
+     *   NET de la trace, de l'approche du premier à la sortie du dernier ;
+     * - rond-point : entrée + sortie = UN événement, angle et sens de la sortie réellement prise ;
+     * - virage en restant sur la MÊME route (même nom avant/après) : seulement s'il est franc
+     *   (≥ palier « fort ») — sinon on suit la route ; sinon, virage si la trace tourne vraiment, ou
+     *   changement de route avec un changement de cap sensible ;
+     * - libellé et sens toujours issus de la géométrie de la trace suivie, position = vrai carrefour.
      */
-    private fun mergingMapMatchedDirectionChanges(
+    private fun routeAwareEvents(
         matchedManeuvers: List<MapMatchedManeuver>,
-        geometricEvents: List<Checkpoint>,
         points: List<LatLon>,
         cumulative: DoubleArray,
         settings: RoadbookSettings,
     ): List<Checkpoint> {
-        val combined = geometricEvents.toMutableList()
-        var previousMatchedCumulative: Double? = null
+        val placed = mutableListOf<Placed>()
+        var previous: Double? = null
+        for ((order, maneuver) in matchedManeuvers.withIndex()) {
+            if (maneuver.type.roadbookTier == null) continue
+            val projection = placement(maneuver, points, cumulative, previous, RoadbookConstants.JUNCTION_CLUSTER_METERS) ?: continue
+            previous = projection.cumulativeDistanceMeters
+            placed.add(Placed(maneuver, projection, order))
+        }
+        placed.sortBy { it.cumulative }
+
+        // Regroupement : rond-point (entrée → sortie), puis carrefours rapprochés.
+        val groups = mutableListOf<MutableList<Placed>>()
+        var i = 0
+        while (i < placed.size) {
+            val current = placed[i]
+            if (current.maneuver.type == ValhallaManeuverType.ROUNDABOUT_ENTER) {
+                // Entrée → première sortie à portée ; ce qui est entre les deux fait partie du rond-point.
+                val exitIndex = (i + 1 until placed.size)
+                    .takeWhile { placed[it].cumulative - current.cumulative <= RoadbookConstants.ROUNDABOUT_MAX_SPAN_METERS }
+                    .firstOrNull { placed[it].maneuver.type == ValhallaManeuverType.ROUNDABOUT_EXIT }
+                groups.add(if (exitIndex != null) placed.subList(i, exitIndex + 1).toMutableList() else mutableListOf(current))
+                i = (exitIndex ?: i) + 1
+                continue
+            }
+            val last = groups.lastOrNull()
+            if (last != null && last.first().tier != RoadbookTier.ROUNDABOUT &&
+                current.cumulative - last.last().cumulative <= RoadbookConstants.JUNCTION_CLUSTER_METERS
+            ) {
+                last.add(current)
+            } else {
+                groups.add(mutableListOf(current))
+            }
+            i++
+        }
+
         val thresholds = settings.thresholds
-        val mergeMin = settings.mergeMinDistanceMeters
-
-        for (maneuver in matchedManeuvers) {
-            var tier = maneuver.type.roadbookTier ?: continue
-            val projection = placement(maneuver, points, cumulative, previousMatchedCumulative, mergeMin) ?: continue
-            previousMatchedCumulative = projection.cumulativeDistanceMeters
-            val exactCumulative = projection.cumulativeDistanceMeters
-            if (combined.any { abs((it.cumulativeDistanceMeters(cumulative) ?: Double.POSITIVE_INFINITY) - exactCumulative) < mergeMin }) continue
-
-            val turn = headingChange(exactCumulative, points, cumulative, settings.windowBeforeMeters, settings.windowAfterMeters) ?: 0.0
-            var direction = maneuver.type.roadbookDirection
-            when (tier) {
-                RoadbookTier.ROUNDABOUT, RoadbookTier.FORK, RoadbookTier.MERGE -> Unit
+        val events = mutableListOf<Checkpoint>()
+        for (group in groups) {
+            val first = group.first()
+            val last = group.last()
+            val net = headingChange(first.cumulative, last.cumulative, points, cumulative, settings.windowBeforeMeters, settings.windowAfterMeters)
+                ?: headingChange(first.cumulative, points, cumulative, settings.windowBeforeMeters, settings.windowAfterMeters)
+                ?: 0.0
+            val kind = group.map { it.tier }.minByOrNull { TIER_PRIORITY.indexOf(it).let { index -> if (index < 0) Int.MAX_VALUE else index } }
+                ?: RoadbookTier.LIGHT_DIRECTION_CHANGE
+            var tier: RoadbookTier
+            var direction: TurnDirection
+            var roundaboutExitCount: Int? = null
+            when (kind) {
+                RoadbookTier.ROUNDABOUT -> {
+                    tier = RoadbookTier.ROUNDABOUT
+                    direction = when {
+                        abs(net) < RoadbookConstants.ROUNDABOUT_STRAIGHT_TOLERANCE_DEGREES -> TurnDirection.STRAIGHT
+                        net > 0 -> TurnDirection.RIGHT
+                        else -> TurnDirection.LEFT
+                    }
+                    roundaboutExitCount = group.firstNotNullOfOrNull { it.maneuver.roundaboutExitCount }
+                }
+                RoadbookTier.FORK, RoadbookTier.MERGE -> {
+                    tier = kind
+                    direction = group.firstOrNull { it.tier == kind }?.maneuver?.type?.roadbookDirection ?: TurnDirection.STRAIGHT
+                }
                 RoadbookTier.U_TURN -> {
-                    if (isNearTrackEndpoint(exactCumulative, cumulative)) continue
-                    if (!maneuver.isSameRoadUTurn) {
+                    if (isNearTrackEndpoint(first.cumulative, cumulative)) continue
+                    val uTurn = group.first { it.tier == RoadbookTier.U_TURN }.maneuver
+                    if (uTurn.isSameRoadUTurn) {
+                        tier = RoadbookTier.U_TURN
+                        direction = TurnDirection.U_TURN
+                    } else {
                         tier = RoadbookTier.VERY_HARD
-                        direction = if (maneuver.type == ValhallaManeuverType.UTURN_LEFT) TurnDirection.LEFT else TurnDirection.RIGHT
+                        direction = if (uTurn.type == ValhallaManeuverType.UTURN_LEFT) TurnDirection.LEFT else TurnDirection.RIGHT
                     }
                 }
                 else -> {
-                    val isRealTurn = abs(turn) >= thresholds.light
-                    val isRoadChange = maneuver.changesRoadName && abs(turn) >= RoadbookConstants.ROAD_CHANGE_MIN_TURN_DEGREES
-                    if (!isRealTurn && !isRoadChange) continue
-                    tier = if (isRealTurn) thresholds.tier(abs(turn)) else RoadbookTier.LIGHT_DIRECTION_CHANGE
-                    direction = if (turn > 0) TurnDirection.RIGHT else TurnDirection.LEFT
+                    // Rues avant/après dans l'ORDRE DE LA ROUTE Valhalla, pas celui des positions
+                    // projetées : deux manœuvres au même carrefour peuvent y être à égalité.
+                    val routeOrder = group.sortedBy { it.order }
+                    val before = routeOrder.first().maneuver.streetNamesBefore
+                    val after = routeOrder.last().maneuver.streetNamesAfter
+                    val sameRoad = before.any { it in after }
+                    val changesRoad = before.isNotEmpty() && after.isNotEmpty() && !sameRoad
+                    val isRealTurn = abs(net) >= thresholds.light
+                    val keep = if (sameRoad) {
+                        abs(net) >= thresholds.hard
+                    } else {
+                        isRealTurn || (changesRoad && abs(net) >= RoadbookConstants.ROAD_CHANGE_MIN_TURN_DEGREES)
+                    }
+                    if (!keep) continue
+                    tier = if (isRealTurn) thresholds.tier(abs(net)) else RoadbookTier.LIGHT_DIRECTION_CHANGE
+                    direction = if (net > 0) TurnDirection.RIGHT else TurnDirection.LEFT
                 }
             }
 
-            val segmentStart = projection.nearestSegmentIndex
+            val segmentStart = first.projection.nearestSegmentIndex
             val segmentEnd = min(segmentStart + 1, points.size - 1)
-            val pointIndex = if (exactCumulative - cumulative[segmentStart] <= cumulative[segmentEnd] - exactCumulative) segmentStart else segmentEnd
-
-            combined.add(
+            val pointIndex = if (first.cumulative - cumulative[segmentStart] <= cumulative[segmentEnd] - first.cumulative) segmentStart else segmentEnd
+            events.add(
                 Checkpoint(
-                    coordinate = maneuver.coordinate,
-                    turnAngleDegrees = abs(turn),
+                    coordinate = first.maneuver.coordinate,
+                    turnAngleDegrees = abs(net),
                     direction = direction,
                     tier = tier,
-                    sequenceIndex = 0,
+                    sequenceIndex = events.size + 1,
                     sourcePointIndex = pointIndex,
-                    roundaboutExitCount = maneuver.roundaboutExitCount,
-                    trackCumulativeDistanceMeters = exactCumulative,
+                    roundaboutExitCount = roundaboutExitCount,
+                    trackCumulativeDistanceMeters = first.cumulative,
                 ),
             )
         }
-
-        return combined
-            .sortedBy { it.cumulativeDistanceMeters(cumulative) ?: 0.0 }
-            .mapIndexed { index, checkpoint -> checkpoint.copy(sequenceIndex = index + 1) }
+        return events
     }
+
+    /** Nature d'un carrefour à plusieurs manœuvres Valhalla : la plus contraignante l'emporte. */
+    private val TIER_PRIORITY = listOf(RoadbookTier.ROUNDABOUT, RoadbookTier.U_TURN, RoadbookTier.FORK, RoadbookTier.MERGE, RoadbookTier.LIGHT_DIRECTION_CHANGE)
 
     /**
      * Passage de la trace où placer une manœuvre : celui qui correspond à sa progression le long de

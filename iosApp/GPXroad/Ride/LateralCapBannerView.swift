@@ -17,15 +17,23 @@ struct LateralCapBannerView: View {
     let distanceMeters: Double
     let sequenceIndex: Int
     let totalCount: Int
+    /// It33 : l'événement complet — rond-point, fourche et bretelle y sont DESSINÉS (même
+    /// pictogramme que le Road Book : sortie réelle et numéro), jamais un symbole générique.
+    var checkpoint: Checkpoint?
 
     private static let width: CGFloat = 92
 
     var body: some View {
         VStack(spacing: 8) {
-            Image(systemName: tier.systemImageName(direction: direction))
-                .font(.system(size: 38, weight: .bold))
-                .foregroundStyle(.white)
-                .rotationEffect(.degrees(tier.rotationDegrees(direction: direction) ?? 0))
+            if let checkpoint, [.roundabout, .fork, .merge].contains(tier) {
+                RoadbookManeuverIcon(checkpoint: checkpoint, size: 52)
+                    .environment(\.colorScheme, .dark)
+            } else {
+                Image(systemName: tier.systemImageName(direction: direction))
+                    .font(.system(size: 38, weight: .bold))
+                    .foregroundStyle(.white)
+                    .rotationEffect(.degrees(tier.rotationDegrees(direction: direction) ?? 0))
+            }
             Text(Self.steppedDistanceText(distanceMeters))
                 .font(.system(size: 30, weight: .heavy, design: .rounded))
                 .foregroundStyle(.white)

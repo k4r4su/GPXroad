@@ -220,12 +220,18 @@ final class RoadbookCheckpointReliabilityTests: XCTestCase {
     func testTheDebugDumpDescribesEachCheckpointAndItsSource() {
         let turn = track([(400, -100), (400, 0)], pointSpacing: 20)
         let straightFork = MapMatchedManeuver(coordinate: point(turn, atMeters: 700), type: .stayLeft, roundaboutExitCount: nil, streetNamesBefore: ["D 83"], streetNamesAfter: [])
-        let result = maneuvers(turn, mapMatched: [straightFork])
 
-        let lines = RoadbookDebugDump.lines(maneuvers: result, mapMatched: [straightFork])
+        // Sans map matching : le virage vient de la géométrie.
+        let geometric = RoadbookDebugDump.lines(maneuvers: maneuvers(turn), mapMatched: [])
+        XCTAssertEqual(geometric.count, 1)
+        XCTAssertTrue(geometric[0].contains("#1") && geometric[0].contains("source géométrie") && geometric[0].contains("angle recalculé -100°") && geometric[0].contains("palier Virage fort"), geometric[0])
 
+        // Route connue (it33) : les carrefours viennent de Valhalla, angle et palier de la trace.
+        let leftTurn = MapMatchedManeuver(coordinate: point(turn, atMeters: 400), type: .left, roundaboutExitCount: nil, streetNamesBefore: ["D 83"], streetNamesAfter: ["Rue du Moulin"])
+        let lines = RoadbookDebugDump.lines(maneuvers: maneuvers(turn, mapMatched: [leftTurn, straightFork]), mapMatched: [leftTurn, straightFork])
         XCTAssertEqual(lines.count, 2)
-        XCTAssertTrue(lines[0].contains("#1") && lines[0].contains("source géométrie") && lines[0].contains("angle recalculé -100°") && lines[0].contains("palier Virage fort"), lines[0])
+        guard lines.count == 2 else { return }
+        XCTAssertTrue(lines[0].contains("#1") && lines[0].contains("source Valhalla") && lines[0].contains("type left") && lines[0].contains("angle recalculé -100°") && lines[0].contains("palier Virage fort"), lines[0])
         XCTAssertTrue(lines[1].contains("source Valhalla") && lines[1].contains("type stayLeft") && lines[1].contains("rues D 83 → (sans nom)"), lines[1])
     }
 }

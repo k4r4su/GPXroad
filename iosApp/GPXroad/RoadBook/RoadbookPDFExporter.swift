@@ -302,7 +302,7 @@ enum RoadbookPDFExporter {
     private static func drawPictogram(for checkpoint: Checkpoint, in rect: CGRect) {
         switch checkpoint.tier {
         case .roundabout:
-            drawRoundaboutPictogram(exitCount: checkpoint.roundaboutExitCount, in: rect)
+            drawRoundaboutPictogram(checkpoint: checkpoint, in: rect)
         case .fork:
             drawForkPictogram(direction: checkpoint.direction, in: rect)
         case .merge:
@@ -337,67 +337,52 @@ enum RoadbookPDFExporter {
     }
 
     /// Équivalent Core Graphics de `RoadbookRoundaboutPictogram` (écran) — même géométrie
-    /// (`RoadbookPictogramGeometry`), même convention 0°=12h/sens horaire, pour que le PDF et
-    /// l'écran affichent EXACTEMENT le même pictogramme pour un rond-point donné.
-    private static func drawRoundaboutPictogram(exitCount: Int?, in rect: CGRect) {
+    /// (`RoadbookRoundaboutDrawing`), pour que le PDF et l'écran dessinent EXACTEMENT le même
+    /// rond-point : trajet jusqu'à la sortie réelle, sorties passées, numéro au centre.
+    private static func drawRoundaboutPictogram(checkpoint: Checkpoint, in rect: CGRect) {
+        let drawing = RoadbookRoundaboutDrawing(checkpoint: checkpoint, in: rect)
         let side = min(rect.width, rect.height)
-        let center = CGPoint(x: rect.midX, y: rect.midY)
-        let ringRadius = side * 0.30
-        let lineWidth: CGFloat = 1.6
+        let thin: CGFloat = 1.1
+        let bold: CGFloat = 2.4
 
-        let ring = UIBezierPath(arcCenter: center, radius: ringRadius, startAngle: 0, endAngle: .pi * 2, clockwise: true)
-        UIColor.darkGray.setStroke()
-        ring.lineWidth = lineWidth
+        let ring = UIBezierPath(arcCenter: drawing.center, radius: drawing.ringRadius, startAngle: 0, endAngle: .pi * 2, clockwise: true)
+        UIColor.gray.setStroke()
+        ring.lineWidth = thin
         ring.stroke()
 
-        strokeSpoke(center: center, ringRadius: ringRadius, side: side, angleDegrees: 180, color: .darkGray, lineWidth: lineWidth * 0.8, extraLength: 0, withArrowhead: false)
-
-        for rank in RoadbookPictogramGeometry.skippedExitRanks(exitCount: exitCount) {
-            let angle = 180 - RoadbookPictogramGeometry.roundaboutExitAngleDegrees(exitCount: rank)
-            strokeSpoke(center: center, ringRadius: ringRadius, side: side, angleDegrees: angle, color: UIColor.darkGray.withAlphaComponent(0.4), lineWidth: lineWidth * 0.6, extraLength: -side * 0.05, withArrowhead: false)
+        for skipped in drawing.skippedExits {
+            let path = UIBezierPath()
+            path.move(to: skipped.from)
+            path.addLine(to: skipped.to)
+            path.lineWidth = thin
+            path.lineCapStyle = .round
+            path.stroke()
         }
 
-        let takenAngle = 180 - RoadbookPictogramGeometry.roundaboutExitAngleDegrees(exitCount: exitCount)
-        strokeSpoke(center: center, ringRadius: ringRadius, side: side, angleDegrees: takenAngle, color: accentColor, lineWidth: lineWidth * 1.3, extraLength: side * 0.08, withArrowhead: true)
-    }
+        let route = UIBezierPath()
+        route.move(to: drawing.entry.from)
+        route.addLine(to: drawing.entry.to)
+        drawing.path.forEach { route.addLine(to: $0) }
+        route.addLine(to: drawing.exit.to)
+        accentColor.setStroke()
+        route.lineWidth = bold
+        route.lineJoinStyle = .round
+        route.stroke()
 
-    private static func strokeSpoke(
-        center: CGPoint,
-        ringRadius: CGFloat,
-        side: CGFloat,
-        angleDegrees: Double,
-        color: UIColor,
-        lineWidth: CGFloat,
-        extraLength: CGFloat,
-        withArrowhead: Bool
-    ) {
-        let radians = angleDegrees * .pi / 180
-        let dx = sin(radians)
-        let dy = -cos(radians)
-        let outerRadius = side * 0.48 + extraLength
-        let start = CGPoint(x: center.x + dx * ringRadius, y: center.y + dy * ringRadius)
-        let end = CGPoint(x: center.x + dx * outerRadius, y: center.y + dy * outerRadius)
+        let head = drawing.arrowhead(length: side * 0.13)
+        let arrow = UIBezierPath()
+        arrow.move(to: head[0])
+        head.dropFirst().forEach { arrow.addLine(to: $0) }
+        arrow.close()
+        accentColor.setFill()
+        arrow.fill()
 
-        let path = UIBezierPath()
-        path.move(to: start)
-        path.addLine(to: end)
-        color.setStroke()
-        path.lineWidth = lineWidth
-        path.lineCapStyle = .round
-        path.stroke()
-
-        guard withArrowhead else { return }
-        let headLength = lineWidth * 1.8
-        let headAngle = Double.pi / 7
-        let head = UIBezierPath()
-        head.move(to: end)
-        head.addLine(to: CGPoint(x: end.x - headLength * sin(radians + headAngle), y: end.y + headLength * cos(radians + headAngle)))
-        head.move(to: end)
-        head.addLine(to: CGPoint(x: end.x - headLength * sin(radians - headAngle), y: end.y + headLength * cos(radians - headAngle)))
-        color.setStroke()
-        head.lineWidth = lineWidth
-        head.lineCapStyle = .round
-        head.stroke()
+        if let number = drawing.exitNumber {
+            let text = "\(number)" as NSString
+            let attributes: [NSAttributedString.Key: Any] = [.font: UIFont.systemFont(ofSize: side * 0.24, weight: .heavy), .foregroundColor: UIColor.black]
+            let textSize = text.size(withAttributes: attributes)
+            text.draw(at: CGPoint(x: drawing.center.x - textSize.width / 2, y: drawing.center.y - textSize.height / 2), withAttributes: attributes)
+        }
     }
 
     /// Équivalent Core Graphics de `RoadbookForkPictogram` (écran) — tige commune, branche

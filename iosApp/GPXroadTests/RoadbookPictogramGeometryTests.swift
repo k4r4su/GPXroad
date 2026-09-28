@@ -1,44 +1,37 @@
 import XCTest
+import CoreLocation
 @testable import GPXroad
 
-/// Spec "roadbook-route-aware-maneuvers" (it24, point 2) — géométrie PURE partagée entre le
-/// rendu SwiftUI et le rendu PDF (jamais testée via une vue/un contexte Core Graphics ici).
+/// It33 — rond-point dessiné : la sortie est placée où la trace sort réellement, le trajet tourne par
+/// la droite (circulation à droite), les sorties passées sont dessinées, le numéro est au centre.
 final class RoadbookPictogramGeometryTests: XCTestCase {
-    func testFirstExitPointsAtOneSpacingFromEntry() {
-        XCTAssertEqual(
-            RoadbookPictogramGeometry.roundaboutExitAngleDegrees(exitCount: 1),
-            RoadBookConstants.roundaboutExitSpacingDegrees
-        )
+    private let rect = CGRect(x: 0, y: 0, width: 100, height: 100)
+
+    private func roundabout(_ direction: TurnDirection, _ angle: Double, exit: Int?) -> RoadbookRoundaboutDrawing {
+        RoadbookRoundaboutDrawing(checkpoint: Checkpoint(coordinate: CLLocationCoordinate2D(latitude: 47, longitude: 7), turnAngleDegrees: angle, direction: direction, tier: .roundabout, sequenceIndex: 1, sourcePointIndex: 0, roundaboutExitCount: exit), in: rect)
     }
 
-    func testThirdExitIsThreeTimesTheSpacing() {
-        XCTAssertEqual(
-            RoadbookPictogramGeometry.roundaboutExitAngleDegrees(exitCount: 3),
-            RoadBookConstants.roundaboutExitSpacingDegrees * 3
-        )
+    func testTheEntryIsAtTheBottomAndTheExitWhereTheTraceLeaves() {
+        let right = roundabout(.right, 90, exit: 1)
+        XCTAssertGreaterThan(right.entry.from.y, right.center.y, "entrée en bas")
+        XCTAssertGreaterThan(right.exit.to.x, right.center.x + 30, "sortie à droite")
+        let straight = roundabout(.straight, 3, exit: 2)
+        XCTAssertLessThan(straight.exit.to.y, straight.center.y - 30, "tout droit : sortie en haut")
+        let left = roundabout(.left, 90, exit: 3)
+        XCTAssertLessThan(left.exit.to.x, left.center.x - 30, "sortie à gauche")
     }
 
-    /// Repli honnête : `nil`/0/négatif ne doivent jamais produire un angle nul ou négatif
-    /// absurde — toujours au moins la 1ʳᵉ sortie.
-    func testNilOrNonPositiveExitCountFallsBackToTheFirstExit() {
-        let expected = RoadBookConstants.roundaboutExitSpacingDegrees
-        XCTAssertEqual(RoadbookPictogramGeometry.roundaboutExitAngleDegrees(exitCount: nil), expected)
-        XCTAssertEqual(RoadbookPictogramGeometry.roundaboutExitAngleDegrees(exitCount: 0), expected)
-        XCTAssertEqual(RoadbookPictogramGeometry.roundaboutExitAngleDegrees(exitCount: -3), expected)
+    func testThePathGoesRoundByTheRightLikeTheTraffic() {
+        let left = roundabout(.left, 90, exit: 3)
+        // Pour sortir à gauche, on passe par la droite puis par le haut du rond-point.
+        XCTAssertTrue(left.path.contains { $0.x > left.center.x + 20 }, "passe par la droite")
+        XCTAssertTrue(left.path.contains { $0.y < left.center.y - 20 }, "puis par le haut")
     }
 
-    func testFirstExitHasNoSkippedRanksToShow() {
-        XCTAssertTrue(RoadbookPictogramGeometry.skippedExitRanks(exitCount: 1).isEmpty)
-        XCTAssertTrue(RoadbookPictogramGeometry.skippedExitRanks(exitCount: nil).isEmpty)
-    }
-
-    func testThirdExitShowsTheTwoPrecedingRanksAsSkipped() {
-        XCTAssertEqual(RoadbookPictogramGeometry.skippedExitRanks(exitCount: 3), [1, 2])
-    }
-
-    /// Garde-fou lisibilité : jamais plus de 6 traits discrets, même pour un rang de sortie
-    /// aberrant (rond-point à répétition mal détecté plutôt qu'une vraie longue liste).
-    func testSkippedRanksAreCappedForReadability() {
-        XCTAssertEqual(RoadbookPictogramGeometry.skippedExitRanks(exitCount: 50).count, 6)
+    func testSkippedExitsAndTheExitNumber() {
+        XCTAssertEqual(roundabout(.left, 90, exit: 3).skippedExits.count, 2)
+        XCTAssertEqual(roundabout(.left, 90, exit: 3).exitNumber, 3)
+        XCTAssertTrue(roundabout(.right, 90, exit: nil).skippedExits.isEmpty, "rang inconnu : aucune sortie inventée")
+        XCTAssertNil(roundabout(.right, 90, exit: nil).exitNumber)
     }
 }

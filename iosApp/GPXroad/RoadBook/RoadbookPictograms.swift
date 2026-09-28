@@ -33,7 +33,7 @@ struct RoadbookManeuverIcon: View {
     var body: some View {
         switch checkpoint.tier {
         case .roundabout:
-            RoadbookRoundaboutPictogram(exitCount: checkpoint.roundaboutExitCount)
+            RoadbookRoundaboutPictogram(checkpoint: checkpoint)
                 .frame(width: size, height: size)
         case .fork:
             RoadbookForkPictogram(direction: checkpoint.direction)
@@ -49,70 +49,51 @@ struct RoadbookManeuverIcon: View {
     }
 }
 
-/// Anneau + sortie prise en surbrillance, sorties intermédiaires en traits fins discrets (voir
-/// `RoadbookPictogramGeometry`) — 0° = 12h/tout droit, sens horaire.
+/// Rond-point dessiné (it33) : anneau discret, trajet en surbrillance de l'entrée (en bas) à la
+/// sortie réellement prise, flèche au bout, sorties passées en traits fins, numéro de sortie au
+/// centre — géométrie dans `RoadbookRoundaboutDrawing`, identique au PDF.
 struct RoadbookRoundaboutPictogram: View {
-    let exitCount: Int?
+    let checkpoint: Checkpoint
 
     var body: some View {
         Canvas { context, size in
-            let center = CGPoint(x: size.width / 2, y: size.height / 2)
-            let ringRadius = min(size.width, size.height) * 0.30
-            let lineWidth = size.width * 0.07
+            let drawing = RoadbookRoundaboutDrawing(checkpoint: checkpoint, in: CGRect(origin: .zero, size: size))
+            let side = min(size.width, size.height)
+            let thin = side * 0.045
+            let bold = side * 0.085
+            let accent = RoadbookPictogramStyle.accentColor
 
             var ring = Path()
-            ring.addArc(center: center, radius: ringRadius, startAngle: .degrees(0), endAngle: .degrees(360), clockwise: false)
-            context.stroke(ring, with: .color(.secondary), lineWidth: lineWidth)
+            ring.addArc(center: drawing.center, radius: drawing.ringRadius, startAngle: .degrees(0), endAngle: .degrees(360), clockwise: false)
+            context.stroke(ring, with: .color(.secondary.opacity(0.6)), lineWidth: thin)
 
-            // Entrée fixe, en bas (convention : on entre par le bas, "12h" = tout droit).
-            Self.strokeSpoke(&context, center: center, ringRadius: ringRadius, size: size, angleDegrees: 180, outward: true, color: .secondary, lineWidth: lineWidth * 0.7, extraLength: 0)
-
-            for rank in RoadbookPictogramGeometry.skippedExitRanks(exitCount: exitCount) {
-                let angle = 180 - RoadbookPictogramGeometry.roundaboutExitAngleDegrees(exitCount: rank)
-                Self.strokeSpoke(&context, center: center, ringRadius: ringRadius, size: size, angleDegrees: angle, outward: true, color: Color.secondary.opacity(0.35), lineWidth: lineWidth * 0.5, extraLength: -size.width * 0.05)
+            for skipped in drawing.skippedExits {
+                context.stroke(Path { $0.move(to: skipped.from); $0.addLine(to: skipped.to) }, with: .color(.secondary.opacity(0.7)), style: StrokeStyle(lineWidth: thin * 1.3, lineCap: .round))
             }
 
-            let takenAngle = 180 - RoadbookPictogramGeometry.roundaboutExitAngleDegrees(exitCount: exitCount)
-            Self.strokeSpoke(&context, center: center, ringRadius: ringRadius, size: size, angleDegrees: takenAngle, outward: true, color: RoadbookPictogramStyle.accentColor, lineWidth: lineWidth, extraLength: size.width * 0.08, withArrowhead: true)
+            var route = Path()
+            route.move(to: drawing.entry.from)
+            route.addLine(to: drawing.entry.to)
+            for point in drawing.path { route.addLine(to: point) }
+            route.addLine(to: drawing.exit.to)
+            context.stroke(route, with: .color(accent), style: StrokeStyle(lineWidth: bold, lineCap: .butt, lineJoin: .round))
+
+            let head = drawing.arrowhead(length: side * 0.13)
+            context.fill(Path { $0.addLines(head); $0.closeSubpath() }, with: .color(accent))
+
+            if let number = drawing.exitNumber {
+                context.draw(
+                    Text("\(number)").font(.system(size: side * 0.24, weight: .heavy, design: .rounded)).foregroundColor(.primary),
+                    at: drawing.center
+                )
+            }
         }
+        .accessibilityLabel(RoadbookRoundaboutPictogram.accessibilityText(exitCount: checkpoint.roundaboutExitCount))
     }
 
-    /// Trace un rayon depuis (ou vers) le centre, à `angleDegrees` (0 = 12h, sens horaire) —
-    /// `outward` part du bord de l'anneau vers l'extérieur (sorties/entrée), jamais du centre
-    /// (qui resterait toujours vide, l'anneau lui-même porte le sens "rond-point").
-    private static func strokeSpoke(
-        _ context: inout GraphicsContext,
-        center: CGPoint,
-        ringRadius: CGFloat,
-        size: CGSize,
-        angleDegrees: Double,
-        outward: Bool,
-        color: Color,
-        lineWidth: CGFloat,
-        extraLength: CGFloat,
-        withArrowhead: Bool = false
-    ) {
-        let radians = angleDegrees * .pi / 180
-        let dx = sin(radians)
-        let dy = -cos(radians)
-        let outerRadius = min(size.width, size.height) * 0.48 + extraLength
-        let start = CGPoint(x: center.x + dx * ringRadius, y: center.y + dy * ringRadius)
-        let end = CGPoint(x: center.x + dx * outerRadius, y: center.y + dy * outerRadius)
-
-        var path = Path()
-        path.move(to: start)
-        path.addLine(to: end)
-        context.stroke(path, with: .color(color), style: StrokeStyle(lineWidth: lineWidth, lineCap: .round))
-
-        guard withArrowhead else { return }
-        let headLength = lineWidth * 1.6
-        let headAngle = Double.pi / 7
-        var head = Path()
-        head.move(to: end)
-        head.addLine(to: CGPoint(x: end.x - headLength * sin(radians + headAngle), y: end.y + headLength * cos(radians + headAngle)))
-        head.move(to: end)
-        head.addLine(to: CGPoint(x: end.x - headLength * sin(radians - headAngle), y: end.y + headLength * cos(radians - headAngle)))
-        context.stroke(head, with: .color(color), style: StrokeStyle(lineWidth: lineWidth, lineCap: .round))
+    static func accessibilityText(exitCount: Int?) -> String {
+        guard let exitCount else { return String(localized: "Rond-point", bundle: .appLanguage) }
+        return String(localized: "Rond-point, sortie \(exitCount)", bundle: .appLanguage)
     }
 }
 
