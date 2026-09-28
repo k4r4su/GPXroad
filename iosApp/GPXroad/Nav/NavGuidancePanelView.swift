@@ -114,10 +114,7 @@ struct NavGuidancePanelView: View {
 
     private var distanceText: String {
         guard let distanceMeters else { return "—" }
-        if distanceMeters < 1000 {
-            return "\(Int(distanceMeters.rounded())) m"
-        }
-        return String(format: "%.1f km", distanceMeters / 1000)
+        return DistanceUnit.km.countdownString(fromMeters: distanceMeters)
     }
 }
 

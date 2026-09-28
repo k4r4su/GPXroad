@@ -266,11 +266,11 @@ private struct RoadbookBigLandmarkCard: View {
             }
         }
         .buttonStyle(.plain)
-        .accessibilityLabel(String(localized: "Prochain repère : \(landmark.info.displayLabel), dans \(unit.displayString(fromMeters: distanceRemainingMeters))", bundle: .appLanguage))
+        .accessibilityLabel(String(localized: "Prochain repère : \(landmark.info.displayLabel), dans \(unit.countdownString(fromMeters: distanceRemainingMeters))", bundle: .appLanguage))
     }
 
     private func distanceText(size: CGFloat) -> some View {
-        Text(unit.displayString(fromMeters: distanceRemainingMeters))
+        Text(unit.countdownString(fromMeters: distanceRemainingMeters))
             .font(.system(size: size, weight: .heavy, design: .rounded))
             .monospacedDigit()
             .minimumScaleFactor(0.5)
@@ -313,7 +313,7 @@ private struct RoadbookOffTrackCard: View {
                     Text("Hors trace")
                         .font(.system(size: isLandscape ? 40 : 48, weight: .heavy, design: .rounded))
                     if offTrack.showsRejoinDistance(now: context.date), let rejoin = offTrack.rejoinDistanceMeters {
-                        Text("Trace à \(unit.displayString(fromMeters: rejoin))")
+                        Text("Trace à \(unit.countdownString(fromMeters: rejoin))")
                             .font(.title3.bold().monospacedDigit())
                             .foregroundStyle(.secondary)
                     }
@@ -387,7 +387,7 @@ private struct RoadbookBigManeuverCard: View {
                         }
                     }
                     VStack(alignment: .leading, spacing: 2) {
-                        Text(unit.displayString(fromMeters: distanceRemainingMeters))
+                        Text(unit.countdownString(fromMeters: distanceRemainingMeters))
                             .font(.system(size: side * 0.62, weight: .heavy, design: .rounded))
                             .monospacedDigit()
                             .minimumScaleFactor(0.4)
@@ -483,7 +483,7 @@ private struct RoadbookBigManeuverCardLandscape: View {
 
             Spacer(minLength: 12)
 
-            Text(unit.displayString(fromMeters: distanceRemainingMeters))
+            Text(unit.countdownString(fromMeters: distanceRemainingMeters))
                 .font(.system(size: 96, weight: .heavy, design: .rounded))
                 .monospacedDigit()
                 .minimumScaleFactor(0.4)
@@ -552,7 +552,7 @@ private struct RoadbookUpcomingRow: View {
             Spacer(minLength: 8)
 
             VStack(alignment: .trailing, spacing: 1) {
-                Text(unit.displayString(fromMeters: distanceFromNowMeters))
+                Text(unit.countdownString(fromMeters: distanceFromNowMeters))
                     .font(.title2.bold().monospacedDigit())
                     .lineLimit(1)
                     .minimumScaleFactor(0.7)
@@ -594,7 +594,7 @@ private struct RoadbookUpcomingLandmarkRow: View {
                         .foregroundStyle(.secondary)
                 }
                 Spacer(minLength: 8)
-                Text(unit.displayString(fromMeters: distanceFromNowMeters))
+                Text(unit.countdownString(fromMeters: distanceFromNowMeters))
                     .font(.title2.bold().monospacedDigit())
                     .lineLimit(1)
                     .minimumScaleFactor(0.7)
@@ -605,7 +605,7 @@ private struct RoadbookUpcomingLandmarkRow: View {
             .background(Color.accentColor.opacity(0.06))
         }
         .buttonStyle(.plain)
-        .accessibilityLabel(String(localized: "Repère : \(landmark.info.displayLabel), dans \(unit.displayString(fromMeters: distanceFromNowMeters))", bundle: .appLanguage))
+        .accessibilityLabel(String(localized: "Repère : \(landmark.info.displayLabel), dans \(unit.countdownString(fromMeters: distanceFromNowMeters))", bundle: .appLanguage))
     }
 }
 
@@ -636,7 +636,7 @@ private struct RoadbookRejoinArrivalCard: View {
                 .font(.system(size: isLandscape ? 80 : 110, weight: .bold))
                 .foregroundStyle(Color.accentColor)
             VStack(spacing: 6) {
-                Text(unit.displayString(fromMeters: remainingMeters))
+                Text(unit.countdownString(fromMeters: remainingMeters))
                     .font(.system(size: isLandscape ? 60 : 64, weight: .heavy, design: .rounded))
                     .monospacedDigit()
                     .minimumScaleFactor(0.5)
@@ -668,7 +668,7 @@ private struct RoadbookRejoinArrivalRow: View {
                 .lineLimit(1)
                 .minimumScaleFactor(0.7)
             Spacer(minLength: 8)
-            Text(unit.displayString(fromMeters: distanceFromNowMeters))
+            Text(unit.countdownString(fromMeters: distanceFromNowMeters))
                 .font(.title2.bold().monospacedDigit())
                 .lineLimit(1)
                 .minimumScaleFactor(0.7)

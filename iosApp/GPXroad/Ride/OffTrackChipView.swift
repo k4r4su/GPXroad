@@ -53,6 +53,6 @@ struct OffTrackChipView: View {
     }
 
     static func distanceText(_ meters: Double) -> String {
-        meters < 1000 ? "\(Int(meters.rounded())) m" : String(format: "%.1f km", meters / 1000)
+        DistanceUnit.km.countdownString(fromMeters: meters)
     }
 }

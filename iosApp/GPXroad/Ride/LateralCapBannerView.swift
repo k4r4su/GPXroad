@@ -51,18 +51,11 @@ struct LateralCapBannerView: View {
         .ridePanelStyle()
     }
 
-    /// Countdown par paliers (spec "lateral-cap-banner-countdown") : BANNER_COARSE_STEP_M
-    /// (100 m) au-dessus de BANNER_FINE_THRESHOLD_M (150 m) — 600 → 500 → 400 → 300 → 200 →
-    /// 150 — puis BANNER_FINE_STEP_M (10 m) en dessous — 150 → 140 → … → 0. Jamais un chiffre
-    /// "sale" (587 m) qui bougerait à chaque fix GPS.
+    /// Countdown par paliers : mêmes paliers que tout le reste de l'app depuis le 29/09
+    /// (`DistanceUnit.countdownString`, règle Kotlin `DistanceCountdown`) — 600 → 500 → … →
+    /// 200 → 150 → 100 → 90 → … → 10 → 0. Jamais un chiffre "sale" (587 m) qui bougerait à
+    /// chaque fix GPS.
     static func steppedDistanceText(_ rawMeters: Double) -> String {
-        let clamped = max(rawMeters, 0)
-        let stepped: Int
-        if clamped <= RideConstants.bannerFineThresholdMeters {
-            stepped = Int((clamped / RideConstants.bannerFineStepMeters).rounded(.down)) * Int(RideConstants.bannerFineStepMeters)
-        } else {
-            stepped = Int((clamped / RideConstants.bannerCoarseStepMeters).rounded(.up)) * Int(RideConstants.bannerCoarseStepMeters)
-        }
-        return "\(stepped) m"
+        DistanceUnit.km.countdownString(fromMeters: rawMeters)
     }
 }

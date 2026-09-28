@@ -389,6 +389,13 @@ gradle/, settings.gradle.kts, build.gradle.kts, gradlew   build Gradle (racine)
   la couverture, géométrie AILLEURS (à ≥ fusion min d'un événement route-aware). Le cache disque
   garde la couverture (`coveredRanges`) ; une entrée sans couverture (avant ce fix) est ignorée →
   nouveau map matching une fois.
+- **Compte à rebours par paliers (29/09, demande du propriétaire)** — toute distance EN DIRECT
+  jusqu'au prochain virage / repère / point de reprise (Road Book focalisé et liste, bannière
+  latérale du Ride, puce et bannière hors trace, guidage Nav) passe par
+  `DistanceUnit.countdownString` → `DistanceCountdown` (Kotlin) : … 2 km, 1,5 km, 1 km, 900 m …
+  200 m, 150 m, 100 m, 90 m … 10 m, 0 m, arrondi AU-DESSUS (jamais plus court que la réalité).
+  But : pas de chiffre qui change à chaque fix (écrans à 1 Hz). Distances statiques (liste,
+  cumulés, PDF) : `displayString`, inchangé.
 - **Instantanés** : `RoadbookStableRegressionTests` (iOS, chaîne complète Overpass → Road Book) et
   `RoadbookReferenceSnapshotTest` (Kotlin, même trace, mêmes lignes). `SharedRoadbookCatalogTests`
   garde les catalogues Swift (affichage) et Kotlin (règles) alignés.
@@ -532,7 +539,7 @@ avant chaque livraison, sans test désactivé ni skip ajouté pour "faire passer
 possible, `SharedBlockageLiveServerTests`, se lève en lançant `server/app.py` localement (copie
 hors dépôt : `python3 -m uvicorn app:app --port 8000`). Au jalon, le run était de 413 tests,
 0 échec, 0 skip ; à it29, 452 tests, 0 échec, 0 skip ; à it30, 470 tests ; à it31, 491 tests, 0 échec, 0 skip ; à it32, 495 tests, 0 échec, 0 skip (toute la suite
-tourne avec le moteur géométrique Kotlin) ; à it33 bis, 505 tests iOS + 36 tests Kotlin (iOS et
+tourne avec le moteur géométrique Kotlin) ; à it33 bis, 508 tests iOS + 40 tests Kotlin (iOS et
 Android), 0 échec, 0 skip. Le résultat attendu de
 `RoadbookStableRegressionTests` n'a pas changé à it29. Le repli "Entrée de <localité>" (actif
 par défaut depuis it29) fait désormais partie du comportement validé : `RoadbookCityEntryTests`.

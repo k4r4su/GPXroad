@@ -28,7 +28,7 @@ final class OffTrackChipViewTests: XCTestCase {
     }
 
     func testDistanceTextFormatting() {
-        XCTAssertEqual(OffTrackChipView.distanceText(250), "250 m")
-        XCTAssertEqual(OffTrackChipView.distanceText(1500), "1.5 km")
+        XCTAssertEqual(OffTrackChipView.distanceText(250), "300 m")
+        XCTAssertEqual(OffTrackChipView.distanceText(1500), "1,5 km")
     }
 }

@@ -729,7 +729,7 @@ private struct RoadbookHeroRow: View {
                         .font(.system(size: 46))
                 }
             }
-            Text(unit.displayString(fromMeters: liveDistanceRemainingMeters ?? maneuver.partialDistanceMeters))
+            Text(liveDistanceRemainingMeters.map(unit.countdownString(fromMeters:)) ?? unit.displayString(fromMeters: maneuver.partialDistanceMeters))
                 .font(.system(size: 52, weight: .heavy, design: .rounded))
                 .monospacedDigit()
                 .minimumScaleFactor(0.6)
@@ -768,7 +768,7 @@ private struct RoadbookHeroRow: View {
                 }
             }
 
-            Text(unit.displayString(fromMeters: liveDistanceRemainingMeters ?? maneuver.partialDistanceMeters))
+            Text(liveDistanceRemainingMeters.map(unit.countdownString(fromMeters:)) ?? unit.displayString(fromMeters: maneuver.partialDistanceMeters))
                 .font(.system(size: 44, weight: .heavy, design: .rounded))
                 .monospacedDigit()
                 .minimumScaleFactor(0.6)
@@ -849,7 +849,7 @@ private struct RoadbookTableRow: View {
                     // Partielle : la distance restante LIVE remplace la distance partielle fixe
                     // pour la manœuvre courante en mode Assisté GPS (même donnée, présentation
                     // différente selon le mode — voir RoadbookLiveProgress).
-                    Text(unit.displayString(fromMeters: liveDistanceRemainingMeters ?? maneuver.partialDistanceMeters))
+                    Text(liveDistanceRemainingMeters.map(unit.countdownString(fromMeters:)) ?? unit.displayString(fromMeters: maneuver.partialDistanceMeters))
                         .font(.subheadline.monospacedDigit())
                         .foregroundStyle(.secondary)
                 }

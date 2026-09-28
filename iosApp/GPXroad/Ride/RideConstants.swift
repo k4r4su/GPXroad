@@ -382,10 +382,5 @@ enum RideConstants {
 
     /// BANNER_ALERT_START_M : distance (m) à laquelle la bannière latérale apparaît.
     static let bannerAlertStartMeters: Double = 600
-    /// BANNER_COARSE_STEP_M : pas d'affichage (m) au-dessus de bannerFineThresholdMeters.
-    static let bannerCoarseStepMeters: Double = 100
-    /// BANNER_FINE_THRESHOLD_M : distance (m) sous laquelle l'affichage passe au pas fin.
-    static let bannerFineThresholdMeters: Double = 150
-    /// BANNER_FINE_STEP_M : pas d'affichage (m) sous bannerFineThresholdMeters, jusqu'à 0.
-    static let bannerFineStepMeters: Double = 10
+    // Paliers du countdown : `DistanceCountdown` (Kotlin partagé), plus de constantes ici.
 }
