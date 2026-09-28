@@ -30,19 +30,19 @@ actor RoadbookLandmarkOverpassService {
         onEvent: @escaping @Sendable (RoadbookFetchEvent) -> Void = { _ in }
     ) async -> RoadbookLandmarkData? {
         guard let query = Self.query(for: points, categories: categories, includeCityEntryAreas: includeCityEntryAreas),
-              let url = URL(string: RoadBookConstants.overpassBaseURLString),
               let encodedQuery = query.addingPercentEncoding(withAllowedCharacters: .overpassFormValueAllowed)
         else { return nil }
 
-        var request = URLRequest(url: url, timeoutInterval: RoadBookConstants.landmarkRequestTimeoutSeconds)
-        request.httpMethod = "POST"
-        request.setValue(MapEngineConstants.userAgent, forHTTPHeaderField: "User-Agent")
-        request.setValue("application/x-www-form-urlencoded", forHTTPHeaderField: "Content-Type")
-        request.httpBody = "data=\(encodedQuery)".data(using: .utf8)
+        // Instance du propriétaire d'abord (Basic Auth), publique en secours — les deux à chaque essai.
+        let requests = OverpassConfiguration.requests(formBody: Data("data=\(encodedQuery)".utf8), timeout: RoadBookConstants.landmarkRequestTimeoutSeconds)
 
         let retryDelays = RoadBookConstants.landmarkRetryDelaysSeconds
         for attempt in 0...retryDelays.count {
-            if let data = await Self.download(request, onBytes: { onEvent(.bytes($0)) }) {
+            var downloaded: Data?
+            for request in requests where downloaded == nil {
+                downloaded = await Self.download(request, onBytes: { onEvent(.bytes($0)) })
+            }
+            if let data = downloaded {
                 guard let parsed = Self.parse(data) else { return nil }
                 let withCityEntries = categories.contains(.citySign)
                 return RoadbookLandmarkData(

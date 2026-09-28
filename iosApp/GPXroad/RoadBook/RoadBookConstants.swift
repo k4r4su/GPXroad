@@ -19,11 +19,7 @@ enum RoadBookConstants {
     /// SAUF virages enchaînés (voir ce même fichier), où le maintien serait contre-productif.
     static let liveManeuverHoldAfterMeters: Double = GPXroadShared.RoadbookConstants.shared.LIVE_MANEUVER_HOLD_AFTER_METERS
 
-    // MARK: - Overpass (OSM public, gratuit, aucune clé)
-
-    /// Seul service permettant d'interroger des tags OSM arbitraires le long d'une trace —
-    /// Nominatim (recherche d'adresse) ne fait que du géocodage.
-    static let overpassBaseURLString = "https://overpass-api.de/api/interpreter"
+    // MARK: - Overpass : instances et identifiants dans `OverpassConfiguration` (it33).
 
     // MARK: - Repères visibles (jalon it28 — "uniquement ce que le conducteur voit")
 

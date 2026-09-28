@@ -294,6 +294,12 @@ struct SettingsView: View {
                         Label("Routage Valhalla (bêta)", systemImage: "point.topleft.down.curvedto.point.bottomright.up")
                     }
 
+                    NavigationLink {
+                        OverpassSettingsView()
+                    } label: {
+                        Label("Serveur Overpass", systemImage: "server.rack")
+                    }
+
                     #if DEBUG
                     DebugReplaySection()
                     #endif

@@ -18,13 +18,10 @@ actor SpeedLimitService {
         lastRequestDate = Date()
 
         let query = "[out:json][timeout:8];way(around:\(Int(NavConstants.speedLimitSearchRadiusMeters)),\(coordinate.latitude),\(coordinate.longitude))[highway][maxspeed];out tags 1;"
-        guard let url = URL(string: "https://overpass-api.de/api/interpreter") else { return nil }
-
-        var request = URLRequest(url: url, timeoutInterval: 10)
-        request.httpMethod = "POST"
-        request.setValue(MapEngineConstants.userAgent, forHTTPHeaderField: "User-Agent")
-        request.httpBody = "data=\(query)".addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed).map { Data($0.utf8) }
-        request.setValue("application/x-www-form-urlencoded", forHTTPHeaderField: "Content-Type")
+        // Instance du propriétaire (Basic Auth) — une limite de vitesse n'attend pas un secours.
+        guard let body = "data=\(query)".addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed).map({ Data($0.utf8) }),
+              let request = OverpassConfiguration.requests(formBody: body, timeout: 10).first
+        else { return nil }
 
         do {
             let (data, _) = try await URLSession.shared.data(for: request)

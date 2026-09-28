@@ -636,3 +636,13 @@
 
 /* It33 bis — rond-point dessiné (accessibilité) */
 "Rond-point, sortie %lld" = "Rotatoria, uscita %lld";
+
+/* It33 bis — serveur Overpass auto-hébergé */
+"Adresse invalide" = "Indirizzo non valido";
+"Connecté" = "Connesso";
+"Identifiants refusés (HTTP %lld)" = "Credenziali rifiutate (HTTP %lld)";
+"Réponse inattendue (HTTP %lld)" = "Risposta inattesa (HTTP %lld)";
+"Sert aux repères du Road Book et aux limites de vitesse. Si ce serveur ne répond pas, l'app utilise le serveur public, sans jamais lui envoyer tes identifiants. Identifiants stockés dans le Trousseau iOS." = "Usato per i punti di riferimento del Road Book e i limiti di velocità. Se questo server non risponde, l'app usa il server pubblico, senza mai inviargli le tue credenziali. Credenziali salvate nel Portachiavi di iOS.";
+"Serveur Overpass" = "Server Overpass";
+"Serveur et identifiants" = "Server e credenziali";
+"URL du serveur Overpass" = "URL del server Overpass";
