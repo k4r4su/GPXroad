@@ -13,13 +13,15 @@ GPXroad est une application iOS pour suivre une trace GPX en moto, à vélo ou �
 - Détection hors-trace : un indicateur compact et discret te le signale sans jamais masquer la carte ni effacer ta trace
 - Si tu t'écartes franchement, l'app recalcule seule un itinéraire de liaison pour te ramener sur la trace, avec une bannière dédiée qui indique la distance restante
 - « Reprendre ici » : tu peux reprendre le guidage depuis n'importe quel point de la trace, même après un détour
+- Hors trace, la bannière « Rejoindre la trace » t'y ramène par la route, sans jamais te renvoyer en arrière
 - Textes et symboles de la carte restent lisibles en mode cap-en-haut, quel que soit ton cap
 - Avertissement de pente : un panneau triangle apparaît sur la carte aux endroits de forte montée ou descente
 
 **Road Book**
 - Un onglet qui présente la trace comme un roadbook papier de rallye : liste des directions, ou mode « assisté GPS » avec le prochain virage en grand et la suite en dessous
 - Uniquement des repères visibles depuis la route : panneaux, ponts, églises, stations-service, entrées de village… choisis catégorie par catégorie dans les réglages
-- Le prochain élément affiché est toujours le plus proche, virage ou repère, et un indicateur « Hors trace » prend le relais si tu t'écartes
+- Le prochain élément affiché est toujours le plus proche, virage ou repère
+- Si tu t'écartes de la trace, le Road Book te guide par la route jusqu'à elle, virage par virage, vers le point le plus proche devant toi
 - Un tap sur une étape montre l'endroit sur la carte, qui y reste jusqu'à « Me recentrer »
 - Export PDF à imprimer
 
@@ -68,8 +70,8 @@ Beaucoup de sorties moto ou rando se font là où le réseau mobile ne suit pas.
 - SwiftUI, iOS 16+
 - [MapLibre Native](https://maplibre.org/) pour la carte (tuiles OSM ou fond vectoriel, hors-ligne)
 - Logique partagée en [Kotlin Multiplatform](https://kotlinlang.org/docs/multiplatform.html),
-  en préparation d'une version Android : le calcul des virages du Road Book en est le premier
-  morceau (itération 32)
+  en préparation d'une version Android : tout le calcul du Road Book (virages, repères,
+  reprise de la trace) est déjà commun aux deux (itérations 32-33)
 - Aucune autre dépendance tierce que MapLibre et la bibliothèque standard Kotlin
 
 Le dépôt contient trois dossiers : `iosApp/` (l'app iPhone), `shared/` (le code commun) et

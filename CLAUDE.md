@@ -301,7 +301,7 @@ Hors GPXroad/ : `iosApp/scripts/l10n_check.py` (it31) — vérification des trad
 suppression de fichier Swift, lancer `xcodegen generate`** avant de builder — ne jamais
 éditer `GPXroad.xcodeproj` à la main.
 
-## Monorepo et Kotlin Multiplatform (it32)
+## Monorepo et Kotlin Multiplatform (it32, Road Book entier depuis it33)
 
 ```
 iosApp/      projet Xcode (déplacé tel quel à it32, aucun fichier de logique modifié)
@@ -326,30 +326,41 @@ gradle/, settings.gradle.kts, build.gradle.kts, gradlew   build Gradle (racine)
   Ses `outputFiles` sont déclarés : sans eux, Xcode liait l'ANCIEN framework dans le build même
   qui le reconstruisait (constaté). Premier build d'un clone neuf : JDK + réseau nécessaires
   (téléchargement Gradle et chaîne Kotlin/Native, plusieurs minutes, ~2 Go dans `~/.konan`).
-- **Pilote porté** : partie géométrique de `RoadbookAnalyzer` + `TrackProjector` utile →
-  `shared/.../roadbook/` (`RoadbookGeometry`, `TrackGeometry`). Côté Swift :
-  `SharedRoadbookGeometryBridge` (seule frontière) ; `RoadbookGeometryEngine` `.shared` (défaut) /
-  `.native` (implémentation Swift d'origine, `RoadbookAnalyzer.nativeGeometricEvents`, gardée
-  tant que la parité n'est pas validée sur le terrain ; choix en Réglages > Avancé, build DEBUG).
-  **Tant que les deux existent, toute modification de l'une se reporte dans l'autre** —
-  `SharedRoadbookParityTests` casse sinon.
-- **Parité — ce qui a été mesuré (ne pas re-découvrir)** :
-  - `CLLocation.distance(from:)` n'est égal à aucune formule standard (ni sphère, ni Vincenty :
-    +11 m sur 18 km) et n'est PAS déterministe dans le simulateur (même paire de points, deux
-    résultats selon le moment, jusqu'à 1,6·10⁻⁴ relatif sur 3 m). Le Road Book validé en dépend.
-  - D'où `geodesicDistanceMeters` expect/actual : `CLLocation` sur iOS (Road Book inchangé),
-    Vincenty sur Android. Tout passer en Vincenty rendrait le calcul déterministe et identique
-    sur les deux plateformes, mais déplace des événements sur les longues traces (vosges-tour :
-    203 → 201 événements avec des réglages extrêmes) — DÉCISION PRODUIT OUVERTE (TODO.md).
-  - `sin`/`cos` d'un même argument → `__sincos_stret` (1 ulp d'écart) en Kotlin/Native ET en
-    Swift `-O`, pas en Swift Debug : l'égalité au bit près n'existe même pas entre deux builds
-    Swift. Critère retenu : structure STRICTEMENT égale (nombre, palier, sens, index,
-    coordonnée), angle ≤ 0,05°, distance ≤ 10⁻³ relatif (écarts réels : 0,008°, 1,9·10⁻⁴).
-  - Validation réelle : `TEST_RUNNER_GPXROAD_PARITY_GPX_DIR=<dossier de .gpx> xcodebuild test
-    -only-testing:GPXroadTests/SharedRoadbookParityTests` — 15 traces du propriétaire × 2 sens ×
-    3 réglages, 23 563 événements identiques (it32).
+- **Road Book entièrement en Kotlin (it33)** — `shared/.../roadbook/` : `RoadbookAnalyzer`
+  (géométrie + fusion Valhalla), `ValhallaManeuverType`, `RoadbookExtractor`,
+  `RoadbookLiveProgress`, `OffTrackDetector`, catalogue des repères (`LandmarkCatalog`,
+  `LandmarkCategory`), `LandmarkSelector`, `CityEntryDetector`, `RoadbookEntry.merge`,
+  `RejoinPlanner`/`RejoinPassedDetector` (reprise de la trace). Côté Swift, les MÊMES types et
+  signatures qu'avant, réduits à des façades ; **`Ride/SharedRoadbook.swift` est la seule
+  frontière** (conversions ; dans ce fichier, un nom non qualifié = type Swift, les types Kotlin
+  sont préfixés `GPXroadShared.`). Seuils et constantes définis UNE fois en Kotlin
+  (`RoadbookConstants`, `LandmarkConstants`, `RejoinConstants`) et relus par
+  `NavigationConstants`/`RoadBookConstants`/`RideConstants`. Plus d'implémentation Swift en double
+  (supprimée à it33 après validation terrain du pilote) : **toute règle du Road Book se modifie
+  dans `shared/`**, testée en Kotlin (commonTest, iOS + Android) ET par les tests Swift existants
+  (qui passent par les façades).
+- **Restent natifs** : affichage (libellés traduits, emoji, pictogrammes), sélecteurs et décodage
+  Overpass, caches disque, réseau, et `TrackProjector` (Swift, chemin chaud du Ride à chaque fix —
+  même formule équirectangulaire que `TrackGeometry` en Kotlin : à garder identiques jusqu'au
+  portage de `RideSessionManager`).
+- **Pièges de la frontière** : les clés `Int` d'une `Map` Kotlin arrivent en `NSNumber` et font
+  planter un cast Swift → exposer une liste (`LandmarkSelection.attachedList`) ; un enum/objet
+  Kotlin au même nom qu'un type Swift est ambigu dans un fichier qui importe les deux modules
+  (qualifier `GPXroad.` / `GPXroadShared.`) ; `Checkpoint.id` reste calculé côté Swift.
+- **Mémorisation** : `SharedRoadbook.maneuvers` (par parcours + réglages + manœuvres Valhalla) et
+  `TrackProjector.cumulativeDistances(for: GPXTrack)` (par parcours) — l'écran Road Book les relit
+  à chaque rendu et à chaque position GPS.
+- **Distance : Vincenty partout (décision it33)** — `LatLonKt.geodesicDistanceMeters`, via
+  `RoadbookAnalyzer.distanceMeters` côté Swift (distances le long des traces, stats, longueur de
+  trace). Mesuré à it32 : `CLLocation.distance(from:)` n'est égal à aucune formule standard (+11 m
+  sur 18 km) et n'est pas déterministe dans le simulateur. Effet de la bascule sur 15 traces réelles
+  × 2 sens (7 722 virages) : 1 virage ancré 8 points GPX plus tôt, distances ±2,5 m. Le compteur
+  GPS et l'espacement d'enregistrement restent sur `CLLocation` (mesures GPS, pas de trace).
+- **Instantanés** : `RoadbookStableRegressionTests` (iOS, chaîne complète Overpass → Road Book) et
+  `RoadbookReferenceSnapshotTest` (Kotlin, même trace, mêmes lignes). `SharedRoadbookCatalogTests`
+  garde les catalogues Swift (affichage) et Kotlin (règles) alignés.
 - **Coût** : framework 1,9 Mo par architecture avant élagage ; 20 000 points → Kotlin 29-37 ms,
-  Swift Debug 65 ms.
+  Swift Debug 65 ms (mesuré à it32).
 - Kotlin : jamais de texte affiché ni de SF Symbol dans `shared/` (libellés et traductions
   restent natifs, voir audit constat 3).
 
@@ -488,7 +499,8 @@ avant chaque livraison, sans test désactivé ni skip ajouté pour "faire passer
 possible, `SharedBlockageLiveServerTests`, se lève en lançant `server/app.py` localement (copie
 hors dépôt : `python3 -m uvicorn app:app --port 8000`). Au jalon, le run était de 413 tests,
 0 échec, 0 skip ; à it29, 452 tests, 0 échec, 0 skip ; à it30, 470 tests ; à it31, 491 tests, 0 échec, 0 skip ; à it32, 495 tests, 0 échec, 0 skip (toute la suite
-tourne avec le moteur géométrique Kotlin). Le résultat attendu de
+tourne avec le moteur géométrique Kotlin) ; à it33, 499 tests iOS + 29 tests Kotlin (iOS et
+Android), 0 échec, 0 skip. Le résultat attendu de
 `RoadbookStableRegressionTests` n'a pas changé à it29. Le repli "Entrée de <localité>" (actif
 par défaut depuis it29) fait désormais partie du comportement validé : `RoadbookCityEntryTests`.
 

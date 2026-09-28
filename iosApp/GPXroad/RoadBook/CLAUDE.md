@@ -641,3 +641,33 @@ en roulant**. Jamais une limite de commune, un lieu-dit sans panneau, un commerc
   dans le PDF. Tout nouveau libellé calculé à l'exécution doit rejoindre `L10n.dynamicKeys`
   (sinon `LocalizationTests` et `scripts/l10n_check.py` ne le voient pas).
 - Les noms propres OSM (localités, routes) ne sont jamais traduits.
+
+## Itération 33 — logique en Kotlin partagé, rejoindre la trace, lisibilité
+
+- **Toute la logique du Road Book vit dans `shared/.../roadbook/`** (détection des virages, fusion
+  Valhalla, liste des manœuvres, progression en direct, hors-trace, catalogue et sélection des
+  repères, entrées de localité). Les types Swift de ce dossier (`RoadbookExtractor`,
+  `RoadbookLiveProgress`, `RoadbookLandmarkSelector`, `RoadbookCityEntryDetector`,
+  `RoadbookLandmark.classify`, `RoadbookEntry.merge`) sont des FAÇADES aux signatures inchangées
+  (voir `Ride/SharedRoadbook.swift`). Une règle se modifie en Kotlin, pas ici. Restent Swift :
+  écrans, PDF, libellés traduits (dont « Entrée de <nom> », composé à partir de
+  `LandmarkInfo.cityEntryName`), emoji, sélecteurs et décodage Overpass, caches disque.
+- **Rejoindre la trace (mode Assisté GPS)** — `RoadbookRejoinController` : hors trace depuis 2 s,
+  point de retour = point de la trace le plus proche DEVANT la dernière position sur la trace,
+  rejoint par les routes (`DetourRoutingService`, Valhalla/OSRM) ; point dépassé (derrière soi, en
+  roulant, 10 s) → nouveau point au-delà ; réévaluation toutes les 60 s (même règle que le Ride).
+  Le Road Book a sa propre reprise parce que le GPS du Ride est arrêté hors de l'onglet Ride.
+  Affichage (`RoadbookFocusedView`) : carte principale = prochain virage du chemin avec le badge
+  « Hors trace » (ou « Retour sur la trace » s'il n'y a plus de virage) ; liste = virages du
+  chemin, « Retour sur la trace à X », puis la suite du Road Book depuis le point de retour
+  (`rejoinSteps`, testé). Virages du chemin = même moteur que la trace (`RejoinPlanner.plan`),
+  premiers 20 m ignorés. Sans itinéraire : carte hors trace + « calcul… » / « itinéraire
+  indisponible », jamais de liste inventée. Rien n'est écrit dans les caches du Road Book.
+- **Lisibilité** (retour terrain) : carte principale portrait = flèche et distance côte à côte,
+  tailles proportionnelles à la carte (`GeometryReader`) ; paysage agrandi (flèche 150, distance
+  96 pt) ; lignes à venir et Road Book classique agrandis. Règle : la DISTANCE est prioritaire
+  (`layoutPriority`, réduit en dernier, jamais tronquée), un libellé passe sur deux lignes plutôt
+  que d'être tronqué. Vérification sans rotation possible du simulateur : rendu `ImageRenderer`
+  de `RoadbookFocusedView` en 390×560 (portrait) et 700×300 + `verticalSizeClass = .compact`
+  (paysage), dans un test TEMPORAIRE — les listes défilantes n'y apparaissent pas (limite
+  d'`ImageRenderer`), elles se vérifient sur le simulateur en portrait.

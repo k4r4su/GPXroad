@@ -38,9 +38,9 @@ pendant.
      validé (it28) ;
    - `actual` Android = Vincenty WGS84.
 
-   **Décision produit ouverte** : passer iOS à Vincenty rendrait le Road Book déterministe et
-   identique sur les deux plateformes. Mais cela déplace quelques événements sur les longues
-   traces (avec des réglages extrêmes : vosges-tour passe de 203 à 201 événements, sur 151 km).
+   **Tranché à it33** : Vincenty sur iOS ET Android (« une seule formule, se faire moins chier à
+   développer les deux versions »). Effet mesuré sur 15 traces réelles × 2 sens avec les réglages
+   par défaut : 1 virage sur 7 722 ancré 8 points GPX plus tôt, distances ±2,5 m.
 2. **`CLLocationCoordinate2D` partout** (≈ 60 fichiers). En commun : un type `LatLon`. La
    conversion se fait à la frontière Swift, pas dans la logique.
 3. **Libellés localisés dans des types de logique** (`TurnDirection.label`,
@@ -250,10 +250,13 @@ atteinte, et le coût est faible. Kotlin Multiplatform reste l'approche retenue 
    constat 1) qui tranche d'entrée la question la plus risquée, et des tests Swift existants
    comme référence (`RoadbookInflectionTests` et les tests géométriques de
    `RoadbookCheckpointReliabilityTests`).
-2. **Reste du Road Book pur** : fusion Valhalla, `RoadbookExtractor`, `RoadbookLiveProgress`,
+2. **Reste du Road Book pur (it33, FAIT)** : fusion Valhalla, `RoadbookExtractor`, `RoadbookLiveProgress`,
    `OffTrackDetector`/`RoadbookOffTrack`, `RoadbookCityEntries`, `RoadbookLandmarkSelector` +
    `RoadbookEntry.merge`, catalogue de repères sans libellés, `ValhallaManeuverType`.
    Garde-fou : `RoadbookStableRegressionTests` exécuté contre le module partagé.
+   Fait à it33 : Road Book IDENTIQUE avant/après sur 15 traces réelles × 2 sens. La distance est
+   désormais Vincenty sur iOS et Android (constat 1 tranché : une seule formule). Reste Swift :
+   `TrackProjector`, chemin chaud du Ride, à porter avec l'étape 7.
 3. **Modèles et formats** : `GPXPoint`/`GPXTrack` (kotlinx.serialization, relecture de
    `index.json` réels), `GPXParser`/`GPXExporter`.
 4. **Décodage des réponses réseau** (pur) : Overpass `parse`, Valhalla `/trace_route` et

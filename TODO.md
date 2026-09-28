@@ -1,5 +1,33 @@
 # TODO
 
+## Itération 33 — Road Book en Kotlin, rejoindre la trace, lisibilité — v0.0.33
+
+Commits `single-geodesic-formula-vincenty`, `roadbook-logic-in-shared-kotlin`,
+`roadbook-rejoin-route-when-off-track`, `roadbook-instructions-readability`. Checklist manuelle :
+- [ ] Road Book d'une trace connue : identique à avant (Vincenty + portage : 1 virage déplacé sur
+      7 722 dans les traces de test, distances ±2,5 m).
+- [ ] Hors trace VOLONTAIRE (Road Book, mode Assisté GPS) : après ~2 s, « Calcul du chemin… »,
+      puis la carte principale annonce le premier virage du chemin avec le badge orange « Hors
+      trace » ; la liste montre les virages du chemin, « Retour sur la trace à X », puis la suite.
+- [ ] Le chemin ne coupe jamais dans les champs (routes seulement) et le point de retour est
+      DEVANT (jamais une portion déjà faite).
+- [ ] Dépasser volontairement le point de retour : au bout d'environ 10 s en roulant, nouveau
+      point plus loin.
+- [ ] Retour sur la trace : le bloc disparaît, le Road Book reprend normalement.
+- [ ] Sans réseau (mode avion) hors trace : « Rejoindre la trace — itinéraire indisponible ».
+- [ ] Ride hors trace (> 100 m pendant 2 s) : la bannière « Rejoindre la trace » affiche le
+      prochain virage du chemin, sa distance et « Trace à X », icône hors trace en haut.
+- [ ] Lisibilité : Road Book Assisté en portrait ET en paysage, Road Book classique, bannière
+      Ride — plus grand qu'avant, rien de tronqué ni de superposé ; en allemand aussi ; avec une
+      taille de texte iOS agrandie.
+- [ ] Tutoriel > Road Book et Ride : reprise de la trace décrite comme ci-dessus.
+
+Hors périmètre / suites :
+- Reste à porter (audit, étapes 3 à 7) : modèles et GPX, réseau, stores, `RideSessionManager` et
+  `TrackProjector` (encore Swift, même formule que `TrackGeometry`).
+- Le Road Book du mode Assisté démarre la reprise dès 2 s hors trace (30 m), le Ride dès 100 m
+  pendant 2 s (règle it18 inchangée) : à harmoniser si le terrain le demande.
+
 ## Itération 32 — audit et socle Kotlin Multiplatform — v0.0.32
 
 Commits `monorepo-move-ios-to-iosapp`, `kmp-migration-audit`, `kmp-monorepo-gradle-skeleton`,
@@ -15,12 +43,8 @@ d'interface : un sélecteur debug dans Réglages > Avancé). Livrable d'audit :
 - [x] Android : APK installé et lancé sur l'émulateur `gpxroad_test` (Android 36, arm64) → écran
       « GPXroad shared Android », aucun crash (vérifié it32). Reste : un vrai téléphone Android.
 
-Décisions ouvertes :
-- **Distance géodésique commune** : iOS garde `CLLocation` (non déterministe, formule inconnue),
-  Android utilise Vincenty. Les unifier (Vincenty partout) = Road Book identique sur les deux
-  plateformes, mais quelques événements déplacés sur les longues traces. À trancher avant le
-  premier Road Book Android. Voir MIGRATION_AUDIT.md constat 1.
-- **Supprimer `RoadbookAnalyzer.nativeGeometricEvents`** une fois la validation terrain faite.
+Décisions soldées à it33 : distance commune = Vincenty partout ; implémentation Swift native
+de la géométrie supprimée après la validation terrain du propriétaire.
 - Prochain portage suggéré : reste du Road Book pur (audit, ordre étape 2), après refactors ⚠︎
   si besoin.
 

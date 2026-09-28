@@ -82,10 +82,16 @@ pas besoin de sortir en voiture pour reproduire un franchissement de seuil.
   divergence à la trace dépasse `RideConstants.recomputeDivergenceThresholdMeters` (100 m) en
   continu pendant `recomputeDivergenceDurationSeconds` (2 s) — cible (spec "rejoin-nearest-by-
   air", it19, remplace l'ancien "point suivant + `detourAheadMinMeters`") :
-  `TrackProjector.nearestPointByAirDistance`, le point de la trace le plus proche à VOL D'OISEAU
-  parmi TOUS ses points, pas seulement le suivant dans l'ordre chronologique — bug terrain
-  corrigé où une trace en boucle faisait cibler un point à 15 km par la route alors qu'un autre
-  point, plus loin dans l'ordre de la trace, n'était qu'à 2 km à vol d'oiseau.
+  le point de la trace le plus proche à VOL D'OISEAU parmi TOUS ses points DEVANT la dernière
+  position sur la trace (it33, `RejoinPlanner.nearestAhead` via `rejoinTargetAhead`, demande
+  terrain : « le point le plus proche devant moi, en utilisant les routes, on ne coupe pas dans
+  les champs ») — pas seulement le suivant dans l'ordre (bug it19 : une boucle faisait cibler un
+  point à 15 km par la route alors qu'un autre, plus loin dans l'ordre, était à 2 km), et jamais
+  un point déjà parcouru (`lastOnTrackCumulativeMeters`). Point DÉPASSÉ (derrière soi, en
+  roulant ≥ 10 km/h, 10 s d'affilée, `RejoinPassedDetector`) : recalculé tout de suite au-delà de
+  l'ancien (`rejoinFloorCumulativeMeters`), sans attendre la réévaluation. La bannière
+  `RejoinGuidanceBannerView` annonce le prochain virage du chemin (`rejoinNextStep`, virages
+  détectés par le moteur du Road Book sur la géométrie du chemin) et garde l'icône hors trace.
   `updateOffTrackResumeTarget` (affichage informatif du chip hors-trace, voir plus bas) utilise
   la MÊME fonction, pour rester cohérent avec la cible réellement routée. Démarre DIRECTEMENT en
   phase `.active`. Réévalué PÉRIODIQUEMENT tant qu'actif ET hors-trace (spec "auto-recompute-
