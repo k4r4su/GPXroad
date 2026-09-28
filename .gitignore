@@ -5,3 +5,10 @@ Generated/
 xcuserdata/
 .DS_Store
 server/data/*.db
+# Gradle / Android (it32)
+.gradle/
+.kotlin/
+local.properties
+**/build/
+*.iml
+.idea/
