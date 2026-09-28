@@ -330,6 +330,16 @@ gradle/, settings.gradle.kts, build.gradle.kts, gradlew   build Gradle (racine)
   Ses `outputFiles` sont déclarés : sans eux, Xcode liait l'ANCIEN framework dans le build même
   qui le reconstruisait (constaté). Premier build d'un clone neuf : JDK + réseau nécessaires
   (téléchargement Gradle et chaîne Kotlin/Native, plusieurs minutes, ~2 Go dans `~/.konan`).
+- **Piège vécu (fix "kotlin-build-script-model-error")** : `androidApp/build.gradle.kts` (app
+  Android pure, PAS un module KMP) doit appliquer `org.jetbrains.kotlin.android` EN PLUS de
+  `com.android.application` — le plugin compilateur Compose (`org.jetbrains.kotlin.plugin.compose`)
+  exige un plugin Kotlin de base déjà appliqué dans le MÊME projet, sinon la configuration Gradle
+  de `:androidApp` échoue entièrement. Symptôme trompeur côté Android Studio : pas l'erreur
+  Gradle réelle, mais `Task 'prepareKotlinBuildScriptModel' not found in project ':androidApp'`
+  (tâche IDE demandée après l'échec de config, donc "introuvable"). `:shared` n'a pas ce problème
+  car `com.android.kotlin.multiplatform.library` (module KMP) fournit son propre support Kotlin.
+  L'alias `kotlin-android` manquait dans `gradle/libs.versions.toml` — ne pas le ré-oublier si
+  un futur module Android pur (hors KMP) est ajouté.
 - **Road Book entièrement en Kotlin (it33)** — `shared/.../roadbook/` : `RoadbookAnalyzer`
   (géométrie + fusion Valhalla), `ValhallaManeuverType`, `RoadbookExtractor`,
   `RoadbookLiveProgress`, `OffTrackDetector`, catalogue des repères (`LandmarkCatalog`,
