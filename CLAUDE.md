@@ -332,6 +332,11 @@ gradle/, settings.gradle.kts, build.gradle.kts, gradlew   build Gradle (racine)
   Studio.app/Contents/jbr/Contents/Home"`), SDK Android dans `~/Library/Android/sdk`
   (`local.properties`, non versionné). Versions dans `gradle/libs.versions.toml` (Kotlin 2.4.20,
   AGP 9.4.1, Gradle 9.8.0, compileSdk 37 exigé par le BOM Compose).
+- **Android Studio : ouvrir la RACINE du dépôt** (`GPXlibre/`, celle qui contient
+  `settings.gradle.kts`), jamais `androidApp/` ni son `build.gradle.kts`. Ouvert sur `androidApp/`,
+  la synchro échoue avec « Task 'prepareKotlinBuildScriptModel' not found in project ':androidApp' »
+  (constaté le 28/09 dans `~/Library/Logs/Google/AndroidStudio*/idea.log`) — ce n'est PAS un plugin
+  manquant : `org.jetbrains.kotlin.android` est refusé par AGP 9 (Kotlin intégré), ne jamais l'ajouter.
 - **Commandes** (depuis la racine) : `./gradlew :shared:iosSimulatorArm64Test
   :shared:testAndroidHostTest` (tests Kotlin sur les deux plateformes),
   `./gradlew :androidApp:assembleDebug` (APK).
