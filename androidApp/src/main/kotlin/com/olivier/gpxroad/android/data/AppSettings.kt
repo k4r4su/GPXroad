@@ -1,0 +1,98 @@
+package com.olivier.gpxroad.android.data
+
+import android.content.Context
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableDoubleStateOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
+import com.olivier.gpxroad.shared.roadbook.RoadbookConstants
+import com.olivier.gpxroad.shared.roadbook.RoadbookSettings
+import com.olivier.gpxroad.shared.roadbook.TierThresholds
+
+enum class DistanceUnit { KM, MI }
+
+/** Mode de lecture du Road Book (comme iOS) : liste papier, ou prochain élément en grand avec le GPS. */
+enum class ReadingMode { LIST, GPS_ASSISTED }
+
+/**
+ * Réglages persistés (équivalent de `RideSettingsStore` iOS, partie Road Book) — valeurs par défaut
+ * = celles du module partagé (`RoadbookConstants`), mêmes que l'iPhone.
+ */
+class AppSettings(context: Context) {
+    private val preferences = context.getSharedPreferences("settings", Context.MODE_PRIVATE)
+
+    var distanceUnit by mutableStateOf(enumValueOrNull<DistanceUnit>(preferences.getString("distanceUnit", null)) ?: DistanceUnit.KM)
+        private set
+    var readingMode by mutableStateOf(enumValueOrNull<ReadingMode>(preferences.getString("readingMode", null)) ?: ReadingMode.GPS_ASSISTED)
+        private set
+
+    var lightThreshold by mutableDoubleStateOf(preferences.getDouble("light", RoadbookConstants.LIGHT_THRESHOLD_DEGREES_DEFAULT))
+        private set
+    var markedThreshold by mutableDoubleStateOf(preferences.getDouble("marked", RoadbookConstants.MARKED_THRESHOLD_DEGREES_DEFAULT))
+        private set
+    var hardThreshold by mutableDoubleStateOf(preferences.getDouble("hard", RoadbookConstants.HARD_THRESHOLD_DEGREES_DEFAULT))
+        private set
+    var veryHardThreshold by mutableDoubleStateOf(preferences.getDouble("veryHard", RoadbookConstants.VERY_HARD_THRESHOLD_DEGREES_DEFAULT))
+        private set
+    var windowBefore by mutableDoubleStateOf(preferences.getDouble("windowBefore", RoadbookConstants.WINDOW_BEFORE_METERS_DEFAULT))
+        private set
+    var windowAfter by mutableDoubleStateOf(preferences.getDouble("windowAfter", RoadbookConstants.WINDOW_AFTER_METERS_DEFAULT))
+        private set
+    var mergeDistance by mutableDoubleStateOf(preferences.getDouble("merge", RoadbookConstants.TURN_MERGE_MIN_DISTANCE_METERS_DEFAULT))
+        private set
+
+    val roadbookSettings: RoadbookSettings
+        get() = RoadbookSettings(
+            windowBeforeMeters = windowBefore,
+            windowAfterMeters = windowAfter,
+            thresholds = TierThresholds(lightThreshold, markedThreshold, hardThreshold, veryHardThreshold),
+            mergeMinDistanceMeters = mergeDistance,
+        )
+
+    fun updateDistanceUnit(value: DistanceUnit) {
+        distanceUnit = value
+        preferences.edit().putString("distanceUnit", value.name).apply()
+    }
+
+    fun updateReadingMode(value: ReadingMode) {
+        readingMode = value
+        preferences.edit().putString("readingMode", value.name).apply()
+    }
+
+    /** Seuils d'angle : toujours croissants (léger < prononcé < fort < très serré). */
+    fun updateThresholds(light: Double, marked: Double, hard: Double, veryHard: Double) {
+        lightThreshold = light
+        markedThreshold = maxOf(marked, light + 5)
+        hardThreshold = maxOf(hard, markedThreshold + 5)
+        veryHardThreshold = maxOf(veryHard, hardThreshold + 5)
+        preferences.edit()
+            .putDouble("light", lightThreshold).putDouble("marked", markedThreshold)
+            .putDouble("hard", hardThreshold).putDouble("veryHard", veryHardThreshold).apply()
+    }
+
+    fun updateWindows(before: Double, after: Double, merge: Double) {
+        windowBefore = before
+        windowAfter = after
+        mergeDistance = merge
+        preferences.edit().putDouble("windowBefore", before).putDouble("windowAfter", after).putDouble("merge", merge).apply()
+    }
+
+    fun resetRoadbook() {
+        updateThresholds(
+            RoadbookConstants.LIGHT_THRESHOLD_DEGREES_DEFAULT, RoadbookConstants.MARKED_THRESHOLD_DEGREES_DEFAULT,
+            RoadbookConstants.HARD_THRESHOLD_DEGREES_DEFAULT, RoadbookConstants.VERY_HARD_THRESHOLD_DEGREES_DEFAULT,
+        )
+        updateWindows(
+            RoadbookConstants.WINDOW_BEFORE_METERS_DEFAULT, RoadbookConstants.WINDOW_AFTER_METERS_DEFAULT,
+            RoadbookConstants.TURN_MERGE_MIN_DISTANCE_METERS_DEFAULT,
+        )
+    }
+}
+
+private inline fun <reified T : Enum<T>> enumValueOrNull(name: String?): T? = name?.let { runCatching { enumValueOf<T>(it) }.getOrNull() }
+
+private fun android.content.SharedPreferences.getDouble(key: String, default: Double): Double =
+    if (contains(key)) java.lang.Double.longBitsToDouble(getLong(key, 0)) else default
+
+private fun android.content.SharedPreferences.Editor.putDouble(key: String, value: Double): android.content.SharedPreferences.Editor =
+    putLong(key, java.lang.Double.doubleToRawLongBits(value))

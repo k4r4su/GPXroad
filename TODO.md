@@ -22,6 +22,26 @@ secret dans le dépôt ».
 - **À mesurer avant** : charge et bande passante du serveur de la maison si tous les utilisateurs
   y passent (Overpass surtout) ; exposition de l'IP de la maison.
 
+## Android — session 1 : socle, Bibliothèque, Road Book GPS — v0.0.34 (Android)
+
+Plan validé le 29/09 (6 à 8 sessions pour la parité). Règle : toute logique pure nouvelle va dans
+`shared/` ; l'app iPhone garde son code tant que la version partagée n'est pas vérifiée identique.
+Livré en session 1 : lecteur GPX partagé (`shared/gpx`), `LiveTrackMatcher` partagé, import GPX,
+Bibliothèque, Road Book (liste + assisté GPS), Réglages (unité, sensibilité des virages), textes en
+5 langues, icône, tests unitaires Android (distances fixes et compte à rebours).
+- [ ] Tablette : importer vosges-tour et Wahlbach (`.testdata/`), vérifier la liste Road Book
+      (mêmes virages et distances que l'iPhone à 10 m près).
+- [ ] Tablette : Road Book assisté GPS en conditions réelles (compte à rebours, hors trace).
+
+Sessions suivantes :
+- [ ] 2 — Ride : carte MapLibre Android, trace, position, caméra qui suit, virages, bandeau, hors trace.
+- [ ] 3 — Réseau : repères Overpass, ronds-points OSM, Valhalla (recalage, retour sur la trace),
+      réglages serveurs avec identifiants chiffrés.
+- [ ] 4 — Enregistrement en arrière-plan, export/partage GPX, sorties non enregistrées, dossiers.
+- [ ] 5 — Aller à : recherche, guidage Valhalla, Domicile/Travail, signalements.
+- [ ] 6 — Cartes hors ligne, thèmes, PDF, tutoriel, finitions.
+- [ ] 7-8 — Retours terrain, stabilisation.
+
 ## Itération 34 — ronds-points sans ambiguïté, distances par paliers — v0.0.34
 
 Commits `roadbook-route-aware-only-where-matched`, `distance-countdown-steps`,
