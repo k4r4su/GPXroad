@@ -22,6 +22,18 @@ secret dans le dépôt ».
 - **À mesurer avant** : charge et bande passante du serveur de la maison si tous les utilisateurs
   y passent (Overpass surtout) ; exposition de l'IP de la maison.
 
+## Itération 34 — ronds-points sans ambiguïté, distances par paliers — v0.0.34
+
+Commits `roadbook-route-aware-only-where-matched`, `distance-countdown-steps`,
+`roadbook-city-entry-card-truncated`, `roadbook-roundabouts-from-osm`.
+- Ronds-points : numéro de sortie OSM (celui de Valhalla était « 2 » partout), dessin de toutes les
+  branches, direction depuis la trace, route de sortie, ronds-points enchaînés.
+- Cas limites de vocabulaire soumis au propriétaire (planche « douteux » : D2, V8, V12, V16, V21,
+  V10) — seuils « tout droit / légèrement / franchement / fortement » à ajuster selon sa réponse.
+- Pas fait : défilement des sorties EN DIRECT dans l'anneau (« encore 1 sortie ») — précision GPS
+  insuffisante dans un anneau de 15 m, à tester sur le terrain d'abord.
+- Le Ride ne télécharge pas les données des ronds-points : il relit celles de l'onglet Road Book.
+
 ## Itération 33 bis — retour terrain du 28/09 : vrais carrefours, ronds-points, Overpass
 
 Commits `roadbook-junctions-only-when-route-known`, `overpass-self-hosted-basic-auth`.

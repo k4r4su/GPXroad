@@ -35,8 +35,9 @@ struct Checkpoint: Identifiable, Hashable {
     /// checkpoint (`trackCumulativeDistances[sourcePointIndex]`) sans re-projeter sa
     /// coordonnée sur la trace.
     let sourcePointIndex: Int
-    /// Rang de la sortie prise dans un rond-point (Valhalla `roundabout_exit_count`, spec
-    /// "roadbook-route-aware-maneuvers", it24, point 2) — `nil` sauf `tier == .roundabout`.
+    /// Rang de la sortie prise dans un rond-point — depuis it34 UNIQUEMENT l'analyse OSM
+    /// (`roundabout`) : le `roundabout_exit_count` de Valhalla valait « 2 » pour les 51 ronds-points
+    /// de l'iPhone (faux une fois sur deux) et n'est plus lu. `nil` sauf `tier == .roundabout`.
     /// Champ SÉPARÉ plutôt qu'une valeur associée sur `RoadbookTier` (même patron que
     /// `direction`, déjà distinct du tier) : évite de casser tous les `switch tier` existants
     /// (map/table/PDF) pour une information optionnelle propre à UN SEUL palier.
@@ -48,6 +49,9 @@ struct Checkpoint: Identifiable, Hashable {
     /// d'enregistrement. `nil` = checkpoint construit hors `RoadbookAnalyzer` (tests) : repli
     /// sur `trackCumulativeDistances[sourcePointIndex]`, voir `cumulativeDistanceMeters(using:)`.
     let trackCumulativeDistanceMeters: Double?
+    /// Rond-point analysé sur OSM (it34) — branches, numéro sûr, route de sortie ; `nil` pour tout
+    /// autre événement, ou un rond-point connu seulement par Valhalla (direction seule).
+    let roundabout: RoadbookRoundabout?
 
     init(
         coordinate: CLLocationCoordinate2D,
@@ -57,7 +61,8 @@ struct Checkpoint: Identifiable, Hashable {
         sequenceIndex: Int,
         sourcePointIndex: Int,
         roundaboutExitCount: Int? = nil,
-        trackCumulativeDistanceMeters: Double? = nil
+        trackCumulativeDistanceMeters: Double? = nil,
+        roundabout: RoadbookRoundabout? = nil
     ) {
         self.coordinate = coordinate
         self.turnAngleDegrees = turnAngleDegrees
@@ -67,6 +72,7 @@ struct Checkpoint: Identifiable, Hashable {
         self.sourcePointIndex = sourcePointIndex
         self.roundaboutExitCount = roundaboutExitCount
         self.trackCumulativeDistanceMeters = trackCumulativeDistanceMeters
+        self.roundabout = roundabout
     }
 
     /// Seul point de lecture de la distance cumulée d'un événement (Ride ET Road Book) — jamais

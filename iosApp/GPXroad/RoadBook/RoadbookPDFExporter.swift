@@ -213,6 +213,17 @@ enum RoadbookPDFExporter {
         }
 
         if let note = layout.note {
+            // Rond-point analysé (it34) : sortie, direction et route, en tête de la zone de note.
+            var noteTop = note.minY + 2
+            if maneuver.checkpoint.tier == .roundabout, maneuver.checkpoint.roundabout != nil {
+                let text = [maneuver.checkpoint.instructionLabel, maneuver.checkpoint.roundaboutDetail].compactMap { $0 }.joined(separator: " ")
+                let roundaboutAttributes: [NSAttributedString.Key: Any] = [
+                    .font: UIFont.boldSystemFont(ofSize: max(options.fontSize.points - 1, 6)),
+                    .foregroundColor: UIColor.black,
+                ]
+                (text as NSString).draw(in: CGRect(x: note.minX + 4, y: noteTop, width: note.width - 8, height: note.height * 0.4), withAttributes: roundaboutAttributes)
+                noteTop += note.height * 0.4
+            }
             if let landmark {
                 // Repère OSM trouvé à proximité (spec it23quater) — remplace la ligne vierge,
                 // l'utilisateur garde quand même de la place en dessous pour sa propre note.
@@ -221,7 +232,7 @@ enum RoadbookPDFExporter {
                     .foregroundColor: UIColor.darkGray,
                 ]
                 (landmark.displayLabel as NSString).draw(
-                    in: CGRect(x: note.minX + 4, y: note.minY + 2, width: note.width - 8, height: note.height * 0.4),
+                    in: CGRect(x: note.minX + 4, y: noteTop, width: note.width - 8, height: note.height * 0.4),
                     withAttributes: landmarkAttributes
                 )
             }
@@ -350,11 +361,16 @@ enum RoadbookPDFExporter {
         ring.lineWidth = thin
         ring.stroke()
 
-        for skipped in drawing.skippedExits {
+        for branch in drawing.branches {
             let path = UIBezierPath()
-            path.move(to: skipped.from)
-            path.addLine(to: skipped.to)
-            path.lineWidth = thin
+            path.move(to: branch.segment.from)
+            path.addLine(to: branch.segment.to)
+            if let bar = branch.bar {
+                path.move(to: bar.from)
+                path.addLine(to: bar.to)
+            }
+            (branch.kind == .countedExit ? UIColor.darkGray : UIColor.gray).setStroke()
+            path.lineWidth = branch.kind == .countedExit ? thin * 1.6 : thin * 0.8
             path.lineCapStyle = .round
             path.stroke()
         }

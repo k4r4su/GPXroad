@@ -35,11 +35,23 @@ object RoadbookAnalyzer {
         settings: RoadbookSettings,
         mapMatchedManeuvers: List<MapMatchedManeuver> = emptyList(),
         coverage: List<CoveredRange>? = null,
+        roundabouts: List<RoundaboutPassage> = emptyList(),
     ): List<Checkpoint> {
         val windowBefore = settings.windowBeforeMeters
         val windowAfter = settings.windowAfterMeters
         if (points.size <= 2 || windowBefore <= 0 || windowAfter <= 0) return emptyList()
         val cumulative = TrackGeometry.cumulativeDistances(points)
+        // It34 : ronds-points analysés sur OSM — chacun remplace ce qui a été détecté autour de lui.
+        return RoundaboutAnalyzer.applyTo(baseEvents(points, settings, mapMatchedManeuvers, coverage, cumulative), roundabouts, points, cumulative)
+    }
+
+    private fun baseEvents(
+        points: List<LatLon>,
+        settings: RoadbookSettings,
+        mapMatchedManeuvers: List<MapMatchedManeuver>,
+        coverage: List<CoveredRange>?,
+        cumulative: DoubleArray,
+    ): List<Checkpoint> {
         // Route connue (map matching Valhalla) : seuls les vrais carrefours comptent — « si on reste
         // sur la même route, même si elle tourne, il n'y a pas de changement de direction » (retour
         // terrain it33). MAIS seulement là où Valhalla a réellement recalé la trace (it33 bis : un
@@ -166,7 +178,7 @@ object RoadbookAnalyzer {
                 ?: RoadbookTier.LIGHT_DIRECTION_CHANGE
             var tier: RoadbookTier
             var direction: TurnDirection
-            var roundaboutExitCount: Int? = null
+            val roundaboutExitCount: Int? = null
             when (kind) {
                 RoadbookTier.ROUNDABOUT -> {
                     tier = RoadbookTier.ROUNDABOUT
@@ -175,7 +187,8 @@ object RoadbookAnalyzer {
                         net > 0 -> TurnDirection.RIGHT
                         else -> TurnDirection.LEFT
                     }
-                    roundaboutExitCount = group.firstNotNullOfOrNull { it.maneuver.roundaboutExitCount }
+                    // Numéro Valhalla jamais repris (it34) : « 2 » pour tous les ronds-points de
+                    // l'iPhone, faux une fois sur deux — seule l'analyse OSM donne un numéro.
                 }
                 RoadbookTier.FORK, RoadbookTier.MERGE -> {
                     tier = kind

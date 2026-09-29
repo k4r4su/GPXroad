@@ -389,6 +389,20 @@ gradle/, settings.gradle.kts, build.gradle.kts, gradlew   build Gradle (racine)
   la couverture, géométrie AILLEURS (à ≥ fusion min d'un événement route-aware). Le cache disque
   garde la couverture (`coveredRanges`) ; une entrée sans couverture (avant ce fix) est ignorée →
   nouveau map matching une fois.
+- **Ronds-points analysés sur OSM (it34, « le but c'est que ça ne soit pas ambigu »)** — le
+  `roundabout_exit_count` de Valhalla valait « 2 » pour les 51 ronds-points de l'iPhone (faux une
+  fois sur deux) : il n'est PLUS JAMAIS lu. `RoundaboutAnalyzer` (Kotlin) : anneau + routes reliées
+  (Overpass dédié, `RoadbookRoundaboutOverpass`, cache par trace `RoadbookRoundaboutStore`,
+  `Documents/RoadbookRoundaboutCache/`) ; trace ré-échantillonnée tous les 2 m ; direction = cap de
+  la trace ~10 m avant / après, cap des AUTRES branches = leur route de 10 à 30 m hors de l'anneau
+  (pas leur position autour du centre : faux pour les routes qui longent l'anneau en tangente) ;
+  sorties comptées dans le sens de circulation (sens de dessin OSM de l'anneau, donc aussi en
+  circulation à gauche), sans service/chemin/accès privé sauf si c'est la sortie prise ; numéro
+  publié seulement si tous les contrôles passent, sinon direction seule. Dessin sur 8 positions,
+  sortie prise TOUJOURS à la direction réelle, les autres branches rangées avant/après dans leur
+  ordre de rencontre. Chaque passage REMPLACE les événements détectés autour (Valhalla, géométrie).
+  Téléchargé par l'onglet Road Book, relu (jamais téléchargé) par le Ride. Validé sur 28 ronds-points
+  réels (planche de contrôle, harnais temporaire hors dépôt interrogeant l'Overpass du LAN).
 - **Compte à rebours par paliers (29/09, demande du propriétaire)** — toute distance EN DIRECT
   jusqu'au prochain virage / repère / point de reprise (Road Book focalisé et liste, bannière
   latérale du Ride, puce et bannière hors trace, guidage Nav) passe par
@@ -539,7 +553,7 @@ avant chaque livraison, sans test désactivé ni skip ajouté pour "faire passer
 possible, `SharedBlockageLiveServerTests`, se lève en lançant `server/app.py` localement (copie
 hors dépôt : `python3 -m uvicorn app:app --port 8000`). Au jalon, le run était de 413 tests,
 0 échec, 0 skip ; à it29, 452 tests, 0 échec, 0 skip ; à it30, 470 tests ; à it31, 491 tests, 0 échec, 0 skip ; à it32, 495 tests, 0 échec, 0 skip (toute la suite
-tourne avec le moteur géométrique Kotlin) ; à it33 bis, 508 tests iOS + 40 tests Kotlin (iOS et
+tourne avec le moteur géométrique Kotlin) ; à it34, 517 tests iOS + 55 tests Kotlin (iOS et
 Android), 0 échec, 0 skip. Le résultat attendu de
 `RoadbookStableRegressionTests` n'a pas changé à it29. Le repli "Entrée de <localité>" (actif
 par défaut depuis it29) fait désormais partie du comportement validé : `RoadbookCityEntryTests`.

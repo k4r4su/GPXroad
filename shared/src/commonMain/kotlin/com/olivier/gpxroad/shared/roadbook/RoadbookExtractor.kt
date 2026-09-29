@@ -24,8 +24,9 @@ object RoadbookExtractor {
         settings: RoadbookSettings,
         mapMatchedManeuvers: List<MapMatchedManeuver> = emptyList(),
         coverage: List<CoveredRange>? = null,
+        roundabouts: List<RoundaboutPassage> = emptyList(),
     ): List<RoadbookManeuver> {
-        val checkpoints = RoadbookAnalyzer.buildRoadbookEvents(points, settings, mapMatchedManeuvers, coverage)
+        val checkpoints = RoadbookAnalyzer.buildRoadbookEvents(points, settings, mapMatchedManeuvers, coverage, roundabouts)
         if (checkpoints.isEmpty()) return emptyList()
         val cumulative = TrackGeometry.cumulativeDistances(points)
         var previousCumulative = 0.0
@@ -37,7 +38,8 @@ object RoadbookExtractor {
                 checkpoint = checkpoint,
                 partialDistanceMeters = partial,
                 cumulativeDistanceMeters = position,
-                headingDegrees = RoadbookAnalyzer.outgoingHeading(position, points, cumulative, settings.windowAfterMeters),
+                // Rond-point : cap APRÈS la sortie de l'anneau, pas celui de l'entrée.
+                headingDegrees = RoadbookAnalyzer.outgoingHeading(checkpoint.roundabout?.exitCumulativeMeters ?: position, points, cumulative, settings.windowAfterMeters),
             )
         }
     }

@@ -175,7 +175,9 @@ final class RoadbookExtractorTests: XCTestCase {
             mapMatchedManeuvers: [matched]
         )
 
-        XCTAssertTrue(maneuvers.contains { $0.checkpoint.tier == .roundabout && $0.checkpoint.roundaboutExitCount == 2 })
+        // It34 : le rond-point Valhalla reste un événement, mais SANS son numéro (« 2 » partout sur
+        // l'iPhone, faux une fois sur deux) — seule l'analyse OSM donne un numéro.
+        XCTAssertTrue(maneuvers.contains { $0.checkpoint.tier == .roundabout && $0.checkpoint.roundaboutExitCount == nil })
     }
 
     /// Non-régression explicite : omettre `mapMatchedManeuvers` (valeur par défaut `[]`) laisse

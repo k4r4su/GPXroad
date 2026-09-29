@@ -86,6 +86,11 @@ enum TutorialContent {
                     String(localized: "Si tu t'écartes de la trace, le Road Book te guide par la route jusqu'à elle : les virages du chemin, puis « Retour sur la trace », avec le badge « Hors trace ».", bundle: .appLanguage),
                     String(localized: "Le point de retour est toujours devant toi sur la trace, jamais en arrière ; si tu le dépasses, un nouveau est calculé au bout de 10 s.", bundle: .appLanguage),
                 ]),
+                .init(title: String(localized: "Ronds-points", bundle: .appLanguage), points: [
+                    String(localized: "Le rond-point est dessiné avec toutes ses routes, ton trajet en couleur : tu reconnais ta sortie sans avoir à compter.", bundle: .appLanguage),
+                    String(localized: "Le numéro de sortie compte les routes signalées, pas les accès de parking ni les chemins (dessinés en trait fin) ; il n'est affiché que s'il est sûr.", bundle: .appLanguage),
+                    String(localized: "La route de sortie est indiquée (→ D 419) ; deux ronds-points rapprochés sont annoncés ensemble (« puis 1re sortie »).", bundle: .appLanguage),
+                ]),
                 .init(title: String(localized: "Repères", bundle: .appLanguage), points: [
                     String(localized: "Seul ce qui se voit depuis la route est affiché : panneaux, ponts, églises, stations-service, entrées de village…", bundle: .appLanguage),
                     String(localized: "Les catégories se choisissent dans Réglages > Repères du Road Book.", bundle: .appLanguage),

@@ -18,7 +18,8 @@ enum RoadbookExtractor {
         veryHardThresholdDegrees: Double,
         mergeMinDistanceMeters: Double,
         mapMatchedManeuvers: [MapMatchedManeuver] = [],
-        mapMatchCoverage: [ClosedRange<Double>]? = nil
+        mapMatchCoverage: [ClosedRange<Double>]? = nil,
+        roundaboutData: RoadbookRoundaboutMapData? = nil
     ) -> [RoadbookManeuver] {
         SharedRoadbook.maneuvers(
             for: track,
@@ -29,7 +30,8 @@ enum RoadbookExtractor {
                 mergeMinDistanceMeters: mergeMinDistanceMeters
             ),
             mapMatchedManeuvers: mapMatchedManeuvers,
-            coverage: mapMatchCoverage
+            coverage: mapMatchCoverage,
+            roundaboutData: roundaboutData
         )
     }
 }

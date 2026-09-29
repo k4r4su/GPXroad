@@ -1,6 +1,7 @@
 import Foundation
 import CoreLocation
 import UIKit
+import Combine
 import GPXroadShared
 
 enum RideContext {
@@ -111,6 +112,18 @@ final class RideSessionManager: NSObject, ObservableObject, CLLocationManagerDel
     var mapMatchingProvider: MapMatchingProvider = ValhallaMapMatchingProvider()
     /// idem, `directoryOverride` dédié en test — jamais le vrai `Documents/RoadbookMapMatchCache`.
     var mapMatchCache = RoadbookMapMatchCache()
+    /// Ronds-points analysés sur OSM (it34) : RELUS depuis le cache que remplit l'onglet Road Book —
+    /// le Ride ne télécharge rien lui-même. Recalcul des événements dès qu'une donnée arrive.
+    var roundaboutStore: RoadbookRoundaboutStore = .shared {
+        didSet { observeRoundabouts() }
+    }
+    private var roundaboutObservation: AnyCancellable?
+
+    private func observeRoundabouts() {
+        roundaboutObservation = roundaboutStore.$revision.dropFirst().sink { [weak self] _ in
+            Task { @MainActor [weak self] in self?.rebuildCheckpoints() }
+        }
+    }
     /// Trace ET sens (`GPXTrack.traversalKey`) pour lesquels le map matching a déjà été déclenché
     /// (succès, échec ou en cours) — évite de relancer un appel réseau à CHAQUE `switchMode`/
     /// `start` (retour d'onglet), tout en relançant bien si le sens de parcours change (types de
@@ -345,6 +358,7 @@ final class RideSessionManager: NSObject, ObservableObject, CLLocationManagerDel
         // pilote que le tout premier instant avant mouvement.
         self.cameraDistanceMeters = settings.defaultRideZoomCameraMeters
         super.init()
+        observeRoundabouts()
         manager.delegate = self
         manager.desiredAccuracy = kCLLocationAccuracyBestForNavigation
         // Fix "speed-freeze-low-speed" (it19) : voir RideConstants.distanceAccumulationMinSpeedKmh
@@ -601,7 +615,8 @@ final class RideSessionManager: NSObject, ObservableObject, CLLocationManagerDel
             veryHardThresholdDegrees: settings.roadbookVeryHardThresholdDegrees,
             mergeMinDistanceMeters: settings.turnMergeMinDistanceMeters,
             mapMatchedManeuvers: mapMatchedDirectionChangePoints,
-            mapMatchCoverage: mapMatchCoverage
+            mapMatchCoverage: mapMatchCoverage,
+            roundaboutData: roundaboutStore.data(for: track.id)
         )
         checkpoints = events
         inflectionPoints = events

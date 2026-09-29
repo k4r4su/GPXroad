@@ -8,13 +8,22 @@ import GPXroadShared
 /// uniquement des points — testable sans instancier une vue.
 enum RoadbookPictogramGeometry {}
 
-/// Rond-point dessiné (it33, retour terrain : « il faudrait dessiner le rond-point pour indiquer
-/// clairement la sortie, l'image générique n'est pas du tout claire ») : anneau, entrée en bas,
-/// trajet parcouru dans le sens de circulation (par la droite) jusqu'à la sortie RÉELLEMENT prise —
-/// placée selon le virage net de la trace, pas une convention par rang —, sorties passées en
-/// discret, numéro de la sortie au centre. Angles : module partagé (`RoundaboutPictogram`).
+/// Rond-point dessiné (it33 ; branches réelles depuis it34) : anneau, entrée en bas, trajet
+/// parcouru dans le sens de circulation jusqu'à la sortie RÉELLEMENT prise, et — quand le rond-point
+/// a été analysé sur OSM (`Checkpoint.roundabout`) — TOUTES ses branches sur 8 positions, façon
+/// roadbook de rallye : on reconnaît la sortie sur le terrain sans avoir à compter. Sans analyse
+/// OSM : entrée et sortie seules, sans numéro (jamais celui de Valhalla).
 struct RoadbookRoundaboutDrawing {
     typealias Segment = (from: CGPoint, to: CGPoint)
+
+    /// Branche non empruntée : sortie comptée, petite voie (service, chemin, privé) ou sens unique
+    /// entrant (barré au bout, comme un sens interdit).
+    struct Branch {
+        let segment: Segment
+        let kind: RoadbookRoundabout.BranchKind
+        /// Petit trait perpendiculaire au bout (sens interdit), `nil` sinon.
+        let bar: Segment?
+    }
 
     let center: CGPoint
     let ringRadius: CGFloat
@@ -24,23 +33,12 @@ struct RoadbookRoundaboutDrawing {
     let path: [CGPoint]
     /// Sortie prise : de l'anneau vers l'extérieur (flèche au bout).
     let exit: Segment
-    /// Sorties passées avant la bonne (quand leur nombre est connu).
-    let skippedExits: [Segment]
+    let branches: [Branch]
     let exitNumber: Int?
     /// Angle (radians, repère écran) de la flèche de sortie.
     let exitAngleRadians: Double
 
     init(checkpoint: Checkpoint, in rect: CGRect) {
-        let signedTurn: Double
-        switch checkpoint.direction {
-        case .left: signedTurn = -checkpoint.turnAngleDegrees
-        case .right: signedTurn = checkpoint.turnAngleDegrees
-        case .straight, .uTurn: signedTurn = checkpoint.direction == .uTurn ? 180 : 0
-        }
-        let layout = GPXroadShared.RoundaboutPictogram.shared.layout(
-            signedTurnDegrees: signedTurn,
-            exitCount: checkpoint.roundaboutExitCount.map { KotlinInt(int: Int32($0)) }
-        )
         let side = min(rect.width, rect.height)
         let center = CGPoint(x: rect.midX, y: rect.midY)
         let ring = side * 0.25
@@ -53,12 +51,48 @@ struct RoadbookRoundaboutDrawing {
         ringRadius = ring
         let entryAngle = GPXroadShared.RoundaboutPictogram.shared.ENTRY_ANGLE_DEGREES
         entry = (point(entryAngle, outer), point(entryAngle, ring))
-        let steps = max(Int(layout.pathSweepDegrees / 6), 2)
-        path = (0...steps).map { point(entryAngle - layout.pathSweepDegrees * Double($0) / Double(steps), ring) }
-        exit = (point(layout.exitAngleDegrees, ring), point(layout.exitAngleDegrees, outer))
-        skippedExits = layout.intermediateExitAngles.map { (point($0.doubleValue, ring), point($0.doubleValue, side * 0.42)) }
-        exitNumber = checkpoint.roundaboutExitCount
-        exitAngleRadians = layout.exitAngleDegrees * .pi / 180
+
+        let exitAngle: Double
+        let sweep: Double
+        let clockwise: Bool
+        if let roundabout = checkpoint.roundabout {
+            exitAngle = roundabout.exitAngleDegrees
+            clockwise = roundabout.clockwise
+            let travelled = clockwise ? exitAngle - entryAngle : entryAngle - exitAngle
+            let modulo = (travelled.truncatingRemainder(dividingBy: 360) + 360).truncatingRemainder(dividingBy: 360)
+            // Demi-tour : presque un tour complet, la flèche ressort juste à côté de l'entrée.
+            sweep = modulo < 1 ? 340 : modulo
+            branches = roundabout.branches
+                .filter { $0.kind != .entry && $0.kind != .takenExit }
+                .map { branch in
+                    let length = branch.kind == .countedExit ? outer : side * 0.36
+                    let end = point(branch.angleDegrees, length)
+                    var bar: Segment?
+                    if branch.kind == .noExit {
+                        bar = (point(branch.angleDegrees - 9, length * 0.92), point(branch.angleDegrees + 9, length * 0.92))
+                    }
+                    return Branch(segment: (point(branch.angleDegrees, ring), end), kind: branch.kind, bar: bar)
+                }
+            exitNumber = roundabout.exitNumber
+        } else {
+            let signedTurn: Double
+            switch checkpoint.direction {
+            case .left: signedTurn = -checkpoint.turnAngleDegrees
+            case .right: signedTurn = checkpoint.turnAngleDegrees
+            case .straight, .uTurn: signedTurn = checkpoint.direction == .uTurn ? 180 : 0
+            }
+            let layout = GPXroadShared.RoundaboutPictogram.shared.layout(signedTurnDegrees: signedTurn, exitCount: nil)
+            exitAngle = layout.exitAngleDegrees
+            sweep = layout.pathSweepDegrees
+            clockwise = false
+            branches = []
+            exitNumber = nil
+        }
+        let steps = max(Int(sweep / 6), 2)
+        path = (0...steps).map { point(entryAngle + (clockwise ? 1 : -1) * sweep * Double($0) / Double(steps), ring) }
+        let drawnExit = entryAngle + (clockwise ? 1 : -1) * sweep
+        exit = (point(drawnExit, ring), point(drawnExit, outer))
+        exitAngleRadians = drawnExit * .pi / 180
     }
 
     /// Pointe de flèche PLEINE au bout de la sortie : sommet (au-delà du trait), puis les deux coins

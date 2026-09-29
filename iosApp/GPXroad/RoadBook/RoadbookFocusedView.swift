@@ -415,10 +415,18 @@ private struct RoadbookBigManeuverCard: View {
                     }
                     .layoutPriority(1)
                 }
-                Text(maneuver.checkpoint.tier.label)
+                Text(maneuver.checkpoint.instructionLabel)
                     .font(.system(.title, design: .rounded).bold())
-                    .lineLimit(1)
+                    .multilineTextAlignment(.center)
+                    .lineLimit(2)
                     .minimumScaleFactor(0.6)
+                if let detail = maneuver.checkpoint.roundaboutDetail {
+                    Text(detail)
+                        .font(.title3.bold())
+                        .multilineTextAlignment(.center)
+                        .lineLimit(2)
+                        .minimumScaleFactor(0.7)
+                }
                 if let landmark {
                     Text(landmark.displayLabel)
                         .font(.title3.bold())
@@ -482,10 +490,16 @@ private struct RoadbookBigManeuverCardLandscape: View {
             // (`.headline`, qui tenait déjà correctement) + `minimumScaleFactor` en filet de
             // sécurité plutôt qu'une troncature "..." si jamais l'espace redevient juste.
             VStack(alignment: .leading, spacing: 4) {
-                Text(maneuver.checkpoint.tier.label)
+                Text(maneuver.checkpoint.instructionLabel)
                     .font(.system(.title2, design: .rounded).bold())
                     .lineLimit(2)
                     .minimumScaleFactor(0.6)
+                if let detail = maneuver.checkpoint.roundaboutDetail {
+                    Text(detail)
+                        .font(.headline)
+                        .lineLimit(2)
+                        .minimumScaleFactor(0.7)
+                }
                 if let landmark {
                     Text(landmark.displayLabel)
                         .font(.headline)
@@ -552,11 +566,17 @@ private struct RoadbookUpcomingRow: View {
 
             VStack(alignment: .leading, spacing: 2) {
                 // Deux lignes plutôt qu'une troncature (« Virage prono… » à côté d'une distance longue).
-                Text(maneuver.checkpoint.tier.label)
+                Text(maneuver.checkpoint.instructionLabel)
                     .font(.body.weight(.semibold))
                     .lineLimit(2)
                     .minimumScaleFactor(0.85)
                     .fixedSize(horizontal: false, vertical: true)
+                if let detail = maneuver.checkpoint.roundaboutDetail {
+                    Text(detail)
+                        .font(.subheadline)
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.8)
+                }
                 if let landmark {
                     Text(landmark.displayLabel)
                         .font(.subheadline)

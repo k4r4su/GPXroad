@@ -635,7 +635,6 @@
 "Au-delà de 100 m pendant 2 s, la bannière « Rejoindre la trace » te guide par la route vers le point de la trace le plus proche devant toi, virage par virage." = "Beyond 100 m for 2 s, the “Rejoin the track” banner guides you by road to the nearest point of the track ahead of you, turn by turn.";
 
 /* It33 bis — rond-point dessiné (accessibilité) */
-"Rond-point, sortie %lld" = "Roundabout, exit %lld";
 
 /* It33 bis — serveur Overpass auto-hébergé */
 "Connecté" = "Connected";
@@ -659,3 +658,20 @@
 "Utiliser mon serveur Overpass" = "Use my Overpass server";
 "À la maison" = "At home";
 "À la maison (réseau local)" = "At home (local network)";
+
+/* Ronds-points analysés (it34) */
+"1re sortie" = "1st exit";
+"2e sortie" = "2nd exit";
+"3e sortie" = "3rd exit";
+"%llde sortie" = "%lldth exit";
+"tout droit" = "straight on";
+"légèrement à droite" = "bear right";
+"fortement à droite" = "sharp right";
+"légèrement à gauche" = "bear left";
+"fortement à gauche" = "sharp left";
+"demi-tour" = "U-turn";
+"puis %@" = "then %@";
+"Ronds-points" = "Roundabouts";
+"Le rond-point est dessiné avec toutes ses routes, ton trajet en couleur : tu reconnais ta sortie sans avoir à compter." = "The roundabout is drawn with all its roads and your path in colour: you recognise your exit without counting.";
+"Le numéro de sortie compte les routes signalées, pas les accès de parking ni les chemins (dessinés en trait fin) ; il n'est affiché que s'il est sûr." = "The exit number counts signposted roads, not car park entrances or tracks (drawn as thin lines); it is only shown when it is certain.";
+"La route de sortie est indiquée (→ D 419) ; deux ronds-points rapprochés sont annoncés ensemble (« puis 1re sortie »)." = "The exit road is shown (→ D 419); two close roundabouts are announced together (\"then 1st exit\").";

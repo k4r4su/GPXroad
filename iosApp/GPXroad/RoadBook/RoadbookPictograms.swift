@@ -49,9 +49,10 @@ struct RoadbookManeuverIcon: View {
     }
 }
 
-/// Rond-point dessiné (it33) : anneau discret, trajet en surbrillance de l'entrée (en bas) à la
-/// sortie réellement prise, flèche au bout, sorties passées en traits fins, numéro de sortie au
-/// centre — géométrie dans `RoadbookRoundaboutDrawing`, identique au PDF.
+/// Rond-point dessiné (it33, branches réelles it34) : anneau discret, trajet en surbrillance de
+/// l'entrée (en bas) à la sortie réellement prise, flèche au bout, autres branches (sorties comptées
+/// en trait normal, petites voies en trait fin, sens interdits barrés), numéro de sortie au centre
+/// — géométrie dans `RoadbookRoundaboutDrawing`, identique au PDF.
 struct RoadbookRoundaboutPictogram: View {
     let checkpoint: Checkpoint
 
@@ -67,8 +68,16 @@ struct RoadbookRoundaboutPictogram: View {
             ring.addArc(center: drawing.center, radius: drawing.ringRadius, startAngle: .degrees(0), endAngle: .degrees(360), clockwise: false)
             context.stroke(ring, with: .color(.secondary.opacity(0.6)), lineWidth: thin)
 
-            for skipped in drawing.skippedExits {
-                context.stroke(Path { $0.move(to: skipped.from); $0.addLine(to: skipped.to) }, with: .color(.secondary.opacity(0.7)), style: StrokeStyle(lineWidth: thin * 1.3, lineCap: .round))
+            for branch in drawing.branches {
+                let counted = branch.kind == .countedExit
+                context.stroke(
+                    Path { $0.move(to: branch.segment.from); $0.addLine(to: branch.segment.to) },
+                    with: .color(counted ? .primary.opacity(0.75) : .secondary.opacity(0.6)),
+                    style: StrokeStyle(lineWidth: counted ? thin * 1.8 : thin, lineCap: .round)
+                )
+                if let bar = branch.bar {
+                    context.stroke(Path { $0.move(to: bar.from); $0.addLine(to: bar.to) }, with: .color(.secondary.opacity(0.8)), style: StrokeStyle(lineWidth: thin, lineCap: .round))
+                }
             }
 
             var route = Path()
@@ -88,12 +97,7 @@ struct RoadbookRoundaboutPictogram: View {
                 )
             }
         }
-        .accessibilityLabel(RoadbookRoundaboutPictogram.accessibilityText(exitCount: checkpoint.roundaboutExitCount))
-    }
-
-    static func accessibilityText(exitCount: Int?) -> String {
-        guard let exitCount else { return String(localized: "Rond-point", bundle: .appLanguage) }
-        return String(localized: "Rond-point, sortie \(exitCount)", bundle: .appLanguage)
+        .accessibilityLabel(checkpoint.instructionLabel)
     }
 }
 

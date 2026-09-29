@@ -635,7 +635,6 @@
 "Au-delà de 100 m pendant 2 s, la bannière « Rejoindre la trace » te guide par la route vers le point de la trace le plus proche devant toi, virage par virage." = "A más de 100 m durante 2 s, el aviso «Volver a la ruta» te guía por carretera hasta el punto más cercano de la ruta por delante de ti, giro a giro.";
 
 /* It33 bis — rond-point dessiné (accessibilité) */
-"Rond-point, sortie %lld" = "Rotonda, salida %lld";
 
 /* It33 bis — serveur Overpass auto-hébergé */
 "Connecté" = "Conectado";
@@ -659,3 +658,20 @@
 "Utiliser mon serveur Overpass" = "Usar mi servidor Overpass";
 "À la maison" = "En casa";
 "À la maison (réseau local)" = "En casa (red local)";
+
+/* Ronds-points analysés (it34) */
+"1re sortie" = "1.ª salida";
+"2e sortie" = "2.ª salida";
+"3e sortie" = "3.ª salida";
+"%llde sortie" = "%lld.ª salida";
+"tout droit" = "recto";
+"légèrement à droite" = "ligeramente a la derecha";
+"fortement à droite" = "muy a la derecha";
+"légèrement à gauche" = "ligeramente a la izquierda";
+"fortement à gauche" = "muy a la izquierda";
+"demi-tour" = "cambio de sentido";
+"puis %@" = "luego %@";
+"Ronds-points" = "Rotondas";
+"Le rond-point est dessiné avec toutes ses routes, ton trajet en couleur : tu reconnais ta sortie sans avoir à compter." = "La rotonda se dibuja con todas sus carreteras y tu recorrido en color: reconoces tu salida sin contar.";
+"Le numéro de sortie compte les routes signalées, pas les accès de parking ni les chemins (dessinés en trait fin) ; il n'est affiché que s'il est sûr." = "El número de salida cuenta las carreteras señalizadas, no los accesos a aparcamientos ni los caminos (dibujados con trazo fino); solo se muestra si es seguro.";
+"La route de sortie est indiquée (→ D 419) ; deux ronds-points rapprochés sont annoncés ensemble (« puis 1re sortie »)." = "Se indica la carretera de salida (→ D 419); dos rotondas cercanas se anuncian juntas («luego 1.ª salida»).";

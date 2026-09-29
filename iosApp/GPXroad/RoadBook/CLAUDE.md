@@ -686,3 +686,25 @@ en roulant**. Jamais une limite de commune, un lieu-dit sans panneau, un commerc
 - **Overpass** : `OverpassConfiguration.attempts` — maison (réseau local, Wi-Fi) → adresse publique
   du propriétaire (Basic Auth) → instance publique OSM, à chaque essai ; un échec du réseau local
   l'écarte 5 min (`reportFailure`). Détails et règle sur les secrets : CLAUDE.md racine.
+
+## Itération 34 — ronds-points analysés sur OSM (v0.0.34)
+
+Retour terrain : « imaginer les ronds-points avec 8 branches, définir le numéro de la sortie,
+analyser la sortie par rapport à 10 m avant, compter les sorties… le but c'est que ça ne soit pas
+ambigu ». Méthode retenue avec le propriétaire après étude des GPS du marché (OSRM, OsmAnd, Mapbox) :
+quatre indications indépendantes — direction depuis la TRACE, dessin de toutes les branches façon
+roadbook de rallye, numéro seulement s'il est sûr, route de sortie (« → D 419 – Belfort »).
+- Données : `RoadbookRoundabouts.swift` — requête Overpass dédiée par tronçon (anneaux
+  `junction=roundabout|circular` croisés, routes reliées à leurs nœuds, mini-giratoires), cache par
+  `GPXTrack.id` (la géométrie, pas le sens), échec jamais mis en cache (nouvel essai après 60 s).
+- Analyse : `RoundaboutAnalyzer.kt` (voir CLAUDE.md racine pour les règles) ; appliquée dans
+  `RoadbookAnalyzer.buildRoadbookEvents(roundabouts:)`, donc Road Book, PDF ET Ride.
+- Affichage : `Checkpoint.roundabout` (Swift `RoadbookRoundabout`), `instructionLabel`
+  (« Rond-point · 3e sortie · à gauche ») et `roundaboutDetail` (« → D 419 · puis 1re sortie »)
+  partout où `tier.label` était affiché ; `RoadbookRoundaboutDrawing` : sorties comptées en trait
+  normal, petites voies en trait fin, sens interdits barrés, numéro au centre.
+- Validation : planche de contrôle des 28 ronds-points des traces de `.testdata/` (carte OSM tournée
+  dans le sens d'arrivée + pictogramme), relue avec le propriétaire. Pièges trouvés ainsi : position
+  d'une branche autour du centre ≠ direction de la route (routes tangentes), tronçon OSM de sortie
+  de quelques mètres (cap non fiable → cap de la trace pour la sortie prise), chaussée de sens
+  inverse de la route d'arrivée comptée comme branche, sortie repoussée par le placement.

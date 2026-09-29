@@ -342,7 +342,9 @@ final class RoadbookMapMatchingTests: XCTestCase {
 
     // MARK: - Palier/direction pilotés par le type Valhalla (spec "roadbook-route-aware-maneuvers", it24, point 2)
 
-    func testRoundaboutManeuverProducesRoundaboutTierWithItsExitCount() {
+    /// It34 : le numéro de sortie Valhalla n'est plus repris (faux une fois sur deux sur les traces
+    /// réelles) — rond-point sans numéro tant que l'analyse OSM ne l'a pas confirmé.
+    func testRoundaboutManeuverProducesRoundaboutTierWithoutValhallaExitCount() {
         let track = curvingTrack(segmentCount: 2, segmentLengthMeters: 100, segmentTurnDegrees: 20)
         let maneuver = MapMatchedManeuver(coordinate: track.points[1].coordinate, type: .roundaboutExit, roundaboutExitCount: 3)
 
@@ -360,7 +362,7 @@ final class RoadbookMapMatchingTests: XCTestCase {
 
         XCTAssertEqual(result.count, 1)
         XCTAssertEqual(result.first?.tier, .roundabout)
-        XCTAssertEqual(result.first?.roundaboutExitCount, 3)
+        XCTAssertNil(result.first?.roundaboutExitCount)
     }
 
     func testForkManeuverProducesForkTier() {

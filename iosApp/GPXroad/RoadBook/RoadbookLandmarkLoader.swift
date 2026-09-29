@@ -304,7 +304,7 @@ final class RoadbookLandmarkLoader: ObservableObject {
 
     /// Tronçons consécutifs d'environ `landmarkQueryChunkMeters` (le point de jonction appartient
     /// aux deux) — unité de la barre de progression.
-    static func chunks(of points: [GPXPoint], chunkMeters: Double = RoadBookConstants.landmarkQueryChunkMeters) -> [[GPXPoint]] {
+    nonisolated static func chunks(of points: [GPXPoint], chunkMeters: Double = RoadBookConstants.landmarkQueryChunkMeters) -> [[GPXPoint]] {
         let cumulative = TrackProjector.cumulativeDistances(for: points)
         guard points.count > 1, let total = cumulative.last, total > 0 else { return [] }
         var chunks: [[GPXPoint]] = []

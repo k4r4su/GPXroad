@@ -31,6 +31,8 @@ struct RoadBookTabView: View {
     /// trace, complément par catégorie, sélection pour le parcours affiché — best-effort, ne bloque
     /// JAMAIS l'affichage des manœuvres elles-mêmes. Voir `RoadbookLandmarkLoader`.
     @StateObject private var landmarkLoader = RoadbookLandmarkLoader()
+    /// Ronds-points analysés sur OSM (it34) : téléchargés ici, relus aussi par le Ride.
+    @ObservedObject private var roundaboutStore = RoadbookRoundaboutStore.shared
 
     private var landmarkSelection: RoadbookLandmarkSelection { landmarkLoader.selection }
 
@@ -82,7 +84,8 @@ struct RoadBookTabView: View {
             veryHardThresholdDegrees: settings.roadbookVeryHardThresholdDegrees,
             mergeMinDistanceMeters: settings.turnMergeMinDistanceMeters,
             mapMatchedManeuvers: mapMatchedManeuvers,
-            mapMatchCoverage: mapMatchCoverage
+            mapMatchCoverage: mapMatchCoverage,
+            roundaboutData: roundaboutStore.data(for: track.id)
         )
     }
 
@@ -266,6 +269,7 @@ struct RoadBookTabView: View {
                 return
             }
             triggerMapMatchingIfNeeded(for: track)
+            roundaboutStore.ensure(trackID: track.id, points: track.points)
             #if DEBUG
             RoadbookDebugDump.log(trackName: track.name, maneuvers: maneuvers, mapMatched: mapMatchedManeuvers)
             #endif
@@ -274,7 +278,10 @@ struct RoadBookTabView: View {
         .onChange(of: maneuvers) { _ in updateLandmarks() }
         .onChange(of: settings.roadbookLandmarkCategories) { _ in updateLandmarks() }
         .onChange(of: networkMonitor.isReachable) { isReachable in
-            if isReachable { landmarkLoader.retry() }
+            if isReachable {
+                landmarkLoader.retry()
+                if let track = selectedTrack { roundaboutStore.ensure(trackID: track.id, points: track.points) }
+            }
         }
     }
 
@@ -734,8 +741,15 @@ private struct RoadbookHeroRow: View {
                 .monospacedDigit()
                 .minimumScaleFactor(0.6)
                 .lineLimit(1)
-            Text(maneuver.checkpoint.tier.label)
+            Text(maneuver.checkpoint.instructionLabel)
                 .font(.title2.bold())
+                .multilineTextAlignment(.center)
+            if let detail = maneuver.checkpoint.roundaboutDetail {
+                Text(detail)
+                    .font(.headline)
+                    .lineLimit(2)
+                    .multilineTextAlignment(.center)
+            }
             HStack(spacing: 8) {
                 Text("Cap \(Int(maneuver.headingDegrees.rounded()))°")
                 Text("· Cumulé \(unit.displayString(fromMeters: maneuver.cumulativeDistanceMeters))")
@@ -775,10 +789,16 @@ private struct RoadbookHeroRow: View {
                 .lineLimit(1)
 
             VStack(alignment: .leading, spacing: 3) {
-                Text(maneuver.checkpoint.tier.label)
+                Text(maneuver.checkpoint.instructionLabel)
                     .font(.headline)
-                    .lineLimit(1)
+                    .lineLimit(2)
                     .minimumScaleFactor(0.7)
+                if let detail = maneuver.checkpoint.roundaboutDetail {
+                    Text(detail)
+                        .font(.caption.bold())
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.7)
+                }
                 Text("Cap \(Int(maneuver.headingDegrees.rounded()))° · Cumulé \(unit.displayString(fromMeters: maneuver.cumulativeDistanceMeters))")
                     .font(.caption.monospacedDigit())
                     .foregroundStyle(.secondary)
@@ -880,10 +900,16 @@ private struct RoadbookTableRow: View {
 
             VStack(alignment: .leading, spacing: 3) {
                 // It33 : instructions agrandies (« y a encore de la place pour optimiser la lecture »).
-                Text(maneuver.checkpoint.tier.label)
+                Text(maneuver.checkpoint.instructionLabel)
                     .font(.title3.bold())
                     .lineLimit(2)
                     .minimumScaleFactor(0.7)
+                if let detail = maneuver.checkpoint.roundaboutDetail {
+                    Text(detail)
+                        .font(.body.weight(.semibold))
+                        .lineLimit(2)
+                        .minimumScaleFactor(0.8)
+                }
                 if let landmark {
                     Text(landmark.displayLabel)
                         .font(.body)

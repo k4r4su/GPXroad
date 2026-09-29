@@ -255,7 +255,9 @@ atteinte, et le coût est faible. Kotlin Multiplatform reste l'approche retenue 
    `RoadbookEntry.merge`, catalogue de repères sans libellés, `ValhallaManeuverType`.
    Garde-fou : `RoadbookStableRegressionTests` exécuté contre le module partagé.
    Fait à it33 : Road Book IDENTIQUE avant/après sur 15 traces réelles × 2 sens. La distance est
-   désormais Vincenty sur iOS et Android (constat 1 tranché : une seule formule). Reste Swift :
+   désormais Vincenty sur iOS et Android (constat 1 tranché : une seule formule). It34 : analyse
+   des ronds-points (`RoundaboutAnalyzer`) et paliers du compte à rebours (`DistanceCountdown`)
+   écrits DIRECTEMENT en Kotlin ; décodage Overpass des ronds-points resté Swift (étape 4). Reste Swift :
    `TrackProjector`, chemin chaud du Ride, à porter avec l'étape 7.
 3. **Modèles et formats** : `GPXPoint`/`GPXTrack` (kotlinx.serialization, relecture de
    `index.json` réels), `GPXParser`/`GPXExporter`.

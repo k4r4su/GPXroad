@@ -88,7 +88,8 @@ enum SharedRoadbook {
             sequenceIndex: Int(shared.sequenceIndex),
             sourcePointIndex: Int(shared.sourcePointIndex),
             roundaboutExitCount: shared.roundaboutExitCount.map { Int($0.int32Value) },
-            trackCumulativeDistanceMeters: shared.trackCumulativeDistanceMeters?.doubleValue
+            trackCumulativeDistanceMeters: shared.trackCumulativeDistanceMeters?.doubleValue,
+            roundabout: shared.roundabout.map(roundabout)
         )
     }
 
@@ -101,8 +102,105 @@ enum SharedRoadbook {
             sequenceIndex: Int32(checkpoint.sequenceIndex),
             sourcePointIndex: Int32(checkpoint.sourcePointIndex),
             roundaboutExitCount: checkpoint.roundaboutExitCount.map { KotlinInt(int: Int32($0)) },
-            trackCumulativeDistanceMeters: checkpoint.trackCumulativeDistanceMeters.map { KotlinDouble(double: $0) }
+            trackCumulativeDistanceMeters: checkpoint.trackCumulativeDistanceMeters.map { KotlinDouble(double: $0) },
+            roundabout: checkpoint.roundabout.map(sharedRoundabout)
         )
+    }
+
+    // MARK: - Ronds-points (it34)
+
+    static func roundabout(_ shared: GPXroadShared.RoundaboutPassage) -> RoadbookRoundabout {
+        RoadbookRoundabout(
+            entryCumulativeMeters: shared.entryCumulativeMeters,
+            exitCumulativeMeters: shared.exitCumulativeMeters,
+            entryCoordinate: coordinate(shared.entryCoordinate),
+            exitAngleDegrees: shared.exitAngleDegrees,
+            exitNumber: shared.exitNumber.map { Int($0.int32Value) },
+            exitRoadName: shared.exitRoadName,
+            branches: shared.branches.map { RoadbookRoundabout.Branch(angleDegrees: $0.pictureAngleDegrees, kind: branchKind($0.kind)) },
+            clockwise: shared.clockwise,
+            thenExitNumber: shared.thenExitNumber.map { Int($0.int32Value) },
+            thenExitAngleDegrees: shared.thenExitAngleDegrees?.doubleValue
+        )
+    }
+
+    static func sharedRoundabout(_ roundabout: RoadbookRoundabout) -> GPXroadShared.RoundaboutPassage {
+        GPXroadShared.RoundaboutPassage(
+            entryCumulativeMeters: roundabout.entryCumulativeMeters,
+            exitCumulativeMeters: roundabout.exitCumulativeMeters,
+            entryCoordinate: latLon(roundabout.entryCoordinate),
+            exitAngleDegrees: roundabout.exitAngleDegrees,
+            exitNumber: roundabout.exitNumber.map { KotlinInt(int: Int32($0)) },
+            exitRoadName: roundabout.exitRoadName,
+            branches: roundabout.branches.map { GPXroadShared.RoundaboutBranch(pictureAngleDegrees: $0.angleDegrees, kind: sharedBranchKind($0.kind)) },
+            clockwise: roundabout.clockwise,
+            thenExitNumber: roundabout.thenExitNumber.map { KotlinInt(int: Int32($0)) },
+            thenExitAngleDegrees: roundabout.thenExitAngleDegrees.map { KotlinDouble(double: $0) }
+        )
+    }
+
+    private static func branchKind(_ kind: GPXroadShared.RoundaboutBranchKind) -> RoadbookRoundabout.BranchKind {
+        switch kind {
+        case .entry: return .entry
+        case .takenExit: return .takenExit
+        case .countedExit: return .countedExit
+        case .noExit: return .noExit
+        default: return .minor
+        }
+    }
+
+    private static func sharedBranchKind(_ kind: RoadbookRoundabout.BranchKind) -> GPXroadShared.RoundaboutBranchKind {
+        switch kind {
+        case .entry: return .entry
+        case .takenExit: return .takenExit
+        case .countedExit: return .countedExit
+        case .minor: return .minor
+        case .noExit: return .noExit
+        }
+    }
+
+    static func roundaboutMapData(_ data: RoadbookRoundaboutMapData) -> GPXroadShared.RoundaboutMapData {
+        GPXroadShared.RoundaboutMapData(
+            roads: data.roads.map { road in
+                GPXroadShared.OsmRoad(
+                    id: road.id,
+                    nodeIds: road.nodeIDs.map { KotlinLong(longLong: $0) },
+                    geometry: zip(road.latitudes, road.longitudes).map { GPXroadShared.LatLon(latitude: $0, longitude: $1) },
+                    highway: road.highway,
+                    junction: road.junction,
+                    oneway: road.oneway,
+                    access: road.access,
+                    motorVehicle: road.motorVehicle,
+                    name: road.name,
+                    ref: road.ref,
+                    destination: road.destination
+                )
+            },
+            miniRoundabouts: data.miniRoundabouts.map {
+                GPXroadShared.OsmMiniRoundabout(nodeId: $0.nodeID, coordinate: GPXroadShared.LatLon(latitude: $0.latitude, longitude: $0.longitude), clockwise: $0.clockwise)
+            }
+        )
+    }
+
+    private static var passagesMemo: [String: [GPXroadShared.RoundaboutPassage]] = [:]
+
+    /// Passages de la trace (dans son sens de parcours) dans les ronds-points — mémorisés par
+    /// parcours + données (l'analyse ré-échantillonne la trace autour de chaque anneau).
+    static func roundaboutPassages(for track: GPXTrack, data: RoadbookRoundaboutMapData?) -> [GPXroadShared.RoundaboutPassage] {
+        guard let data, !(data.roads.isEmpty && data.miniRoundabouts.isEmpty) else { return [] }
+        let key = "\(track.traversalKey)|\(track.points.count)|\(data.fingerprint)"
+        memoLock.lock()
+        if let cached = passagesMemo[key] {
+            memoLock.unlock()
+            return cached
+        }
+        memoLock.unlock()
+        let result = GPXroadShared.RoundaboutAnalyzer.shared.passages(points: latLons(track.points), data: roundaboutMapData(data))
+        memoLock.lock()
+        if passagesMemo.count >= memoLimit { passagesMemo.removeAll() }
+        passagesMemo[key] = result
+        memoLock.unlock()
+        return result
     }
 
     static func maneuver(_ shared: GPXroadShared.RoadbookManeuver) -> RoadbookManeuver {
@@ -174,9 +272,10 @@ enum SharedRoadbook {
         for track: GPXTrack,
         settings: GPXroadShared.RoadbookSettings,
         mapMatchedManeuvers: [MapMatchedManeuver],
-        coverage: [ClosedRange<Double>]? = nil
+        coverage: [ClosedRange<Double>]? = nil,
+        roundaboutData: RoadbookRoundaboutMapData? = nil
     ) -> [RoadbookManeuver] {
-        let key = memoKey(track: track, settings: settings, mapMatched: mapMatchedManeuvers) + "|cov:\(coverage.map { $0.map { "\($0.lowerBound)-\($0.upperBound)" }.joined(separator: ",") } ?? "nil")"
+        let key = memoKey(track: track, settings: settings, mapMatched: mapMatchedManeuvers) + "|cov:\(coverage.map { $0.map { "\($0.lowerBound)-\($0.upperBound)" }.joined(separator: ",") } ?? "nil")" + "|rb:\(roundaboutData?.fingerprint ?? "-")"
         memoLock.lock()
         if let cached = memo[key] {
             memoLock.unlock()
@@ -185,7 +284,7 @@ enum SharedRoadbook {
         memoLock.unlock()
 
         let result = GPXroadShared.RoadbookExtractor.shared
-            .maneuvers(points: latLons(track.points), settings: settings, mapMatchedManeuvers: mapMatchedManeuvers.map(mapMatched), coverage: sharedCoverage(coverage))
+            .maneuvers(points: latLons(track.points), settings: settings, mapMatchedManeuvers: mapMatchedManeuvers.map(mapMatched), coverage: sharedCoverage(coverage), roundabouts: roundaboutPassages(for: track, data: roundaboutData))
             .map(maneuver)
 
         memoLock.lock()

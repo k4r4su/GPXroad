@@ -21,6 +21,7 @@ GPXroad est une application iOS pour suivre une trace GPX en moto, à vélo ou �
 - Un onglet qui présente la trace comme un roadbook papier de rallye : liste des directions, ou mode « assisté GPS » avec le prochain virage en grand et la suite en dessous
 - Uniquement des repères visibles depuis la route : panneaux, ponts, églises, stations-service, entrées de village… choisis catégorie par catégorie dans les réglages
 - Le prochain élément affiché est toujours le plus proche, virage ou repère
+- Ronds-points dessinés avec toutes leurs routes, numéro de sortie et route de sortie (→ D 419)
 - Si tu t'écartes de la trace, le Road Book te guide par la route jusqu'à elle, virage par virage, vers le point le plus proche devant toi
 - Un tap sur une étape montre l'endroit sur la carte, qui y reste jusqu'à « Me recentrer »
 - Export PDF à imprimer

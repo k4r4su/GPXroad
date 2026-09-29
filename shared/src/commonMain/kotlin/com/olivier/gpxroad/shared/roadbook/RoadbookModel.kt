@@ -18,6 +18,8 @@ enum class TurnDirection { LEFT, RIGHT, STRAIGHT, U_TURN }
  * garde l'identité déterministe et l'affichage.
  *
  * @property sourcePointIndex index dans les points de la trace (cap de sortie, repli de distance).
+ * @property roundaboutExitCount rang de la sortie, UNIQUEMENT issu de l'analyse OSM ([RoundaboutAnalyzer]) —
+ *   celui de Valhalla (« 2 » pour les 51 ronds-points de l'iPhone, faux une fois sur deux) n'est plus lu.
  * @property trackCumulativeDistanceMeters position EXACTE le long de la trace (carrefour réel
  *   projeté pour une manœuvre Valhalla) ; `null` = repli sur la distance du point source.
  */
@@ -30,6 +32,8 @@ data class Checkpoint(
     val sourcePointIndex: Int,
     val roundaboutExitCount: Int? = null,
     val trackCumulativeDistanceMeters: Double? = null,
+    /** Rond-point analysé sur les données OSM (it34) : branches, numéro sûr, route de sortie. */
+    val roundabout: RoundaboutPassage? = null,
 ) {
     /** Seul point de lecture de la distance cumulée d'un événement. */
     fun cumulativeDistanceMeters(trackCumulativeDistances: DoubleArray): Double? =
