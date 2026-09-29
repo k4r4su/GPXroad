@@ -209,12 +209,13 @@ private fun GpsAssisted(track: LoadedTrack, maneuvers: List<RoadbookManeuver>, u
                 }
             }
         }
-        val upcoming: @Composable (Modifier) -> Unit = { modifier ->
-            val current = match?.cumulativeDistanceMeters
-            val start = progress?.index?.plus(1) ?: 0
-            UpcomingList(if (current == null || progress == null) emptyList() else maneuvers.drop(start).take(8), current ?: 0.0, unit, modifier)
-        }
-        if (landscape) {
+        // Sans avancement connu (jamais passé sur la trace), pas de « Ensuite » : le bandeau prend tout l'écran.
+        val current = match?.cumulativeDistanceMeters
+        val next = if (current == null || progress == null) emptyList() else maneuvers.drop(progress.index + 1).take(8)
+        val upcoming: @Composable (Modifier) -> Unit = { modifier -> UpcomingList(next, current ?: 0.0, unit, modifier) }
+        if (next.isEmpty()) {
+            hero(Modifier.fillMaxSize().padding(16.dp))
+        } else if (landscape) {
             Row(Modifier.fillMaxSize()) {
                 hero(Modifier.weight(1.3f).fillMaxSize().padding(16.dp))
                 upcoming(Modifier.weight(1f).fillMaxSize())

@@ -29,8 +29,10 @@ Plan validé le 29/09 (6 à 8 sessions pour la parité). Règle : toute logique 
 Livré en session 1 : lecteur GPX partagé (`shared/gpx`), `LiveTrackMatcher` partagé, import GPX,
 Bibliothèque, Road Book (liste + assisté GPS), Réglages (unité, sensibilité des virages), textes en
 5 langues, icône, tests unitaires Android (distances fixes et compte à rebours).
-- [ ] Tablette : importer vosges-tour et Wahlbach (`.testdata/`), vérifier la liste Road Book
-      (mêmes virages et distances que l'iPhone à 10 m près).
+- [x] Tablette Lenovo YT-J706X (29/09) : import de vosges-tour, liste Road Book, autorisation de
+      localisation, vrai GPS (« Hors trace, trace à 2,5 km »), aucun plantage.
+- [ ] Comparer la liste avec l'iPhone : Android n'a pas encore Valhalla/Overpass (session 3), donc
+      comparer avec l'iPhone Valhalla désactivé (détection géométrique seule, même code partagé).
 - [ ] Tablette : Road Book assisté GPS en conditions réelles (compte à rebours, hors trace).
 
 Sessions suivantes :
