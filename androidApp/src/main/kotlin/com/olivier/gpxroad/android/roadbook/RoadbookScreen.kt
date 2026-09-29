@@ -30,6 +30,7 @@ import androidx.compose.material3.SegmentedButtonDefaults
 import androidx.compose.material3.SingleChoiceSegmentedButtonRow
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.VerticalDivider
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
@@ -199,13 +200,16 @@ private fun GpsAssisted(track: LoadedTrack, maneuvers: List<RoadbookManeuver>, u
 
     BoxWithConstraints(Modifier.fillMaxSize()) {
         val landscape = maxWidth > maxHeight
+        // Deux colonnes (prochaine direction à gauche, suivantes à droite pour anticiper) dès que la
+        // largeur le permet : tablette dans les deux sens, téléphone en paysage.
+        val twoColumns = landscape || maxWidth >= 600.dp
         val hero: @Composable (Modifier) -> Unit = { modifier ->
             Box(modifier, contentAlignment = Alignment.Center) {
                 when {
                     match == null -> Text(stringResource(R.string.waiting_gps), style = MaterialTheme.typography.titleLarge, textAlign = TextAlign.Center)
                     match.isOffTrack -> OffTrackCard(match, unit)
                     progress == null -> Text(stringResource(R.string.finished), style = MaterialTheme.typography.titleLarge, textAlign = TextAlign.Center)
-                    else -> BigManeuverCard(maneuvers[progress.index], progress.distanceRemainingMeters, unit, landscape)
+                    else -> BigManeuverCard(maneuvers[progress.index], progress.distanceRemainingMeters, unit, twoColumns)
                 }
             }
         }
@@ -215,9 +219,10 @@ private fun GpsAssisted(track: LoadedTrack, maneuvers: List<RoadbookManeuver>, u
         val upcoming: @Composable (Modifier) -> Unit = { modifier -> UpcomingList(next, current ?: 0.0, unit, modifier) }
         if (next.isEmpty()) {
             hero(Modifier.fillMaxSize().padding(16.dp))
-        } else if (landscape) {
+        } else if (twoColumns) {
             Row(Modifier.fillMaxSize()) {
                 hero(Modifier.weight(1.3f).fillMaxSize().padding(16.dp))
+                VerticalDivider()
                 upcoming(Modifier.weight(1f).fillMaxSize())
             }
         } else {
