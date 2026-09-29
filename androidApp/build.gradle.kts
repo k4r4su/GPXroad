@@ -26,4 +26,6 @@ dependencies {
     implementation(libs.activity.compose)
     implementation(libs.compose.material.icons.core)
     testImplementation(kotlin("test-junit"))
+    // Implémentation réelle d'org.json pour les tests JVM (celle d'android.jar n'est qu'un bouchon).
+    testImplementation(libs.json)
 }

@@ -5,6 +5,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableDoubleStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import com.olivier.gpxroad.shared.roadbook.LandmarkCategory
 import com.olivier.gpxroad.shared.roadbook.RoadbookConstants
 import com.olivier.gpxroad.shared.roadbook.RoadbookSettings
 import com.olivier.gpxroad.shared.roadbook.TierThresholds
@@ -40,6 +41,18 @@ class AppSettings(context: Context) {
         private set
     var mergeDistance by mutableDoubleStateOf(preferences.getDouble("merge", RoadbookConstants.TURN_MERGE_MIN_DISTANCE_METERS_DEFAULT))
         private set
+
+    /** Catégories de repères affichées (Réglages > Repères du Road Book) ; défaut : toutes sauf « Autres ». */
+    var landmarkCategories by mutableStateOf(
+        preferences.getStringSet("landmarkCategories", null)?.mapNotNull { LandmarkCategory.fromKey(it) }?.toSet()
+            ?: LandmarkCategory.entries.filter { it.isEnabledByDefault }.toSet(),
+    )
+        private set
+
+    fun updateLandmarkCategory(category: LandmarkCategory, enabled: Boolean) {
+        landmarkCategories = if (enabled) landmarkCategories + category else landmarkCategories - category
+        preferences.edit().putStringSet("landmarkCategories", landmarkCategories.map { it.key }.toSet()).apply()
+    }
 
     val roadbookSettings: RoadbookSettings
         get() = RoadbookSettings(

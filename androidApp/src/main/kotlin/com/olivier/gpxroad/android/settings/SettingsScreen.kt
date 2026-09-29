@@ -24,11 +24,14 @@ import androidx.compose.ui.unit.dp
 import com.olivier.gpxroad.android.R
 import com.olivier.gpxroad.android.data.AppSettings
 import com.olivier.gpxroad.android.data.DistanceUnit
+import com.olivier.gpxroad.android.net.OverpassClient
+import com.olivier.gpxroad.android.net.RoutingClient
+import com.olivier.gpxroad.android.net.ServerSettings
 import kotlin.math.roundToInt
 
 /** Réglages (équivalent partiel de `SettingsView` iOS) : ceux dont le Road Book a besoin aujourd'hui. */
 @Composable
-fun SettingsScreen(settings: AppSettings) {
+fun SettingsScreen(settings: AppSettings, servers: ServerSettings, overpass: OverpassClient, routing: RoutingClient) {
     val context = LocalContext.current
     val version = runCatching { context.packageManager.getPackageInfo(context.packageName, 0).versionName }.getOrNull() ?: "?"
     Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
@@ -70,6 +73,18 @@ fun SettingsScreen(settings: AppSettings) {
             settings.updateWindows(settings.windowBefore, settings.windowAfter, it)
         }
         OutlinedButton(onClick = settings::resetRoadbook) { Text(stringResource(R.string.settings_reset)) }
+
+        HorizontalDivider()
+        Section(stringResource(R.string.settings_landmarks))
+        LandmarkCategoriesSection(settings)
+
+        HorizontalDivider()
+        Section(stringResource(R.string.settings_advanced) + " · " + stringResource(R.string.valhalla_title))
+        ValhallaSection(servers, routing)
+
+        HorizontalDivider()
+        Section(stringResource(R.string.settings_advanced) + " · " + stringResource(R.string.overpass_title))
+        OverpassSection(servers, overpass)
 
         HorizontalDivider()
         Section(stringResource(R.string.settings_about))

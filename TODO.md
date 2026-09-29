@@ -35,10 +35,23 @@ Bibliothèque, Road Book (liste + assisté GPS), Réglages (unité, sensibilité
       comparer avec l'iPhone Valhalla désactivé (détection géométrique seule, même code partagé).
 - [ ] Tablette : Road Book assisté GPS en conditions réelles (compte à rebours, hors trace).
 
+## Android — session 3 (avancée avant la carte) : Road Book identique à l'iPhone
+
+Demande du 29/09 : « la logique iOS et Android sont pareil ? l'iOS est actuellement très correct ».
+Livré : Valhalla (map matching `/trace_route`, vrais carrefours, couverture), ronds-points analysés sur
+OSM, repères visibles + entrées de village (catégories dans Réglages), chemin pour rejoindre la trace
+(Valhalla puis OSRM), réglages serveurs Valhalla/Overpass (identifiants chiffrés), progression GPS
+alignée sur l'iPhone (projection sans mémoire, liste « Ensuite » même hors trace).
+- [ ] Saisir les serveurs Valhalla/Overpass dans les Réglages de la tablette (le propriétaire).
+- [ ] Comparer ligne à ligne avec l'iPhone sur vosges-tour et Wahlbach : caches de l'iPhone copiés en
+      lecture seule (`devicectl … copy from`) contre ceux de la tablette (`adb shell run-as
+      com.olivier.gpxroad`) — mêmes données décodées ⇒ même Road Book (le reste est du code partagé).
+- Écart assumé : bandeau de téléchargement plus simple que l'iPhone (tronçons, Ko reçus, nouvel
+  essai ; pas de débit ni de temps restant).
+
 Sessions suivantes :
 - [ ] 2 — Ride : carte MapLibre Android, trace, position, caméra qui suit, virages, bandeau, hors trace.
-- [ ] 3 — Réseau : repères Overpass, ronds-points OSM, Valhalla (recalage, retour sur la trace),
-      réglages serveurs avec identifiants chiffrés.
+- [x] 3 — Réseau (faite avant la 2, voir ci-dessus).
 - [ ] 4 — Enregistrement en arrière-plan, export/partage GPX, sorties non enregistrées, dossiers.
 - [ ] 5 — Aller à : recherche, guidage Valhalla, Domicile/Travail, signalements.
 - [ ] 6 — Cartes hors ligne, thèmes, PDF, tutoriel, finitions.

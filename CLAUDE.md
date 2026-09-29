@@ -322,7 +322,7 @@ suppression de fichier Swift, lancer `xcodegen generate`** avant de builder — 
 ```
 iosApp/      projet Xcode (déplacé tel quel à it32, aucun fichier de logique modifié)
 shared/      module KMP : commonMain / iosMain / androidMain / commonTest ; MIGRATION_AUDIT.md
-androidApp/  app Jetpack Compose (écran de test unique à it32)
+androidApp/  app Jetpack Compose (migration Android en cours depuis le 29/09, voir « App Android » plus bas)
 gradle/, settings.gradle.kts, build.gradle.kts, gradlew   build Gradle (racine)
 ```
 
@@ -340,6 +340,23 @@ gradle/, settings.gradle.kts, build.gradle.kts, gradlew   build Gradle (racine)
 - **Commandes** (depuis la racine) : `./gradlew :shared:iosSimulatorArm64Test
   :shared:testAndroidHostTest` (tests Kotlin sur les deux plateformes),
   `./gradlew :androidApp:assembleDebug` (APK).
+- **App Android (migration, depuis le 29/09)** — plan de 6 à 8 sessions dans `TODO.md`. Règle : toute
+  logique PURE nouvelle va dans `shared/` ; l'app iPhone garde son code tant que la version partagée
+  n'est pas vérifiée identique. Le Road Book Android reproduit l'iPhone À L'IDENTIQUE : mêmes entrées
+  pour le code partagé (`RoadbookExtractor.maneuvers` avec manœuvres Valhalla + couverture + passages
+  de ronds-points, `LandmarkSelector.select`, `RoadbookEntry.merge`, `RoadbookLiveProgress`), même
+  projection GPS SANS mémoire (`TrackGeometry.project`, comme `TrackProjector.project` iOS — ne pas
+  réintroduire de « matcher » à état), mêmes requêtes Overpass et mêmes règles de décodage
+  (`androidApp/.../roadbook/data/RoadbookOverpass.kt`, portage ligne à ligne), mêmes caches (map matching
+  par `traversalKey`, ronds-points et repères par trace), même reprise hors trace
+  (`RoadbookLive.kt` = `RoadbookOffTrackState` + `RoadbookRejoinController`). Décodage JSON natif
+  (`org.json`, aucune dépendance ajoutée à `shared/`). Réseau : `androidApp/.../net/` — identifiants
+  chiffrés par une clé Android Keystore (`SecureStore`), HTTPS obligatoire sauf l'adresse Overpass
+  de la maison (seule autorisée en clair, Wi-Fi seulement, `network_security_config.xml`).
+  Vérification : émulateur `gpxroad_test` (GPS simulé par `adb emu geo fix <lon> <lat>`, format
+  tablette par `wm size 1200x2000` + `wm density 240`, à remettre à zéro ensuite) et tablette réelle
+  Lenovo YT-J706X en débogage Wi-Fi (le port change à chaque réactivation ; le serveur adb doit
+  tourner HORS du bac à sable, sinon « No route to host » : le propriétaire lance `adb connect`).
 - **Consommation iOS** : `GPXroadShared.xcframework` (framework STATIQUE, rien à embarquer),
   construit par la cible agrégée `SharedKotlin` (dépendance de l'app ET des tests) via
   `iosApp/scripts/build_shared.sh`, qui ne lance Gradle QUE si `shared/src`, `shared/build.gradle.kts`

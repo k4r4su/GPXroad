@@ -30,6 +30,11 @@ import com.olivier.gpxroad.android.data.AppSettings
 import com.olivier.gpxroad.android.data.TrackLibrary
 import com.olivier.gpxroad.android.library.LibraryScreen
 import com.olivier.gpxroad.android.location.LocationTracker
+import com.olivier.gpxroad.android.net.OverpassClient
+import com.olivier.gpxroad.android.net.RoutingClient
+import com.olivier.gpxroad.android.net.ServerSettings
+import com.olivier.gpxroad.android.roadbook.data.RejoinController
+import com.olivier.gpxroad.android.roadbook.data.RoadbookData
 import com.olivier.gpxroad.android.roadbook.RoadbookScreen
 import com.olivier.gpxroad.android.settings.SettingsScreen
 import com.olivier.gpxroad.android.ui.GPXroadTheme
@@ -53,9 +58,13 @@ class MainActivity : ComponentActivity() {
         val library = TrackLibrary(applicationContext)
         val settings = AppSettings(applicationContext)
         val location = LocationTracker(applicationContext)
+        val servers = ServerSettings(applicationContext)
+        val overpass = OverpassClient(applicationContext, servers)
+        val routing = RoutingClient()
+        val services = AppServices(library, settings, location, servers, overpass, routing, RoadbookData(applicationContext, servers, overpass, routing), RejoinController(routing))
         setContent {
             GPXroadTheme {
-                GPXroadApp(library, settings, location, incomingGpx) { incomingGpx = null }
+                GPXroadApp(services, incomingGpx) { incomingGpx = null }
             }
         }
     }
@@ -72,8 +81,22 @@ class MainActivity : ComponentActivity() {
     }
 }
 
+/** Services de l'app, créés une fois par activité. */
+private class AppServices(
+    val library: TrackLibrary,
+    val settings: AppSettings,
+    val location: LocationTracker,
+    val servers: ServerSettings,
+    val overpass: OverpassClient,
+    val routing: RoutingClient,
+    val roadbook: RoadbookData,
+    val rejoin: RejoinController,
+)
+
 @Composable
-private fun GPXroadApp(library: TrackLibrary, settings: AppSettings, location: LocationTracker, incomingGpx: Uri?, onImportHandled: () -> Unit) {
+private fun GPXroadApp(services: AppServices, incomingGpx: Uri?, onImportHandled: () -> Unit) {
+    val library = services.library
+    val settings = services.settings
     var tab by rememberSaveable { mutableStateOf(if (library.activeTrackId == null) AppTab.LIBRARY else AppTab.ROADBOOK) }
     if (incomingGpx != null) tab = AppTab.LIBRARY
     val items = remember {
@@ -99,9 +122,9 @@ private fun GPXroadApp(library: TrackLibrary, settings: AppSettings, location: L
     ) { padding ->
         Box(Modifier.fillMaxSize().padding(padding)) {
             when (tab) {
-                AppTab.ROADBOOK -> RoadbookScreen(library, settings, location) { tab = AppTab.LIBRARY }
+                AppTab.ROADBOOK -> RoadbookScreen(library, settings, services.servers, services.roadbook, services.rejoin, services.location) { tab = AppTab.LIBRARY }
                 AppTab.LIBRARY -> LibraryScreen(library, settings, incomingGpx, onImportHandled)
-                AppTab.SETTINGS -> SettingsScreen(settings)
+                AppTab.SETTINGS -> SettingsScreen(settings, services.servers, services.overpass, services.routing)
             }
         }
     }

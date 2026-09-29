@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  HTTP en clair autorisé pour le seul serveur Overpass de la maison (adresse locale saisie dans les
+  Réglages, inconnue à la compilation — équivalent de `NSAllowsLocalNetworking` iOS). Le code
+  n'envoie en HTTP que cette adresse, sans identifiants et en Wi-Fi seulement ; Valhalla et
+  l'adresse publique Overpass exigent HTTPS (`RoutingClient`, `OverpassClient`).
+-->
+<network-security-config>
+    <base-config cleartextTrafficPermitted="true" />
+</network-security-config>
