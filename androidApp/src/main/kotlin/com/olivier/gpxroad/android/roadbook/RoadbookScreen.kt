@@ -48,6 +48,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.sp
 import com.olivier.gpxroad.android.R
 import com.olivier.gpxroad.android.data.AppSettings
@@ -209,7 +210,7 @@ private fun GpsAssisted(track: LoadedTrack, maneuvers: List<RoadbookManeuver>, u
                     match == null -> Text(stringResource(R.string.waiting_gps), style = MaterialTheme.typography.titleLarge, textAlign = TextAlign.Center)
                     match.isOffTrack -> OffTrackCard(match, unit)
                     progress == null -> Text(stringResource(R.string.finished), style = MaterialTheme.typography.titleLarge, textAlign = TextAlign.Center)
-                    else -> BigManeuverCard(maneuvers[progress.index], progress.distanceRemainingMeters, unit, twoColumns)
+                    else -> BigManeuverCard(maneuvers[progress.index], progress.distanceRemainingMeters, unit)
                 }
             }
         }
@@ -221,7 +222,7 @@ private fun GpsAssisted(track: LoadedTrack, maneuvers: List<RoadbookManeuver>, u
             hero(Modifier.fillMaxSize().padding(16.dp))
         } else if (twoColumns) {
             Row(Modifier.fillMaxSize()) {
-                hero(Modifier.weight(1.3f).fillMaxSize().padding(16.dp))
+                hero(Modifier.weight(1.3f).fillMaxSize().padding(12.dp))
                 VerticalDivider()
                 upcoming(Modifier.weight(1f).fillMaxSize())
             }
@@ -236,24 +237,57 @@ private fun GpsAssisted(track: LoadedTrack, maneuvers: List<RoadbookManeuver>, u
 }
 
 @Composable
-private fun BigManeuverCard(maneuver: RoadbookManeuver, remainingMeters: Double, unit: DistanceUnit, landscape: Boolean) {
+private fun BigManeuverCard(maneuver: RoadbookManeuver, remainingMeters: Double, unit: DistanceUnit) {
     val resources = LocalContext.current.resources
-    Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(10.dp)) {
-        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(24.dp)) {
-            ManeuverPictogram(maneuver.checkpoint, Accent, MaterialTheme.colorScheme.onSurface, Modifier.size(if (landscape) 170.dp else 200.dp))
-            // Le chiffre rétrécit plutôt que de passer à la ligne sur un écran de téléphone étroit.
-            Column(Modifier.weight(1f, fill = false)) {
+    val instruction = RoadbookTexts.instruction(resources, maneuver.checkpoint)
+    val roundabout = RoadbookTexts.roundaboutDetail(resources, maneuver.checkpoint)
+    val distance = RoadbookTexts.countdown(remainingMeters, unit)
+    val heading = stringResource(R.string.heading, maneuver.headingDegrees.roundToInt())
+    // Tailles proportionnelles à la place disponible : on doit lire la prochaine direction d'un coup d'œil.
+    // Les textes rétrécissent (autoSize) plutôt que de passer à la ligne ou de déborder.
+    BoxWithConstraints(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+        val tall = maxHeight >= maxWidth
+        if (tall) {
+            val pictogram = minOf(maxWidth * 0.85f, maxHeight * 0.42f)
+            Column(Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                ManeuverPictogram(maneuver.checkpoint, Accent, MaterialTheme.colorScheme.onSurface, Modifier.size(pictogram))
                 Text(
-                    RoadbookTexts.countdown(remainingMeters, unit), fontWeight = FontWeight.Black, maxLines = 1, softWrap = false,
-                    autoSize = TextAutoSize.StepBased(minFontSize = 36.sp, maxFontSize = if (landscape) 80.sp else 92.sp),
+                    distance, fontWeight = FontWeight.Black, maxLines = 1, softWrap = false, textAlign = TextAlign.Center, modifier = Modifier.fillMaxWidth(),
+                    autoSize = TextAutoSize.StepBased(minFontSize = 36.sp, maxFontSize = 150.sp),
                 )
-                Text(stringResource(R.string.heading, maneuver.headingDegrees.roundToInt()), style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Text(heading, style = MaterialTheme.typography.titleLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                ManeuverInstruction(instruction, roundabout, maxFontSize = 52.sp)
+            }
+        } else {
+            val pictogram = minOf(maxHeight * 0.62f, maxWidth * 0.42f)
+            Column(Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(16.dp, Alignment.CenterHorizontally)) {
+                    ManeuverPictogram(maneuver.checkpoint, Accent, MaterialTheme.colorScheme.onSurface, Modifier.size(pictogram))
+                    Column(Modifier.weight(1f, fill = false)) {
+                        Text(
+                            distance, fontWeight = FontWeight.Black, maxLines = 1, softWrap = false,
+                            autoSize = TextAutoSize.StepBased(minFontSize = 36.sp, maxFontSize = 130.sp),
+                        )
+                        Text(heading, style = MaterialTheme.typography.titleLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    }
+                }
+                ManeuverInstruction(instruction, roundabout, maxFontSize = 44.sp)
             }
         }
-        Text(RoadbookTexts.instruction(resources, maneuver.checkpoint), fontSize = 32.sp, fontWeight = FontWeight.Bold, textAlign = TextAlign.Center, lineHeight = 38.sp)
-        RoadbookTexts.roundaboutDetail(resources, maneuver.checkpoint)?.let {
-            Text(it, fontSize = 22.sp, fontWeight = FontWeight.SemiBold, textAlign = TextAlign.Center)
-        }
+    }
+}
+
+@Composable
+private fun ManeuverInstruction(instruction: String, roundabout: String?, maxFontSize: TextUnit) {
+    Text(
+        instruction, fontWeight = FontWeight.Bold, textAlign = TextAlign.Center, maxLines = 2, modifier = Modifier.fillMaxWidth(),
+        autoSize = TextAutoSize.StepBased(minFontSize = 24.sp, maxFontSize = maxFontSize),
+    )
+    roundabout?.let {
+        Text(
+            it, fontWeight = FontWeight.SemiBold, textAlign = TextAlign.Center, maxLines = 2, modifier = Modifier.fillMaxWidth(),
+            autoSize = TextAutoSize.StepBased(minFontSize = 18.sp, maxFontSize = maxFontSize * 0.7f),
+        )
     }
 }
 
