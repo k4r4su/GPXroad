@@ -70,8 +70,8 @@ data class RoundaboutPassage(
     /** Sens de la sortie pour le Road Book (tout droit à ±22,5°, demi-tour à 180°). */
     val direction: TurnDirection
         get() = when {
-            abs(exitAngleDegrees) < 22.5 -> TurnDirection.STRAIGHT
-            abs(exitAngleDegrees) > 157.5 -> TurnDirection.U_TURN
+            exitAngleDegrees == 0.0 -> TurnDirection.STRAIGHT
+            abs(exitAngleDegrees) == 180.0 -> TurnDirection.U_TURN
             exitAngleDegrees > 0 -> TurnDirection.RIGHT
             else -> TurnDirection.LEFT
         }
@@ -121,6 +121,18 @@ object RoundaboutAnalyzer {
     const val MAX_EXIT_NUMBER = 12
     /** Mini-giratoire : trace à moins de ça du nœud. */
     const val MINI_MATCH_METERS = 15.0
+    /**
+     * Vocabulaire de la direction (règles du propriétaire, it34, planche « douteux ») : on prolonge
+     * la route d'arrivée en ligne droite — « tout droit » jusqu'à 20° d'écart, « légèrement » au-delà,
+     * « à gauche/droite » seulement près de l'angle droit (90° ± 15°), « fortement » au-delà de 105°.
+     * « Demi-tour » UNIQUEMENT si l'on repart par la route d'où l'on vient, jamais selon l'angle.
+     */
+    const val STRAIGHT_MAX_DEGREES = 20.0
+    const val SQUARE_MIN_DEGREES = 75.0
+    const val SQUARE_MAX_DEGREES = 105.0
+    /** Même route à l'aller et au retour : la trace repasse à moins de ça, 25 m hors de l'anneau. */
+    const val SAME_ROAD_RETURN_METERS = 20.0
+
     /** Événements du Road Book supprimés autour d'un rond-point (courbes de l'approche, anneau). */
     const val EVENT_SUPPRESSION_MARGIN_METERS = 40.0
 
@@ -355,6 +367,7 @@ object RoundaboutAnalyzer {
         if (samples == 0 || onRing * 2 < samples) return null
 
         val trackTurn = trackTurn(entry, exit, points, cumulative) ?: return null
+        val returnsOnItself = geodesicDistanceMeters(at(entry - 25), at(exit + 25)) < SAME_ROAD_RETURN_METERS
         val entryCoordinate = at(entry)
         val entryPosition = RoadbookAnalyzer.bearing(ring.center, at(entry - HEADING_NEAR_METERS))
         val exitPosition = RoadbookAnalyzer.bearing(ring.center, at(exit + HEADING_NEAR_METERS))
@@ -363,7 +376,7 @@ object RoundaboutAnalyzer {
         val entryBranch = branches.filter { it.canEnter }.minByOrNull { angleBetween(it.bearingFromCenter, entryPosition) }
         val exitBranch = branches.filter { it.canExit }.minByOrNull { angleBetween(it.bearingFromCenter, exitPosition) }
 
-        val trackOnly = trackOnlyPassage(entry, exit, entryCoordinate, trackTurn, ring.clockwise)
+        val trackOnly = trackOnlyPassage(entry, exit, entryCoordinate, sectorAngle(trackTurn, returnsOnItself), ring.clockwise)
         if (!ring.closed || entryBranch == null || exitBranch == null) return trackOnly
         if (angleBetween(entryBranch.bearingFromCenter, entryPosition) > BRANCH_MATCH_MAX_DEGREES ||
             angleBetween(exitBranch.bearingFromCenter, exitPosition) > BRANCH_MATCH_MAX_DEGREES
@@ -399,7 +412,8 @@ object RoundaboutAnalyzer {
             val step = ((order.indexOf(b.nodeId) - entryIndex) % order.size + order.size) % order.size
             (if (step == 0) order.size else step).toDouble()
         }
-        val drawn = drawnBranches(branches, entryBranch, exitBranch, ring.clockwise, encounter, trackTurn)
+        val sameRoad = returnsOnItself || (exitBranch.identity != null && exitBranch.identity == entryBranch.identity && abs(trackTurn) > 135)
+        val drawn = drawnBranches(branches, entryBranch, exitBranch, ring.clockwise, encounter, sectorAngle(trackTurn, sameRoad))
         val exitAngle = drawn.first { it.kind == RoundaboutBranchKind.TAKEN_EXIT }.pictureAngleDegrees
         return RoundaboutPassage(
             entryCumulativeMeters = entry,
@@ -426,8 +440,9 @@ object RoundaboutAnalyzer {
         if (closestCumulative < HEADING_FAR_METERS || total - closestCumulative < HEADING_FAR_METERS) return null
         fun at(c: Double) = TrackGeometry.interpolatedCoordinate(c.coerceIn(0.0, total), points, cumulative)!!
         val trackTurn = trackTurn(closestCumulative, closestCumulative, points, cumulative) ?: return null
+        val returnsOnItself = geodesicDistanceMeters(at(closestCumulative - 25), at(closestCumulative + 25)) < SAME_ROAD_RETURN_METERS
         val entryCoordinate = at(closestCumulative)
-        val trackOnly = trackOnlyPassage(closestCumulative, closestCumulative, entryCoordinate, trackTurn, mini.clockwise)
+        val trackOnly = trackOnlyPassage(closestCumulative, closestCumulative, entryCoordinate, sectorAngle(trackTurn, returnsOnItself), mini.clockwise)
         val branches = branchesAt(setOf(mini.nodeId), mini.coordinate, roads)
         val entryPosition = RoadbookAnalyzer.bearing(mini.coordinate, at(closestCumulative - HEADING_FAR_METERS))
         val exitPosition = RoadbookAnalyzer.bearing(mini.coordinate, at(closestCumulative + HEADING_FAR_METERS))
@@ -445,7 +460,7 @@ object RoundaboutAnalyzer {
         val number = 1 + branches.count { b ->
             b !== exitBranch && b.canExit && b.isSignificant && encounter(b).let { it > 0 && it < exitTravel }
         }
-        val drawn = drawnBranches(branches, entryBranch, exitBranch, mini.clockwise, encounter, trackTurn)
+        val drawn = drawnBranches(branches, entryBranch, exitBranch, mini.clockwise, encounter, sectorAngle(trackTurn, returnsOnItself))
         return RoundaboutPassage(
             entryCumulativeMeters = closestCumulative,
             exitCumulativeMeters = closestCumulative,
@@ -465,9 +480,10 @@ object RoundaboutAnalyzer {
      * la trace (sa vraie direction, qui est aussi celle annoncée) ; les autres branches se rangent
      * AVANT ou APRÈS elle selon leur ordre de rencontre sur l'anneau, au plus près de leur cap — deux
      * sorties ne peuvent jamais s'inverser, et le texte ne ment jamais (retour planche it34, V22 :
-     * une chaussée en trop avait poussé une sortie à gauche en « tout droit »).
+     * une chaussée en trop avait poussé une sortie à gauche en « tout droit »). [exitAngle] : direction
+     * ANNONCÉE ([sectorAngle] du virage réel de la trace).
      */
-    private fun drawnBranches(all: List<Branch>, entry: Branch, exit: Branch, clockwise: Boolean, encounter: (Branch) -> Double, trackTurn: Double): List<RoundaboutBranch> {
+    private fun drawnBranches(all: List<Branch>, entry: Branch, exit: Branch, clockwise: Boolean, encounter: (Branch) -> Double, exitAngle: Double): List<RoundaboutBranch> {
         /** [travel] : position visée (degrés parcourus depuis l'entrée, d'après le CAP de la branche). */
         class Item(val order: Double, val travel: Double, val kind: RoundaboutBranchKind, val identity: String?)
         fun kindOf(b: Branch): RoundaboutBranchKind = when {
@@ -477,7 +493,7 @@ object RoundaboutAnalyzer {
             else -> RoundaboutBranchKind.NO_EXIT
         }
         val rank = listOf(RoundaboutBranchKind.TAKEN_EXIT, RoundaboutBranchKind.ENTRY, RoundaboutBranchKind.COUNTED_EXIT, RoundaboutBranchKind.NO_EXIT, RoundaboutBranchKind.MINOR)
-        val exitTravel = travel(snap(trackTurn), clockwise)
+        val exitTravel = travel(exitAngle, clockwise)
         var items = all.filter { it !== entry && it !== exit }.map { b ->
             Item(encounter(b), travel(headingPicture(b, entry), clockwise), kindOf(b), b.identity)
         }.sortedWith(compareBy<Item>({ it.order }, { it.travel }))
@@ -500,7 +516,8 @@ object RoundaboutAnalyzer {
         // Sortie prise : position 1…7 (8 = demi-tour, juste avant l'entrée).
         val exitSlot = (exitTravel / 45).roundToInt().coerceIn(1, 8)
         fun fit(list: MutableList<Item>, capacity: Int) {
-            while (list.size > capacity) {
+            // Demi-tour : la sortie occupe la dernière position, plus rien ne se dessine « après ».
+            while (list.size > capacity.coerceAtLeast(0)) {
                 val removable = list.withIndex().filter { it.value.kind == RoundaboutBranchKind.MINOR || it.value.kind == RoundaboutBranchKind.NO_EXIT }
                     .maxByOrNull { abs(it.value.travel - exitTravel) } ?: list.withIndex().maxBy { abs(it.value.travel - exitTravel) }
                 list.removeAt(removable.index)
@@ -554,14 +571,14 @@ object RoundaboutAnalyzer {
     // MARK: outils
 
     /** Passage où seule la trace est fiable : entrée et sortie, direction de la trace, sans numéro. */
-    private fun trackOnlyPassage(entry: Double, exit: Double, entryCoordinate: LatLon, trackTurn: Double, clockwise: Boolean) = RoundaboutPassage(
+    private fun trackOnlyPassage(entry: Double, exit: Double, entryCoordinate: LatLon, exitAngle: Double, clockwise: Boolean) = RoundaboutPassage(
         entryCumulativeMeters = entry,
         exitCumulativeMeters = exit,
         entryCoordinate = entryCoordinate,
-        exitAngleDegrees = snap(trackTurn),
+        exitAngleDegrees = exitAngle,
         exitNumber = null,
         exitRoadName = null,
-        branches = listOf(RoundaboutBranch(180.0, RoundaboutBranchKind.ENTRY), RoundaboutBranch(snap(trackTurn), RoundaboutBranchKind.TAKEN_EXIT)),
+        branches = listOf(RoundaboutBranch(180.0, RoundaboutBranchKind.ENTRY), RoundaboutBranch(exitAngle, RoundaboutBranchKind.TAKEN_EXIT)),
         clockwise = clockwise,
     )
 
@@ -587,8 +604,21 @@ object RoundaboutAnalyzer {
         return if (m == 0.0) 360.0 else m
     }
 
-    /** Sur les 8 positions ; demi-tour = 180. */
-    private fun snap(angle: Double): Double = normalize((angle / 45).roundToInt() * 45.0)
+    /**
+     * Direction annoncée (et position dessinée) de la sortie : 0 tout droit, ±45 légèrement, ±90 à
+     * gauche/droite, ±135 fortement, 180 demi-tour — seuils du propriétaire (voir [STRAIGHT_MAX_DEGREES]).
+     */
+    internal fun sectorAngle(turn: Double, sameRoad: Boolean): Double {
+        if (sameRoad) return 180.0
+        val a = abs(turn)
+        val magnitude = when {
+            a <= STRAIGHT_MAX_DEGREES -> 0.0
+            a < SQUARE_MIN_DEGREES -> 45.0
+            a <= SQUARE_MAX_DEGREES -> 90.0
+            else -> 135.0
+        }
+        return if (turn < 0 && magnitude > 0) -magnitude else magnitude
+    }
 
     /** ]-180, 180] */
     private fun normalize(angle: Double): Double {

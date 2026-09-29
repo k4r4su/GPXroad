@@ -28,8 +28,9 @@ Commits `roadbook-route-aware-only-where-matched`, `distance-countdown-steps`,
 `roadbook-city-entry-card-truncated`, `roadbook-roundabouts-from-osm`.
 - Ronds-points : numéro de sortie OSM (celui de Valhalla était « 2 » partout), dessin de toutes les
   branches, direction depuis la trace, route de sortie, ronds-points enchaînés.
-- Cas limites de vocabulaire soumis au propriétaire (planche « douteux » : D2, V8, V12, V16, V21,
-  V10) — seuils « tout droit / légèrement / franchement / fortement » à ajuster selon sa réponse.
+- Vocabulaire tranché avec le propriétaire, cas par cas sur la planche « douteux » : tout droit
+  ≤ 20°, légèrement jusqu'à 75°, à gauche/droite 75-105°, fortement au-delà ; demi-tour = même
+  route seulement. Cas complexes (V5, V7, V8, V10, V13, V20, V22) montrés avec l'écran réel.
 - Pas fait : défilement des sorties EN DIRECT dans l'anneau (« encore 1 sortie ») — précision GPS
   insuffisante dans un anneau de 15 m, à tester sur le terrain d'abord.
 - Le Ride ne télécharge pas les données des ronds-points : il relit celles de l'onglet Road Book.

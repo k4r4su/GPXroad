@@ -401,6 +401,10 @@ gradle/, settings.gradle.kts, build.gradle.kts, gradlew   build Gradle (racine)
   publié seulement si tous les contrôles passent, sinon direction seule. Dessin sur 8 positions,
   sortie prise TOUJOURS à la direction réelle, les autres branches rangées avant/après dans leur
   ordre de rencontre. Chaque passage REMPLACE les événements détectés autour (Valhalla, géométrie).
+  Vocabulaire (règles du propriétaire, planche « douteux ») : on prolonge la route d'arrivée en
+  ligne droite — « tout droit » ≤ 20°, « légèrement » au-delà, « à gauche/droite » seulement à
+  90° ± 15°, « fortement » au-delà de 105° ; « demi-tour » UNIQUEMENT si l'on repart par la route
+  d'où l'on vient (`RoundaboutAnalyzer.sectorAngle`), jamais d'après l'angle.
   Téléchargé par l'onglet Road Book, relu (jamais téléchargé) par le Ride. Validé sur 28 ronds-points
   réels (planche de contrôle, harnais temporaire hors dépôt interrogeant l'Overpass du LAN).
 - **Compte à rebours par paliers (29/09, demande du propriétaire)** — toute distance EN DIRECT

@@ -239,4 +239,33 @@ class RoundaboutAnalyzerTest {
         assertEquals("D 201", p.exitRoadName)
         assertEquals(-90.0, p.branches.single { it.kind == RoundaboutBranchKind.COUNTED_EXIT }.pictureAngleDegrees, "la route de l'ouest reste à gauche")
     }
+
+    /** Règles du propriétaire (planche « douteux ») : 20° / 75°-105° / au-delà. */
+    @Test
+    fun directionWordsFollowTheOwnersThresholds() {
+        fun sector(turn: Double) = RoundaboutAnalyzer.sectorAngle(turn, sameRoad = false)
+        assertEquals(0.0, sector(-12.0), "tout droit")
+        assertEquals(0.0, sector(20.0))
+        assertEquals(-45.0, sector(-27.0), "D2 : légèrement à gauche")
+        assertEquals(-45.0, sector(-50.0), "V16 : légèrement à gauche")
+        assertEquals(45.0, sector(61.0), "V21 : légèrement à droite")
+        assertEquals(-90.0, sector(-78.0), "à gauche : angle droit ± 15°")
+        assertEquals(90.0, sector(105.0))
+        assertEquals(-135.0, sector(-131.0), "V10 : fortement à gauche")
+        assertEquals(-135.0, sector(-178.0), "même à 178°, ce n'est pas un demi-tour si on change de route")
+        assertEquals(180.0, RoundaboutAnalyzer.sectorAngle(40.0, sameRoad = true), "demi-tour = même route")
+    }
+
+    @Test
+    fun goingBackTheWayWeCameIsAUTurn() {
+        // Entrée et sortie par la branche sud (tour complet) : on reprend la route d'où l'on vient.
+        val points = (200 downTo 20 step 5).map { val (x, y) = ringPoint(0, radius + it); at(x + 3, y) } +
+            (0..32).map { val a = (-90.0 + it * 11.25) * PI / 180; at(radius * cos(a), radius * sin(a)) } +
+            (20..200 step 5).map { val (x, y) = ringPoint(0, radius + it); at(x - 3, y) }
+        val all = RoundaboutAnalyzer.passages(points, RoundaboutMapData(listOf(ring()) + standardArms))
+        val p = all.single()
+        assertEquals(180.0, p.exitAngleDegrees)
+        assertEquals(TurnDirection.U_TURN, p.direction)
+        assertEquals(4, p.exitNumber, "trois sorties croisées, puis la route d'arrivée")
+    }
 }
