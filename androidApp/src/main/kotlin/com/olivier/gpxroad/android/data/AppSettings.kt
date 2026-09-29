@@ -54,6 +54,15 @@ class AppSettings(context: Context) {
         preferences.edit().putStringSet("landmarkCategories", landmarkCategories.map { it.key }.toSet()).apply()
     }
 
+    /** Carte du Ride : nord en haut (sinon cap en haut, le défaut de l'iPhone). */
+    var rideNorthUp by mutableStateOf(preferences.getBoolean("rideNorthUp", false))
+        private set
+
+    fun updateRideNorthUp(value: Boolean) {
+        rideNorthUp = value
+        preferences.edit().putBoolean("rideNorthUp", value).apply()
+    }
+
     val roadbookSettings: RoadbookSettings
         get() = RoadbookSettings(
             windowBeforeMeters = windowBefore,

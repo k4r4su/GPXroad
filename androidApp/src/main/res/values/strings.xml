@@ -165,4 +165,12 @@
     <string name="server_public">Serveur public (secours)</string>
     <string name="routing_valhalla" translatable="false">Valhalla</string>
     <string name="routing_osrm">OSRM (repli)</string>
+    <string name="tab_ride">Ride</string>
+    <string name="ride_recenter">Me recentrer</string>
+    <string name="ride_north_up">Nord en haut</string>
+    <string name="ride_heading_up">Cap en haut</string>
+    <string name="ride_zoom_in">Zoom avant</string>
+    <string name="ride_zoom_out">Zoom arrière</string>
+    <string name="ride_no_track">Aucune trace active — la carte suit ta position.</string>
+    <string name="ride_speed_unit">km/h</string>
 </resources>

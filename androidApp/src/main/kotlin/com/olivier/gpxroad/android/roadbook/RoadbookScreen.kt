@@ -73,14 +73,10 @@ import com.olivier.gpxroad.shared.LatLon
 import com.olivier.gpxroad.shared.roadbook.LandmarkCheckpoint
 import com.olivier.gpxroad.shared.roadbook.LandmarkInfo
 import com.olivier.gpxroad.shared.roadbook.RoadbookEntry
-import com.olivier.gpxroad.shared.roadbook.RoadbookExtractor
 import com.olivier.gpxroad.shared.roadbook.RoadbookLiveProgress
 import com.olivier.gpxroad.shared.roadbook.RoadbookManeuver
-import com.olivier.gpxroad.shared.roadbook.RoundaboutAnalyzer
 import com.olivier.gpxroad.shared.roadbook.TrackGeometry
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.withContext
 import kotlin.math.max
 import kotlin.math.roundToInt
 
@@ -118,15 +114,8 @@ fun RoadbookScreen(
     val roadbookSettings = settings.roadbookSettings
     val mapMatch = data.mapMatch
     val roundabouts = data.roundabouts
-    // L'ancienne liste reste affichée pendant qu'elle est recalculée (arrivée de Valhalla, des ronds-points).
-    var maneuvers by remember(track.traversalKey) { mutableStateOf<List<RoadbookManeuver>?>(null) }
-    LaunchedEffect(track.traversalKey, roadbookSettings, mapMatch, roundabouts) {
-        maneuvers = withContext(Dispatchers.Default) {
-            val passages = roundabouts?.takeIf { it.roads.isNotEmpty() || it.miniRoundabouts.isNotEmpty() }
-                ?.let { RoundaboutAnalyzer.passages(track.latLons, it) } ?: emptyList()
-            RoadbookExtractor.maneuvers(track.latLons, roadbookSettings, mapMatch?.maneuvers ?: emptyList(), mapMatch?.coverage, passages)
-        }
-    }
+    LaunchedEffect(track.traversalKey, roadbookSettings, mapMatch, roundabouts) { data.refreshManeuvers(track, roadbookSettings) }
+    val maneuvers = data.maneuvers
     val enabledCategories = settings.landmarkCategories
     LaunchedEffect(maneuvers, enabledCategories) {
         maneuvers?.let { data.updateLandmarks(track, it, enabledCategories) }

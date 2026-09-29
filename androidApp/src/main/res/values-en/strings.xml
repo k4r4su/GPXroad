@@ -163,4 +163,12 @@
     <string name="server_own">Your server (away from home)</string>
     <string name="server_public">Public server (fallback)</string>
     <string name="routing_osrm">OSRM (fallback)</string>
+    <string name="tab_ride">Ride</string>
+    <string name="ride_recenter">Recenter</string>
+    <string name="ride_north_up">North up</string>
+    <string name="ride_heading_up">Heading up</string>
+    <string name="ride_zoom_in">Zoom in</string>
+    <string name="ride_zoom_out">Zoom out</string>
+    <string name="ride_no_track">No active track — the map follows your position.</string>
+    <string name="ride_speed_unit">km/h</string>
 </resources>

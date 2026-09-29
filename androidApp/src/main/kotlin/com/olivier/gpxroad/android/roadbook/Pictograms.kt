@@ -11,6 +11,7 @@ import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.StrokeJoin
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.text.TextMeasurer
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.drawText
 import androidx.compose.ui.text.font.FontWeight
@@ -33,19 +34,22 @@ import kotlin.math.sin
 @Composable
 fun ManeuverPictogram(checkpoint: Checkpoint, accent: Color, secondary: Color, modifier: Modifier = Modifier) {
     val measurer = rememberTextMeasurer()
-    Canvas(modifier) {
-        val side = min(size.width, size.height)
-        val origin = Offset((size.width - side) / 2, (size.height - side) / 2)
-        when (checkpoint.tier) {
-            RoadbookTier.ROUNDABOUT -> drawRoundabout(checkpoint, origin, side, accent, secondary) { number, center ->
-                val layout = measurer.measure(number, TextStyle(fontSize = (side * 0.24f / density).sp, fontWeight = FontWeight.Black, color = secondary))
-                drawText(layout, topLeft = Offset(center.x - layout.size.width / 2f, center.y - layout.size.height / 2f))
-            }
-            RoadbookTier.FORK -> drawFork(checkpoint.direction, origin, side, accent, secondary)
-            RoadbookTier.MERGE -> drawMerge(checkpoint.direction, origin, side, accent, secondary)
-            RoadbookTier.U_TURN -> drawUTurn(origin, side, accent)
-            else -> drawTurn(turnAngle(checkpoint), origin, side, accent)
+    Canvas(modifier) { drawManeuverPictogram(checkpoint, accent, secondary, measurer) }
+}
+
+/** Même dessin hors d'un composable (épingles de la carte du Ride, rendues en images). */
+fun DrawScope.drawManeuverPictogram(checkpoint: Checkpoint, accent: Color, secondary: Color, measurer: TextMeasurer) {
+    val side = min(size.width, size.height)
+    val origin = Offset((size.width - side) / 2, (size.height - side) / 2)
+    when (checkpoint.tier) {
+        RoadbookTier.ROUNDABOUT -> drawRoundabout(checkpoint, origin, side, accent, secondary) { number, center ->
+            val layout = measurer.measure(number, TextStyle(fontSize = (side * 0.24f / density).sp, fontWeight = FontWeight.Black, color = secondary))
+            drawText(layout, topLeft = Offset(center.x - layout.size.width / 2f, center.y - layout.size.height / 2f))
         }
+        RoadbookTier.FORK -> drawFork(checkpoint.direction, origin, side, accent, secondary)
+        RoadbookTier.MERGE -> drawMerge(checkpoint.direction, origin, side, accent, secondary)
+        RoadbookTier.U_TURN -> drawUTurn(origin, side, accent)
+        else -> drawTurn(turnAngle(checkpoint), origin, side, accent)
     }
 }
 

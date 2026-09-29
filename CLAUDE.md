@@ -353,6 +353,12 @@ gradle/, settings.gradle.kts, build.gradle.kts, gradlew   build Gradle (racine)
   (`org.json`, aucune dépendance ajoutée à `shared/`). Réseau : `androidApp/.../net/` — identifiants
   chiffrés par une clé Android Keystore (`SecureStore`), HTTPS obligatoire sauf l'adresse Overpass
   de la maison (seule autorisée en clair, Wi-Fi seulement, `network_security_config.xml`).
+  Ride Android (`androidApp/.../ride/`) : MapLibre Android, style vectoriel = le fichier de l'iPhone
+  copié à la compilation (tâche `copyMapStyles`, jamais versionné en double) ; caméra = logique
+  partagée `shared/.../ride/RideCamera.kt` (paliers de zoom, vitesse lissée, conversion distance
+  caméra → zoom identique à `MLNZoomLevelForAltitude`) ; manœuvres = `RoadbookData.maneuvers`, la
+  MÊME liste que le Road Book. Rejeu GPS sur l'émulateur : `adb emu geo fix <lon> <lat> <alt> <sat>
+  <nœuds>` (le NMEA est ignoré, le cap vaut 0 : il est déduit des positions).
   Vérification : émulateur `gpxroad_test` (GPS simulé par `adb emu geo fix <lon> <lat>`, format
   tablette par `wm size 1200x2000` + `wm density 240`, à remettre à zéro ensuite) et tablette réelle
   Lenovo YT-J706X en débogage Wi-Fi (le port change à chaque réactivation ; le serveur adb doit

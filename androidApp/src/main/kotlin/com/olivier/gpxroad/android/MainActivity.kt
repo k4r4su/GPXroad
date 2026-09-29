@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.List
+import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.Icon
 import androidx.compose.material3.NavigationBar
@@ -35,13 +36,15 @@ import com.olivier.gpxroad.android.net.RoutingClient
 import com.olivier.gpxroad.android.net.ServerSettings
 import com.olivier.gpxroad.android.roadbook.data.RejoinController
 import com.olivier.gpxroad.android.roadbook.data.RoadbookData
+import com.olivier.gpxroad.android.ride.RideCameraState
+import com.olivier.gpxroad.android.ride.RideScreen
 import com.olivier.gpxroad.android.roadbook.RoadbookScreen
 import com.olivier.gpxroad.android.settings.SettingsScreen
 import com.olivier.gpxroad.android.ui.GPXroadTheme
 import com.olivier.gpxroad.android.ui.LibraryIcon
 
-/** Onglets de l'app Android (session 1 de la migration) — Ride, Aller à, etc. arrivent ensuite. */
-enum class AppTab { ROADBOOK, LIBRARY, SETTINGS }
+/** Onglets de l'app Android (migration en cours) — Aller à arrivera ensuite, dans l'ordre de l'iPhone. */
+enum class AppTab { RIDE, ROADBOOK, LIBRARY, SETTINGS }
 
 /**
  * Racine de l'app Android. Les services (bibliothèque, réglages, GPS) vivent le temps de l'activité ;
@@ -61,7 +64,7 @@ class MainActivity : ComponentActivity() {
         val servers = ServerSettings(applicationContext)
         val overpass = OverpassClient(applicationContext, servers)
         val routing = RoutingClient()
-        val services = AppServices(library, settings, location, servers, overpass, routing, RoadbookData(applicationContext, servers, overpass, routing), RejoinController(routing))
+        val services = AppServices(library, settings, location, servers, overpass, routing, RoadbookData(applicationContext, servers, overpass, routing), RejoinController(routing), RideCameraState())
         setContent {
             GPXroadTheme {
                 GPXroadApp(services, incomingGpx) { incomingGpx = null }
@@ -91,16 +94,18 @@ private class AppServices(
     val routing: RoutingClient,
     val roadbook: RoadbookData,
     val rejoin: RejoinController,
+    val rideCamera: RideCameraState,
 )
 
 @Composable
 private fun GPXroadApp(services: AppServices, incomingGpx: Uri?, onImportHandled: () -> Unit) {
     val library = services.library
     val settings = services.settings
-    var tab by rememberSaveable { mutableStateOf(if (library.activeTrackId == null) AppTab.LIBRARY else AppTab.ROADBOOK) }
+    var tab by rememberSaveable { mutableStateOf(if (library.activeTrackId == null) AppTab.LIBRARY else AppTab.RIDE) }
     if (incomingGpx != null) tab = AppTab.LIBRARY
     val items = remember {
         listOf(
+            Triple(AppTab.RIDE, R.string.tab_ride, Icons.Filled.LocationOn),
             Triple(AppTab.ROADBOOK, R.string.tab_roadbook, Icons.AutoMirrored.Filled.List),
             Triple(AppTab.LIBRARY, R.string.tab_library, LibraryIcon),
             Triple(AppTab.SETTINGS, R.string.tab_settings, Icons.Filled.Settings),
@@ -122,6 +127,7 @@ private fun GPXroadApp(services: AppServices, incomingGpx: Uri?, onImportHandled
     ) { padding ->
         Box(Modifier.fillMaxSize().padding(padding)) {
             when (tab) {
+                AppTab.RIDE -> RideScreen(library, settings, services.servers, services.roadbook, services.rideCamera, services.location) { tab = AppTab.LIBRARY }
                 AppTab.ROADBOOK -> RoadbookScreen(library, settings, services.servers, services.roadbook, services.rejoin, services.location) { tab = AppTab.LIBRARY }
                 AppTab.LIBRARY -> LibraryScreen(library, settings, incomingGpx, onImportHandled)
                 AppTab.SETTINGS -> SettingsScreen(settings, services.servers, services.overpass, services.routing)

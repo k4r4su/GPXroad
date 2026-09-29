@@ -163,4 +163,12 @@
     <string name="server_own">Tu servidor (fuera de casa)</string>
     <string name="server_public">Servidor público (reserva)</string>
     <string name="routing_osrm">OSRM (recurso)</string>
+    <string name="tab_ride">Ride</string>
+    <string name="ride_recenter">Recentrar</string>
+    <string name="ride_north_up">Norte arriba</string>
+    <string name="ride_heading_up">Rumbo arriba</string>
+    <string name="ride_zoom_in">Acercar</string>
+    <string name="ride_zoom_out">Alejar</string>
+    <string name="ride_no_track">Ninguna ruta activa: el mapa sigue tu posición.</string>
+    <string name="ride_speed_unit">km/h</string>
 </resources>

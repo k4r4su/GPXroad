@@ -56,7 +56,21 @@ alignée sur l'iPhone (projection sans mémoire, liste « Ensuite » même hors 
   essai ; pas de débit ni de temps restant).
 
 Sessions suivantes :
-- [ ] 2 — Ride : carte MapLibre Android, trace, position, caméra qui suit, virages, bandeau, hors trace.
+- [x] 2 — Ride (29/09) : carte MapLibre Android 13.6.1 avec le MÊME style vectoriel que l'iPhone
+      (Liberty sur OpenFreeMap, copié à la compilation depuis `iosApp/GPXroad/Resources`, correction
+      « cap en haut » des libellés ; raster OSM hors réseau), trace orange à contour noir, épingles
+      des virages (pictogrammes du Road Book, mêmes manœuvres), position, caméra qui suit (cap en
+      haut ancré aux 3/4 ou nord en haut, zoom automatique selon la vitesse lissée — paliers
+      « Normal », hystérésis, route rapide/piste, bornes — +/- et recentrage, suivi suspendu 5 s
+      après un geste), bannière latérale du prochain virage (≤ 600 m, rang n/N), puce « Hors trace »
+      (flèche vers le point de retour, distance après 30 s), compteur de vitesse. Vérifié sur
+      l'émulateur avec un GPS rejoué (`geo fix` avec vitesse ; l'émulateur ignore le NMEA et ne
+      donne pas de cap : le cap est déduit des positions quand le GPS ne le fournit pas) et sur la
+      tablette (GPS réel, à l'arrêt).
+  - [ ] Reste pour la parité du Ride : chemin de reprise automatique dessiné sur la carte (100 m
+        pendant 2 s, bannière dédiée), « Reprendre ici » (tap sur la trace), contournement « Chemin
+        bloqué », chevrons de sens, avertissements de pente, thèmes de carte et réglages de zoom,
+        côté des contrôles, panneau de stats, enregistrement (session 4).
 - [x] 3 — Réseau (faite avant la 2, voir ci-dessus).
 - [ ] 4 — Enregistrement en arrière-plan, export/partage GPX, sorties non enregistrées, dossiers.
 - [ ] 5 — Aller à : recherche, guidage Valhalla, Domicile/Travail, signalements.

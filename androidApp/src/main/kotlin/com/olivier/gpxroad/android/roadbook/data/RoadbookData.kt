@@ -17,7 +17,10 @@ import com.olivier.gpxroad.shared.roadbook.LandmarkSelector
 import com.olivier.gpxroad.shared.roadbook.MapMatchCoverage
 import com.olivier.gpxroad.shared.roadbook.OsmMiniRoundabout
 import com.olivier.gpxroad.shared.roadbook.OsmRoad
+import com.olivier.gpxroad.shared.roadbook.RoadbookExtractor
 import com.olivier.gpxroad.shared.roadbook.RoadbookManeuver
+import com.olivier.gpxroad.shared.roadbook.RoadbookSettings
+import com.olivier.gpxroad.shared.roadbook.RoundaboutAnalyzer
 import com.olivier.gpxroad.shared.roadbook.RoundaboutMapData
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -66,6 +69,39 @@ class RoadbookData(
         private set
     var landmarkSelection by mutableStateOf(LandmarkSelection.EMPTY)
         private set
+
+    /**
+     * Manœuvres de la trace active — UNE seule liste pour le Road Book ET le Ride (épingles, bannière
+     * latérale), comme `SharedRoadbook.maneuvers` iOS. `null` pendant le premier calcul d'une trace ;
+     * l'ancienne liste reste affichée pendant un recalcul (arrivée de Valhalla, des ronds-points).
+     */
+    var maneuvers by mutableStateOf<List<RoadbookManeuver>?>(null)
+        private set
+    private var maneuversTrackKey: String? = null
+    private var maneuversInputs: Any? = null
+    private var maneuversJob: Job? = null
+
+    /** Recalcule les manœuvres si la trace, les réglages ou les données réseau ont changé. */
+    fun refreshManeuvers(track: LoadedTrack, settings: RoadbookSettings) {
+        val inputs = listOf(track.traversalKey, settings, mapMatch, roundabouts)
+        if (inputs == maneuversInputs) return
+        maneuversInputs = inputs
+        if (track.traversalKey != maneuversTrackKey) {
+            maneuversTrackKey = track.traversalKey
+            maneuvers = null
+        }
+        val mapMatch = mapMatch
+        val roundabouts = roundabouts
+        maneuversJob?.cancel()
+        maneuversJob = scope.launch {
+            val result = withContext(Dispatchers.Default) {
+                val passages = roundabouts?.takeIf { it.roads.isNotEmpty() || it.miniRoundabouts.isNotEmpty() }
+                    ?.let { RoundaboutAnalyzer.passages(track.latLons, it) } ?: emptyList()
+                RoadbookExtractor.maneuvers(track.latLons, settings, mapMatch?.maneuvers ?: emptyList(), mapMatch?.coverage, passages)
+            }
+            if (maneuversTrackKey == track.traversalKey) maneuvers = result
+        }
+    }
 
     private var mapMatchKey: String? = null
     private var mapMatchJob: Job? = null
