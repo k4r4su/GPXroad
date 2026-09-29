@@ -42,10 +42,16 @@ Livré : Valhalla (map matching `/trace_route`, vrais carrefours, couverture), r
 OSM, repères visibles + entrées de village (catégories dans Réglages), chemin pour rejoindre la trace
 (Valhalla puis OSRM), réglages serveurs Valhalla/Overpass (identifiants chiffrés), progression GPS
 alignée sur l'iPhone (projection sans mémoire, liste « Ensuite » même hors trace).
-- [ ] Saisir les serveurs Valhalla/Overpass dans les Réglages de la tablette (le propriétaire).
-- [ ] Comparer ligne à ligne avec l'iPhone sur vosges-tour et Wahlbach : caches de l'iPhone copiés en
-      lecture seule (`devicectl … copy from`) contre ceux de la tablette (`adb shell run-as
-      com.olivier.gpxroad`) — mêmes données décodées ⇒ même Road Book (le reste est du code partagé).
+- [x] Serveurs Valhalla/Overpass saisis sur la tablette (29/09).
+- [x] Comparaison ligne à ligne avec l'iPhone (29/09), « Wahlbach travail full » (seule trace des
+      `.testdata` que l'iPhone a en cache ; vosges-tour n'y a jamais été ouverte en Road Book) : caches
+      de l'iPhone copiés en lecture seule (`devicectl … copy from`) contre ceux de la tablette (`adb
+      shell run-as com.olivier.gpxroad`), Road Book recalculé des deux côtés par le code partagé
+      (contrôle temporaire hors dépôt). A→B et B→A : 18 lignes sur 18 identiques (virages, ronds-points
+      et sorties, repères rattachés et en ligne, entrées de village) ; mêmes 16 manœuvres Valhalla et
+      même couverture, mêmes 32 routes de ronds-points, mêmes 78 candidats repères, 15 localités,
+      8 zones bâties. Seuls écarts : au 12e chiffre après la virgule (caps, progression Valhalla).
+- [ ] Même contrôle sur vosges-tour une fois ouverte dans le Road Book de l'iPhone.
 - Écart assumé : bandeau de téléchargement plus simple que l'iPhone (tronçons, Ko reçus, nouvel
   essai ; pas de débit ni de temps restant).
 
