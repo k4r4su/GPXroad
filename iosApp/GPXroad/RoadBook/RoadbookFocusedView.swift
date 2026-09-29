@@ -244,13 +244,30 @@ private struct RoadbookBigLandmarkCard: View {
         Button {
             navigationState.focusRideMap(on: landmark.coordinate)
         } label: {
+            // Retour terrain (29/09, capture) : en paysage, le nom passait ENTRE le pictogramme et
+            // la distance et n'avait plus que ~80 pt (« Entrée de Ran… ») jusqu'à ce que la
+            // distance raccourcisse sous 100 m. Désormais pictogramme + distance sur une ligne
+            // (tailles inchangées), le nom sur TOUTE la largeur en dessous, en plus grand.
             if isLandscape {
-                HStack(spacing: 24) {
-                    RoadbookLandmarkIcon(category: landmark.info.category, size: 110)
-                    labels(alignment: .leading)
-                    Spacer(minLength: 12)
-                    distanceText(size: 96)
-                        .layoutPriority(1)
+                VStack(spacing: 6) {
+                    HStack(spacing: 24) {
+                        RoadbookLandmarkIcon(category: landmark.info.category, size: 100)
+                        distanceText(size: 96)
+                            .layoutPriority(1)
+                    }
+                    .layoutPriority(1)
+                    HStack(alignment: .firstTextBaseline, spacing: 12) {
+                        Text(landmark.info.localizedLabel)
+                            .font(.system(size: 34, weight: .bold, design: .rounded))
+                            .lineLimit(1)
+                            .minimumScaleFactor(0.5)
+                            .layoutPriority(1)
+                        Text(RoadbookLandmarkRowText.detail(landmark.info))
+                            .font(.title3)
+                            .foregroundStyle(.secondary)
+                            .lineLimit(1)
+                            .minimumScaleFactor(0.7)
+                    }
                 }
                 .padding(.horizontal, 20)
             } else {
@@ -280,10 +297,10 @@ private struct RoadbookBigLandmarkCard: View {
     private func labels(alignment: HorizontalAlignment) -> some View {
         VStack(alignment: alignment, spacing: 4) {
             Text(landmark.info.localizedLabel)
-                .font(.system(.title, design: .rounded).bold())
+                .font(.system(size: 36, weight: .bold, design: .rounded))
                 .multilineTextAlignment(alignment == .center ? .center : .leading)
                 .lineLimit(2)
-                .minimumScaleFactor(0.7)
+                .minimumScaleFactor(0.6)
             Text(RoadbookLandmarkRowText.detail(landmark.info))
                 .font(.title3)
                 .foregroundStyle(.secondary)
