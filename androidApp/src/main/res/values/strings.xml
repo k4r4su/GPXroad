@@ -319,4 +319,25 @@
     <string name="nav_map_point">Point sur la carte</string>
     <string name="nav_requesting">Calcul de l\'itinéraire…</string>
     <string name="nav_rich_needs_valhalla">Guidage détaillé (manœuvres, voix) avec Valhalla configuré dans Réglages ; sinon guidage simple.</string>
+    <!-- Chemin bloqué et signalements partagés -->
+    <string name="detour_title">Chemin bloqué</string>
+    <string name="detour_road">Contourner (route)</string>
+    <string name="detour_trail">Contourner (piste)</string>
+    <string name="detour_direct">Rejoindre sans réseau</string>
+    <string name="detour_message">La trace d\'origine reste affichée telle quelle. Le détour est temporaire.</string>
+    <string name="detour_blocked_question">Portion bloquée ?</string>
+    <string name="detour_bypass">Contourner</string>
+    <string name="detour_dismiss">Ignorer l\'alerte</string>
+    <string name="detour_button">Bloqué</string>
+    <string name="detour_keeps_track">La trace d\'origine reste affichée</string>
+    <string name="detour_active_road">Détour (route) actif</string>
+    <string name="detour_active_trail">Détour (piste) actif</string>
+    <string name="detour_active_direct">Rejoins ta trace — guidage direct</string>
+    <string name="shared_alert">Point bloqué signalé sur ta route</string>
+    <string name="shared_hide">Masquer cette alerte</string>
+    <string name="shared_title">Communauté</string>
+    <string name="shared_share">Partager mes signalements anonymement</string>
+    <string name="shared_footer">Un chemin bloqué que tu signales est ajouté à une base partagée anonyme, pour alerter les autres utilisateurs qui passent par là.</string>
+    <string name="shared_server">URL du serveur (points bloqués)</string>
+    <string name="shared_server_footer">Laisser vide désactive toute tentative réseau vers cette fonctionnalité.</string>
 </resources>

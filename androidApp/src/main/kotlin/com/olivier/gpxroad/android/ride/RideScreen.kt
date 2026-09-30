@@ -47,6 +47,8 @@ import com.olivier.gpxroad.android.data.DistanceUnit
 import com.olivier.gpxroad.android.data.TrackLibrary
 import com.olivier.gpxroad.android.location.LocationTracker
 import com.olivier.gpxroad.android.nav.GoToPill
+import com.olivier.gpxroad.android.sync.SharedBlockageSync
+import com.olivier.gpxroad.shared.ride.SharedBlockages
 import com.olivier.gpxroad.android.nav.NavDestination
 import com.olivier.gpxroad.android.nav.NavPanel
 import com.olivier.gpxroad.android.nav.NavSession
@@ -104,6 +106,7 @@ fun RideScreen(
     rejoin: RejoinController,
     session: RideSession,
     nav: NavSession,
+    blockageSync: SharedBlockageSync,
     onOpenLibrary: () -> Unit,
 ) {
     val view = LocalView.current
@@ -154,9 +157,10 @@ fun RideScreen(
         nav.onLocation(fix, settings.voiceEnabled, settings.voiceVolume.toFloat(), valhalla)
         if (track == null) return@LaunchedEffect
         session.updateResume(fix, projection?.distanceToTrackMeters)
+        session.updateDetour(fix, projection?.distanceToTrackMeters, guidingTrace = !nav.isActive && session.manualResume == null)
         // Une reprise manuelle en cours prime : pas de reprise automatique en parallèle (comme l'iPhone) ;
         // un guidage « Aller à » suspend toute la reprise de trace (un seul guidage à la fois).
-        divergent = session.manualResume == null && !nav.isActive &&
+        divergent = session.manualResume == null && !nav.isActive && session.detour == null &&
             if (divergent) offTrack.isOffTrack else (projection?.distanceToTrackMeters ?: 0.0) > REJOIN_DIVERGENCE_METERS
         rejoin.update(fix, track.latLons, track.cumulative, divergent, projection?.cumulativeDistanceMeters?.takeIf { !offTrack.isOffTrack }, roadbookSettings, valhalla)
     }
@@ -181,6 +185,16 @@ fun RideScreen(
     val goTo = nav.goTo
     val guidingTrace = !nav.isActive
     var goHere by remember { mutableStateOf<LatLon?>(null) }
+    var askDetour by remember { mutableStateOf(false) }
+    val detour = session.detour
+    // Points bloqués partagés : synchro (au plus une fois par jour) autour de la trace, alerte à 300 m.
+    LaunchedEffect(track?.traversalKey, blockageSync.serverUrl, blockageSync.shareEnabled) { track?.let { blockageSync.syncIfNeeded(it.latLons) } }
+    var hiddenBlockageId by remember { mutableStateOf<String?>(null) }
+    val sharedAlert = remember(track?.traversalKey, blockageSync.blockages) {
+        track?.let { SharedBlockages.nearestAlongTrack(blockageSync.blockages, it.latLons) }
+    }?.takeIf { it.id != hiddenBlockageId }
+    val now = System.currentTimeMillis()
+    val blockagePins = remember(blockageSync.blockages) { blockageSync.blockages.map { it.coordinate to it.isFaded(now) } }
 
     val nextIndex = projection?.let { p -> maneuvers.indexOfFirst { it.cumulativeDistanceMeters > p.cumulativeDistanceMeters }.takeIf { it >= 0 } }
     val nextDistance = nextIndex?.let { maneuvers[it].cumulativeDistanceMeters - projection.cumulativeDistanceMeters }
@@ -197,6 +211,8 @@ fun RideScreen(
             navRoute = navTracker?.route?.points,
             navTraveledCount = navTracker?.traveledPointCount?.takeIf { navTick >= 0 } ?: 0,
             goToRoute = goTo?.points?.takeIf { it.size > 1 },
+            detourRoute = detour?.route,
+            blockages = blockagePins,
             location = fix,
             northUp = settings.rideNorthUp,
             camera = camera,
@@ -211,6 +227,13 @@ fun RideScreen(
             },
             onMapLongTap = { goHere = it },
         )
+        if (askDetour && track != null) {
+            DetourDialog(onDismiss = { askDetour = false; session.dismissBlockedBanner() }) { mode ->
+                askDetour = false
+                session.cancelResume()
+                session.requestDetour(mode, fix, track.latLons, track.cumulative, valhalla, onReport = blockageSync::report)
+            }
+        }
         goHere?.let { point ->
             GoHereDialog(onDismiss = { goHere = null }) { profile ->
                 goHere = null
@@ -227,6 +250,12 @@ fun RideScreen(
                 navTracker.nextManeuverIfChained?.let { NavThenBanner(it) }
             } else if (goTo != null) {
                 GoToPill(goTo, nav.goToRemainingMeters, nav.isRequesting, nav.failed, settings.distanceUnit, onCancel = nav::stop)
+            } else if (detour != null || session.isRequestingDetour) {
+                DetourBanner(detour, session.isRequestingDetour, onCancel = session::cancelDetour)
+            } else if (session.isBlockedBannerVisible && track != null && manualResume == null) {
+                BlockedBanner(onBypass = { askDetour = true }, onDismiss = session::dismissBlockedBanner)
+            } else if (sharedAlert != null && manualResume == null) {
+                SharedBlockageAlert(sharedAlert.note, onHide = { hiddenBlockageId = sharedAlert.id })
             } else if (nav.isRequesting && destination != null) {
                 Box(Modifier.background(PanelBackground, PanelShape).padding(horizontal = 16.dp, vertical = 10.dp)) {
                     Text(stringResource(R.string.nav_requesting) + " · " + destination.label, color = Color.White, maxLines = 1)
@@ -284,6 +313,7 @@ fun RideScreen(
             }
             ControlButton("+", stringResource(R.string.ride_zoom_in)) { camera.zoomIn() }
             ControlButton("−", stringResource(R.string.ride_zoom_out)) { camera.zoomOut() }
+            if (track != null && guidingTrace) BlockedButton { askDetour = true }
         }
 
         // Vitesse (gauche), toujours du côté opposé aux contrôles, et au-dessus l'enregistrement de la

@@ -317,4 +317,25 @@
     <string name="nav_map_point">Punkt auf der Karte</string>
     <string name="nav_requesting">Route wird berechnet…</string>
     <string name="nav_rich_needs_valhalla">Detaillierte Führung (Manöver, Sprache) mit in den Einstellungen konfiguriertem Valhalla; sonst einfache Führung.</string>
+    <!-- Chemin bloqué et signalements partagés -->
+    <string name="detour_title">Weg gesperrt</string>
+    <string name="detour_road">Umfahren (Straße)</string>
+    <string name="detour_trail">Umfahren (Piste)</string>
+    <string name="detour_direct">Ohne Netz zurückkehren</string>
+    <string name="detour_message">Der ursprüngliche Track bleibt unverändert sichtbar. Der Umweg ist vorübergehend.</string>
+    <string name="detour_blocked_question">Abschnitt gesperrt?</string>
+    <string name="detour_bypass">Umfahren</string>
+    <string name="detour_dismiss">Warnung ignorieren</string>
+    <string name="detour_button">Gesperrt</string>
+    <string name="detour_keeps_track">Der ursprüngliche Track bleibt sichtbar</string>
+    <string name="detour_active_road">Umweg (Straße) aktiv</string>
+    <string name="detour_active_trail">Umweg (Piste) aktiv</string>
+    <string name="detour_active_direct">Zurück zu deinem Track — direkte Führung</string>
+    <string name="shared_alert">Gemeldete Sperrung auf deiner Route</string>
+    <string name="shared_hide">Diese Warnung ausblenden</string>
+    <string name="shared_title">Community</string>
+    <string name="shared_share">Meine Meldungen anonym teilen</string>
+    <string name="shared_footer">Ein von dir gemeldeter gesperrter Weg wird einer anonymen gemeinsamen Datenbank hinzugefügt, um andere Nutzer in der Nähe zu warnen.</string>
+    <string name="shared_server">Server-URL (Sperrungen)</string>
+    <string name="shared_server_footer">Leer lassen deaktiviert jeden Netzwerkversuch für diese Funktion.</string>
 </resources>

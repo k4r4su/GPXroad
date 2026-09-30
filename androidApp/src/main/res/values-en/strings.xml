@@ -317,4 +317,25 @@
     <string name="nav_map_point">Point on the map</string>
     <string name="nav_requesting">Calculating route…</string>
     <string name="nav_rich_needs_valhalla">Detailed guidance (maneuvers, voice) with Valhalla set up in Settings; otherwise simple guidance.</string>
+    <!-- Chemin bloqué et signalements partagés -->
+    <string name="detour_title">Path blocked</string>
+    <string name="detour_road">Bypass (road)</string>
+    <string name="detour_trail">Bypass (trail)</string>
+    <string name="detour_direct">Rejoin without network</string>
+    <string name="detour_message">The original track stays displayed as is. The detour is temporary.</string>
+    <string name="detour_blocked_question">Section blocked?</string>
+    <string name="detour_bypass">Bypass</string>
+    <string name="detour_dismiss">Dismiss the alert</string>
+    <string name="detour_button">Blocked</string>
+    <string name="detour_keeps_track">The original track stays displayed</string>
+    <string name="detour_active_road">Detour (road) active</string>
+    <string name="detour_active_trail">Detour (trail) active</string>
+    <string name="detour_active_direct">Rejoin your track — direct guidance</string>
+    <string name="shared_alert">Blocked point reported on your route</string>
+    <string name="shared_hide">Hide this alert</string>
+    <string name="shared_title">Community</string>
+    <string name="shared_share">Share my reports anonymously</string>
+    <string name="shared_footer">A blocked path you report is added to an anonymous shared database, to warn other users passing by.</string>
+    <string name="shared_server">Server URL (blocked points)</string>
+    <string name="shared_server_footer">Leaving it empty disables any network attempt for this feature.</string>
 </resources>

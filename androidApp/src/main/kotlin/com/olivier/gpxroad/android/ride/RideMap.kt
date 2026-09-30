@@ -74,6 +74,10 @@ private const val REJOIN_SOURCE = "rejoin-source"
 private const val REJOIN_PIN_SOURCE = "rejoin-pin-source"
 private const val NAV_SOURCE = "nav-source"
 private const val GOTO_SOURCE = "goto-source"
+private const val DETOUR_SOURCE = "detour-source"
+private const val BLOCKAGE_SOURCE = "blockage-source"
+/** Détour « Chemin bloqué » : rouge pointillé, comme l'iPhone. */
+private val DETOUR_COLOR = android.graphics.Color.rgb(255, 59, 48)
 /** « Aller à » riche : restant bleu, parcouru gris atténué ; simple : pointillé cyan (comme l'iPhone). */
 private val NAV_COLOR = android.graphics.Color.rgb(10, 132, 255)
 private val NAV_TRAVELED_COLOR = android.graphics.Color.argb(170, 142, 142, 147)
@@ -114,6 +118,9 @@ fun RideMap(
     navRoute: List<LatLon>?,
     navTraveledCount: Int,
     goToRoute: List<LatLon>?,
+    detourRoute: List<LatLon>?,
+    /** Points bloqués partagés : position et « ancien » (> 90 jours, estompé). */
+    blockages: List<Pair<LatLon, Boolean>>,
     location: Location?,
     northUp: Boolean,
     camera: RideCameraState,
@@ -266,6 +273,26 @@ fun RideMap(
         source.setGeoJson(FeatureCollection.fromFeatures(features))
     }
 
+    LaunchedEffect(style, detourRoute) {
+        val source = style?.getSourceAs<GeoJsonSource>(DETOUR_SOURCE) ?: return@LaunchedEffect
+        val points = detourRoute.orEmpty()
+        source.setGeoJson(
+            if (points.size < 2) FeatureCollection.fromFeatures(emptyList())
+            else FeatureCollection.fromFeature(Feature.fromGeometry(LineString.fromLngLats(points.map { Point.fromLngLat(it.longitude, it.latitude) }))),
+        )
+    }
+
+    LaunchedEffect(style, blockages) {
+        val source = style?.getSourceAs<GeoJsonSource>(BLOCKAGE_SOURCE) ?: return@LaunchedEffect
+        source.setGeoJson(
+            FeatureCollection.fromFeatures(
+                blockages.map { (point, faded) ->
+                    Feature.fromGeometry(Point.fromLngLat(point.longitude, point.latitude)).apply { addNumberProperty("opacity", if (faded) 0.45 else 1.0) }
+                },
+            ),
+        )
+    }
+
     LaunchedEffect(style, goToRoute) {
         val source = style?.getSourceAs<GeoJsonSource>(GOTO_SOURCE) ?: return@LaunchedEffect
         val points = goToRoute.orEmpty()
@@ -384,6 +411,26 @@ private fun addOverlayLayers(style: Style, trace: TraceStyle, density: Density) 
             PropertyFactory.lineWidth(trace.widthDp * 1.2f),
             PropertyFactory.lineDasharray(arrayOf(2f, 1f)),
             PropertyFactory.lineJoin(Property.LINE_JOIN_ROUND),
+        ),
+    )
+    style.addSource(GeoJsonSource(DETOUR_SOURCE))
+    style.addLayer(
+        LineLayer("detour-layer", DETOUR_SOURCE).withProperties(
+            PropertyFactory.lineColor(DETOUR_COLOR),
+            PropertyFactory.lineWidth(trace.rejoinWidth),
+            PropertyFactory.lineDasharray(arrayOf(10f / trace.rejoinWidth, 8f / trace.rejoinWidth)),
+            PropertyFactory.lineJoin(Property.LINE_JOIN_ROUND),
+        ),
+    )
+    style.addSource(GeoJsonSource(BLOCKAGE_SOURCE))
+    style.addLayer(
+        CircleLayer("blockage-layer", BLOCKAGE_SOURCE).withProperties(
+            PropertyFactory.circleRadius(8f),
+            PropertyFactory.circleColor(DETOUR_COLOR),
+            PropertyFactory.circleStrokeColor(android.graphics.Color.WHITE),
+            PropertyFactory.circleStrokeWidth(2.5f),
+            PropertyFactory.circleOpacity(Expression.get("opacity")),
+            PropertyFactory.circleStrokeOpacity(Expression.get("opacity")),
         ),
     )
     style.addSource(GeoJsonSource(REJOIN_SOURCE))

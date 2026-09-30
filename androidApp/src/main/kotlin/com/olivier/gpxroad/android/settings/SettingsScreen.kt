@@ -17,7 +17,12 @@ import androidx.compose.material3.SegmentedButton
 import androidx.compose.material3.SegmentedButtonDefaults
 import androidx.compose.material3.SingleChoiceSegmentedButtonRow
 import androidx.compose.material3.Slider
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -31,13 +36,14 @@ import com.olivier.gpxroad.android.data.DistanceUnit
 import com.olivier.gpxroad.android.net.OverpassClient
 import com.olivier.gpxroad.android.net.RoutingClient
 import com.olivier.gpxroad.android.net.ServerSettings
+import com.olivier.gpxroad.android.sync.SharedBlockageSync
 import com.olivier.gpxroad.shared.recording.RecordingConstants
 import com.olivier.gpxroad.shared.recording.RecordingDensity
 import kotlin.math.roundToInt
 
 /** Réglages (équivalent partiel de `SettingsView` iOS) : ceux dont le Road Book a besoin aujourd'hui. */
 @Composable
-fun SettingsScreen(settings: AppSettings, servers: ServerSettings, overpass: OverpassClient, routing: RoutingClient) {
+fun SettingsScreen(settings: AppSettings, servers: ServerSettings, overpass: OverpassClient, routing: RoutingClient, blockageSync: SharedBlockageSync) {
     val context = LocalContext.current
     val version = runCatching { context.packageManager.getPackageInfo(context.packageName, 0).versionName }.getOrNull() ?: "?"
     Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
@@ -109,6 +115,10 @@ fun SettingsScreen(settings: AppSettings, servers: ServerSettings, overpass: Ove
         OverpassSection(servers, overpass)
 
         HorizontalDivider()
+        Section(stringResource(R.string.shared_title))
+        SharedBlockageSection(blockageSync)
+
+        HorizontalDivider()
         Section(stringResource(R.string.settings_about))
         Text(stringResource(R.string.settings_version, version), style = MaterialTheme.typography.bodyLarge)
         Text(stringResource(R.string.settings_android_status), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
@@ -167,4 +177,17 @@ private fun RecordingSection(settings: AppSettings) {
         }
     }
     Text(stringResource(R.string.settings_unsaved_footer), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+}
+
+/** Communauté : partage anonyme des chemins bloqués, serveur auto-hébergé (vide = aucune requête). */
+@Composable
+private fun SharedBlockageSection(sync: SharedBlockageSync) {
+    var url by remember { mutableStateOf(sync.serverUrl) }
+    SettingToggle(stringResource(R.string.shared_share), sync.shareEnabled) { sync.update(it, url) }
+    Text(stringResource(R.string.shared_footer), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+    OutlinedTextField(
+        value = url, onValueChange = { url = it; sync.update(sync.shareEnabled, it) }, singleLine = true, modifier = Modifier.fillMaxWidth(),
+        label = { Text(stringResource(R.string.shared_server)) },
+    )
+    Text(stringResource(R.string.shared_server_footer), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
 }

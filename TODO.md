@@ -104,8 +104,17 @@ Sessions suivantes :
         moyenne des 5 dernières minutes, enregistrement, Terminer) — `shared/ride/RideStats`.
         « Me recentrer » passé EN HAUT de la colonne (comme l'iPhone) : en apparaissant, il ne
         décale plus « − » sous le doigt (le 2e tap sur « − » recentrait). Vérifié sur l'émulateur.
-  - [ ] Reste pour la parité du Ride : contournement « Chemin bloqué », thèmes de carte et
-        réglages de zoom.
+  - [x] « Chemin bloqué » (01/10) : bouton « Bloqué » dans la colonne, Contourner (route) / (piste) /
+        Rejoindre sans réseau vers le premier point joignable à 500-2 000 m devant soi, pointillé
+        rouge, bandeau « Détour … actif » ; « Portion bloquée ? » hors trace (> 50 m) depuis 30 s ou
+        sur 200 m ; signalements partagés anonymes (Réglages > Communauté, serveur `server/app.py`,
+        adresse vide par défaut = aucune requête), points sur la carte (estompés après 90 jours),
+        alerte « Point bloqué signalé sur ta route » à 300 m de la trace — `shared/ride/Detour`.
+        Vérifié sur l'émulateur avec une copie locale du serveur (POST puis GET).
+  - [ ] iOS à corriger : un détour demandé DEPUIS la trace (cas normal devant un chemin bloqué)
+        est effacé au fix suivant (`updateBlockedPathTracking` : « sur la trace à 20 m » → fin du
+        détour). Android attend d'avoir quitté la trace (`DetourTracker`).
+  - [ ] Reste pour la parité du Ride : thèmes de carte et réglages de zoom.
   - Écart assumé : réglages de trace globaux (l'iPhone permet aussi couleur/épaisseur/chevrons par
     trace).
 - [x] 3 — Réseau (faite avant la 2, voir ci-dessus).

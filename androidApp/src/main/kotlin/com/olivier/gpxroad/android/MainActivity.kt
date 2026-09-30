@@ -42,6 +42,7 @@ import com.olivier.gpxroad.android.nav.NavDestination
 import com.olivier.gpxroad.android.nav.NavPlaces
 import com.olivier.gpxroad.android.nav.NavSession
 import com.olivier.gpxroad.android.net.NominatimClient
+import com.olivier.gpxroad.android.sync.SharedBlockageSync
 import com.olivier.gpxroad.shared.LatLon
 import androidx.compose.material.icons.filled.Search
 import com.olivier.gpxroad.android.ride.RideCameraState
@@ -74,7 +75,7 @@ class MainActivity : ComponentActivity() {
         val overpass = OverpassClient(applicationContext, servers)
         val routing = RoutingClient()
         val nav = NavSession(applicationContext, routing)
-        val services = AppServices(library, settings, location, servers, overpass, routing, RoadbookData(applicationContext, servers, overpass, routing), RejoinController(routing), RejoinController(routing), RideSession(routing), nav, NavPlaces(applicationContext), NominatimClient(), RideCameraState(), RideRecorder.get(applicationContext))
+        val services = AppServices(library, settings, location, servers, overpass, routing, RoadbookData(applicationContext, servers, overpass, routing), RejoinController(routing), RejoinController(routing), RideSession(routing), nav, NavPlaces(applicationContext), NominatimClient(), SharedBlockageSync(applicationContext), RideCameraState(), RideRecorder.get(applicationContext))
         setContent {
             GPXroadTheme {
                 GPXroadApp(services, incomingGpx) { incomingGpx = null }
@@ -111,6 +112,8 @@ private class AppServices(
     val nav: NavSession,
     val places: NavPlaces,
     val nominatim: NominatimClient,
+    /** Points bloqués partagés (serveur auto-hébergé, désactivé tant que l'adresse est vide). */
+    val blockageSync: SharedBlockageSync,
     val rideCamera: RideCameraState,
     /** Enregistrement de la sortie : unique pour tout le processus, indépendant de l'activité. */
     val recorder: RideRecorder,
@@ -147,7 +150,7 @@ private fun GPXroadApp(services: AppServices, incomingGpx: Uri?, onImportHandled
     ) { padding ->
         Box(Modifier.fillMaxSize().padding(padding)) {
             when (tab) {
-                AppTab.RIDE -> RideScreen(library, settings, services.servers, services.roadbook, services.rideCamera, services.location, services.recorder, services.rideRejoin, services.rideSession, services.nav) { tab = AppTab.LIBRARY }
+                AppTab.RIDE -> RideScreen(library, settings, services.servers, services.roadbook, services.rideCamera, services.location, services.recorder, services.rideRejoin, services.rideSession, services.nav, services.blockageSync) { tab = AppTab.LIBRARY }
                 AppTab.GOTO -> GoToScreen(services.places, services.nominatim, services.location.location?.let { LatLon(it.latitude, it.longitude) }) { place, profile ->
                     services.rideSession.cancelResume()
                     services.nav.start(NavDestination(place.label, place.coordinate, profile), services.location.location, services.servers.valhalla)
@@ -155,7 +158,7 @@ private fun GPXroadApp(services: AppServices, incomingGpx: Uri?, onImportHandled
                 }
                 AppTab.ROADBOOK -> RoadbookScreen(library, settings, services.servers, services.roadbook, services.rejoin, services.location) { tab = AppTab.LIBRARY }
                 AppTab.LIBRARY -> LibraryScreen(library, settings, services.recorder, incomingGpx, onImportHandled)
-                AppTab.SETTINGS -> SettingsScreen(settings, services.servers, services.overpass, services.routing)
+                AppTab.SETTINGS -> SettingsScreen(settings, services.servers, services.overpass, services.routing, services.blockageSync)
             }
         }
     }

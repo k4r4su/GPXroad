@@ -317,4 +317,25 @@
     <string name="nav_map_point">Punto en el mapa</string>
     <string name="nav_requesting">Calculando la ruta…</string>
     <string name="nav_rich_needs_valhalla">Guiado detallado (maniobras, voz) con Valhalla configurado en Ajustes; si no, guiado simple.</string>
+    <!-- Chemin bloqué et signalements partagés -->
+    <string name="detour_title">Camino bloqueado</string>
+    <string name="detour_road">Rodear (carretera)</string>
+    <string name="detour_trail">Rodear (pista)</string>
+    <string name="detour_direct">Volver sin red</string>
+    <string name="detour_message">La ruta original sigue visible tal cual. El desvío es temporal.</string>
+    <string name="detour_blocked_question">¿Tramo bloqueado?</string>
+    <string name="detour_bypass">Rodear</string>
+    <string name="detour_dismiss">Ignorar la alerta</string>
+    <string name="detour_button">Bloqueado</string>
+    <string name="detour_keeps_track">La ruta original sigue visible</string>
+    <string name="detour_active_road">Desvío (carretera) activo</string>
+    <string name="detour_active_trail">Desvío (pista) activo</string>
+    <string name="detour_active_direct">Vuelve a tu ruta: guiado directo</string>
+    <string name="shared_alert">Punto bloqueado avisado en tu ruta</string>
+    <string name="shared_hide">Ocultar esta alerta</string>
+    <string name="shared_title">Comunidad</string>
+    <string name="shared_share">Compartir mis avisos de forma anónima</string>
+    <string name="shared_footer">Un camino bloqueado que avisas se añade a una base compartida anónima, para alertar a otros usuarios que pasen por allí.</string>
+    <string name="shared_server">URL del servidor (puntos bloqueados)</string>
+    <string name="shared_server_footer">Dejarlo vacío desactiva cualquier intento de red para esta función.</string>
 </resources>

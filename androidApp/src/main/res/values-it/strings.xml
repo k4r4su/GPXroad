@@ -317,4 +317,25 @@
     <string name="nav_map_point">Punto sulla mappa</string>
     <string name="nav_requesting">Calcolo del percorso…</string>
     <string name="nav_rich_needs_valhalla">Guida dettagliata (manovre, voce) con Valhalla configurato nelle Impostazioni; altrimenti guida semplice.</string>
+    <!-- Chemin bloqué et signalements partagés -->
+    <string name="detour_title">Percorso bloccato</string>
+    <string name="detour_road">Aggira (strada)</string>
+    <string name="detour_trail">Aggira (pista)</string>
+    <string name="detour_direct">Rientra senza rete</string>
+    <string name="detour_message">La traccia originale resta visibile così com\'è. La deviazione è temporanea.</string>
+    <string name="detour_blocked_question">Tratto bloccato?</string>
+    <string name="detour_bypass">Aggira</string>
+    <string name="detour_dismiss">Ignora l\'avviso</string>
+    <string name="detour_button">Bloccato</string>
+    <string name="detour_keeps_track">La traccia originale resta visibile</string>
+    <string name="detour_active_road">Deviazione (strada) attiva</string>
+    <string name="detour_active_trail">Deviazione (pista) attiva</string>
+    <string name="detour_active_direct">Rientra nella tua traccia — guida diretta</string>
+    <string name="shared_alert">Punto bloccato segnalato sul tuo percorso</string>
+    <string name="shared_hide">Nascondi questo avviso</string>
+    <string name="shared_title">Comunità</string>
+    <string name="shared_share">Condividi le mie segnalazioni in forma anonima</string>
+    <string name="shared_footer">Un percorso bloccato che segnali viene aggiunto a un database condiviso anonimo, per avvisare gli altri utenti che passano di lì.</string>
+    <string name="shared_server">URL del server (punti bloccati)</string>
+    <string name="shared_server_footer">Lasciarlo vuoto disattiva ogni tentativo di rete per questa funzione.</string>
 </resources>

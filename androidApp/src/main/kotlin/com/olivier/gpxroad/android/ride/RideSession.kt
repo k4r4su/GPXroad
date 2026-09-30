@@ -8,6 +8,10 @@ import com.olivier.gpxroad.android.net.RoutingClient
 import com.olivier.gpxroad.android.net.ValhallaConfiguration
 import com.olivier.gpxroad.shared.LatLon
 import com.olivier.gpxroad.shared.geodesicDistanceMeters
+import com.olivier.gpxroad.shared.ride.BlockedPathDetector
+import com.olivier.gpxroad.shared.ride.DetourConstants
+import com.olivier.gpxroad.shared.ride.DetourPlanner
+import com.olivier.gpxroad.shared.ride.DetourTracker
 import com.olivier.gpxroad.shared.ride.RideProgress
 import com.olivier.gpxroad.shared.ride.RideStats
 import com.olivier.gpxroad.shared.roadbook.TrackGeometry
@@ -32,6 +36,11 @@ data class ManualResume(
     val routingFailed: Boolean = false,
 )
 
+/** Détour « Chemin bloqué » : par les routes, par les pistes, ou en direct (sans réseau). */
+enum class DetourMode { ROAD, TRAIL, DIRECT }
+
+data class Detour(val mode: DetourMode, val route: List<LatLon>, val target: LatLon)
+
 /**
  * Session du Ride (partie mesures et reprise manuelle de `RideSessionManager` iOS). Vit le temps de
  * l'activité : changer d'onglet ne remet pas les mesures à zéro ; une nouvelle trace, si.
@@ -50,12 +59,24 @@ class RideSession(private val routing: RoutingClient) {
         private set
     var manualResume by mutableStateOf<ManualResume?>(null)
         private set
+    var detour by mutableStateOf<Detour?>(null)
+        private set
+    var isRequestingDetour by mutableStateOf(false)
+        private set
+    /** « Portion bloquée ? » (hors trace depuis 30 s ou sur 200 m), ou bouton « Bloqué ». */
+    var isBlockedBannerVisible by mutableStateOf(false)
+        private set
+    private var detourTracker: DetourTracker? = null
+    private var detourJob: Job? = null
+    private val blockedDetector = BlockedPathDetector()
 
     fun onLocation(fix: Location, trackKey: String?, trackLengthMeters: Double?, cumulativeMeters: Double?) {
         if (trackKey != statsTrackKey) {
             statsTrackKey = trackKey
             stats.reset()
             cancelResume()
+            cancelDetour()
+            dismissBlockedBanner()
         }
         val speedKmh = if (fix.hasSpeed()) fix.speed * 3.6 else 0.0
         stats.update(LatLon(fix.latitude, fix.longitude), speedKmh, fix.time / 1000.0)
@@ -83,6 +104,68 @@ class RideSession(private val routing: RoutingClient) {
             manualResume = if (route == null || route.size < 2) current.copy(isRequesting = false, routingFailed = true)
             else current.copy(route = route, routeLengthMeters = route.zipWithNext().sumOf { (a, b) -> geodesicDistanceMeters(a, b) }, isRequesting = false)
         }
+    }
+
+    /**
+     * Contourne un chemin bloqué : itinéraire (routes ou pistes) vers le premier point de la trace
+     * joignable à 500, 1 000, 1 500 ou 2 000 m devant soi ; sans réseau ou sans itinéraire, ligne
+     * directe vers le point à 500 m. Signalé (anonymement, si activé) à la base partagée.
+     */
+    fun requestDetour(mode: DetourMode, fix: Location?, points: List<LatLon>, cumulative: DoubleArray, valhalla: ValhallaConfiguration?, onReport: (LatLon) -> Unit) {
+        fix ?: return
+        if (points.size < 2) return
+        isBlockedBannerVisible = false
+        detourJob?.cancel()
+        val position = LatLon(fix.latitude, fix.longitude)
+        val from = TrackGeometry.project(position, points, cumulative)?.cumulativeDistanceMeters ?: 0.0
+        val candidates = DetourPlanner.candidates(points, cumulative, from)
+        val direct = candidates.firstOrNull() ?: return
+        onReport(position)
+        if (mode == DetourMode.DIRECT) {
+            start(Detour(DetourMode.DIRECT, listOf(position, direct), direct))
+            return
+        }
+        isRequestingDetour = true
+        detourJob = scope.launch {
+            val found = withContext(Dispatchers.IO) {
+                candidates.firstNotNullOfOrNull { candidate ->
+                    runCatching { routing.route(position, candidate, valhalla, offroad = mode == DetourMode.TRAIL) }.getOrNull()
+                        ?.takeIf { it.size > 1 }?.let { candidate to it }
+                }
+            }
+            isRequestingDetour = false
+            start(found?.let { (target, route) -> Detour(mode, route, target) } ?: Detour(DetourMode.DIRECT, listOf(position, direct), direct))
+        }
+    }
+
+    private fun start(value: Detour) {
+        detour = value
+        detourTracker = DetourTracker(value.target)
+    }
+
+    fun cancelDetour() {
+        detourJob?.cancel()
+        detour = null
+        detourTracker = null
+        isRequestingDetour = false
+    }
+
+    fun showBlockedBanner() {
+        isBlockedBannerVisible = true
+    }
+
+    fun dismissBlockedBanner() {
+        isBlockedBannerVisible = false
+        blockedDetector.reset()
+    }
+
+    /** À chaque fix, sur une trace : fin du détour, ou « Portion bloquée ? » hors trace qui s'éternise. */
+    fun updateDetour(fix: Location, distanceToTrackMeters: Double?, guidingTrace: Boolean) {
+        val position = LatLon(fix.latitude, fix.longitude)
+        detourTracker?.let { if (it.update(position, distanceToTrackMeters)) cancelDetour() }
+        if (detour != null || !guidingTrace || distanceToTrackMeters == null) return
+        if (blockedDetector.update(position, distanceToTrackMeters, fix.time / 1000.0)) isBlockedBannerVisible = true
+        else if (distanceToTrackMeters <= DetourConstants.OFF_TRACK_METERS) isBlockedBannerVisible = false
     }
 
     fun confirmResume() {
