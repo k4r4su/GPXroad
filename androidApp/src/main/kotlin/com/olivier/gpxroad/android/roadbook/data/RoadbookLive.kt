@@ -68,6 +68,9 @@ data class RejoinDisplay(
     val remainingToTrackMeters: Double? = null,
     val routeCumulativeDistanceMeters: Double = 0.0,
     val targetCumulativeDistanceMeters: Double? = null,
+    /** Chemin routé (carte du Ride) et point de retour sur la trace. */
+    val routePoints: List<LatLon> = emptyList(),
+    val targetCoordinate: LatLon? = null,
 ) {
     enum class Status { WAITING, COMPUTING, ROUTED, UNAVAILABLE }
 }
@@ -166,7 +169,7 @@ class RejoinController(private val routing: RoutingClient) {
         target = newTarget
         plan = null
         passedDetector.reset()
-        display = RejoinDisplay(RejoinDisplay.Status.COMPUTING, targetCumulativeDistanceMeters = newTarget.cumulativeDistanceMeters)
+        display = RejoinDisplay(RejoinDisplay.Status.COMPUTING, targetCumulativeDistanceMeters = newTarget.cumulativeDistanceMeters, targetCoordinate = newTarget.coordinate)
 
         routingJob?.cancel()
         val origin = location.latLon()
@@ -174,7 +177,7 @@ class RejoinController(private val routing: RoutingClient) {
             val route = withContext(Dispatchers.IO) { runCatching { routing.route(origin, newTarget.coordinate, valhalla) }.getOrNull() }
             if (target != newTarget) return@launch
             if (route == null || route.size < 2) {
-                display = RejoinDisplay(RejoinDisplay.Status.UNAVAILABLE, targetCumulativeDistanceMeters = newTarget.cumulativeDistanceMeters)
+                display = RejoinDisplay(RejoinDisplay.Status.UNAVAILABLE, targetCumulativeDistanceMeters = newTarget.cumulativeDistanceMeters, targetCoordinate = newTarget.coordinate)
                 return@launch
             }
             plan = withContext(Dispatchers.Default) { RejoinPlanner.plan(newTarget, route, settings) }
@@ -193,6 +196,8 @@ class RejoinController(private val routing: RoutingClient) {
             remainingToTrackMeters = progress.remainingToTrackMeters,
             routeCumulativeDistanceMeters = progress.routeCumulativeDistanceMeters,
             targetCumulativeDistanceMeters = plan.target.cumulativeDistanceMeters,
+            routePoints = plan.routePoints,
+            targetCoordinate = plan.target.coordinate,
         )
     }
 

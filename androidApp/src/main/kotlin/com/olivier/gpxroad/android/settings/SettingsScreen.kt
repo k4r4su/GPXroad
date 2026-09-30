@@ -56,6 +56,10 @@ fun SettingsScreen(settings: AppSettings, servers: ServerSettings, overpass: Ove
         }
 
         HorizontalDivider()
+        Section(stringResource(R.string.settings_ride))
+        RideSettingsSection(settings)
+
+        HorizontalDivider()
         Section(stringResource(R.string.settings_roadbook))
         Setting(stringResource(R.string.settings_light, settings.lightThreshold.roundToInt()), settings.lightThreshold, 10f..60f) {
             settings.updateThresholds(it, settings.markedThreshold, settings.hardThreshold, settings.veryHardThreshold)

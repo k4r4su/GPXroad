@@ -113,8 +113,6 @@
     <string name="lm_chapel">Kapelle</string>
     <string name="lm_place_of_worship">Gotteshaus</string>
     <string name="lm_wayside_shrine">Bildstock</string>
-    <string name="side_left">links</string>
-    <string name="side_right">rechts</string>
     <string name="side_away">%1$s entfernt</string>
     <string name="city_entry">Ortseingang %1$s</string>
     <string name="city_entry_elided">Ortseingang %1$s</string>
@@ -243,4 +241,26 @@
     <string name="track_max_slope">Max. Steigung</string>
     <string name="track_min_altitude">Min. Höhe</string>
     <string name="track_max_altitude">Max. Höhe</string>
+    <!-- Réglages et reprise du Ride -->
+    <string name="settings_ride">Ride</string>
+    <string name="settings_trace_color">Trackfarbe</string>
+    <string name="settings_trace_width">Stärke</string>
+    <string name="settings_chevron_spacing">Richtungspfeile</string>
+    <string name="settings_controls_side">Position der Bedienelemente</string>
+    <string name="settings_slope_warnings">Steigungswarnungen</string>
+    <string name="settings_slope_threshold">Auslöseschwelle</string>
+    <string name="settings_keep_awake">Bildschirm in Ride nicht sperren</string>
+    <string name="color_orange">Orange</string>
+    <string name="color_red">Rot</string>
+    <string name="color_cyan">Cyan</string>
+    <string name="color_yellow">Gelb</string>
+    <string name="color_magenta">Magenta</string>
+    <string name="color_lime">Limettengrün</string>
+    <string name="width_fine">Dünn</string>
+    <string name="width_normal">Normal</string>
+    <string name="width_thick">Dick</string>
+    <string name="side_left">Links</string>
+    <string name="side_right">Rechts</string>
+    <string name="rejoin_track">Zurück\nzum Track</string>
+    <string name="rejoin_track_at">Track in %1$s</string>
 </resources>

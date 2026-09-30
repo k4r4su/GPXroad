@@ -5,6 +5,8 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableDoubleStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import com.olivier.gpxroad.shared.ride.DirectionChevrons
+import com.olivier.gpxroad.shared.ride.SlopeAnalyzer
 import com.olivier.gpxroad.shared.roadbook.LandmarkCategory
 import com.olivier.gpxroad.shared.recording.RecordingConstants
 import com.olivier.gpxroad.shared.recording.RecordingDensity
@@ -56,7 +58,6 @@ class AppSettings(context: Context) {
         preferences.edit().putStringSet("landmarkCategories", landmarkCategories.map { it.key }.toSet()).apply()
     }
 
-    /** Carte du Ride : nord en haut (sinon cap en haut, le défaut de l'iPhone). */
     /** Densité des points enregistrés (Réglages > Enregistrement de la sortie, comme l'iPhone). */
     var recordingDensity by mutableStateOf(enumValueOrNull<RecordingDensity>(preferences.getString("recordingDensity", null)) ?: RecordingDensity.PRECIS)
         private set
@@ -77,12 +78,61 @@ class AppSettings(context: Context) {
         preferences.edit().putInt("unsavedRetention", value).apply()
     }
 
+    /** Carte du Ride : nord en haut (sinon cap en haut, le défaut de l'iPhone). */
     var rideNorthUp by mutableStateOf(preferences.getBoolean("rideNorthUp", false))
         private set
 
     fun updateRideNorthUp(value: Boolean) {
         rideNorthUp = value
         preferences.edit().putBoolean("rideNorthUp", value).apply()
+    }
+
+    // MARK: Ride (mêmes défauts que l'iPhone)
+
+    var traceColor by mutableStateOf(enumValueOrNull<TraceColor>(preferences.getString("traceColor", null)) ?: TraceColor.ORANGE)
+        private set
+    var traceWidth by mutableStateOf(enumValueOrNull<TraceWidth>(preferences.getString("traceWidth", null)) ?: TraceWidth.EPAIS)
+        private set
+    var chevronSpacing by mutableDoubleStateOf(preferences.getDouble("chevronSpacing", DirectionChevrons.SPACING_METERS_DEFAULT))
+        private set
+    var slopeWarningsEnabled by mutableStateOf(preferences.getBoolean("slopeWarnings", true))
+        private set
+    var slopeThreshold by mutableDoubleStateOf(preferences.getDouble("slopeThreshold", SlopeAnalyzer.THRESHOLD_PERCENT_DEFAULT))
+        private set
+    var controlsSide by mutableStateOf(enumValueOrNull<ControlsSide>(preferences.getString("controlsSide", null)) ?: ControlsSide.RIGHT)
+        private set
+    var keepScreenAwake by mutableStateOf(preferences.getBoolean("keepScreenAwake", true))
+        private set
+
+    fun updateTraceColor(value: TraceColor) {
+        traceColor = value
+        preferences.edit().putString("traceColor", value.name).apply()
+    }
+
+    fun updateTraceWidth(value: TraceWidth) {
+        traceWidth = value
+        preferences.edit().putString("traceWidth", value.name).apply()
+    }
+
+    fun updateChevronSpacing(value: Double) {
+        chevronSpacing = value
+        preferences.edit().putDouble("chevronSpacing", value).apply()
+    }
+
+    fun updateSlopeWarnings(enabled: Boolean, threshold: Double) {
+        slopeWarningsEnabled = enabled
+        slopeThreshold = threshold
+        preferences.edit().putBoolean("slopeWarnings", enabled).putDouble("slopeThreshold", threshold).apply()
+    }
+
+    fun updateControlsSide(value: ControlsSide) {
+        controlsSide = value
+        preferences.edit().putString("controlsSide", value.name).apply()
+    }
+
+    fun updateKeepScreenAwake(value: Boolean) {
+        keepScreenAwake = value
+        preferences.edit().putBoolean("keepScreenAwake", value).apply()
     }
 
     val roadbookSettings: RoadbookSettings

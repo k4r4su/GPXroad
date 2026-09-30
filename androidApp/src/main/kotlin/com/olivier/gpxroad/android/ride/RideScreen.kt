@@ -42,6 +42,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.olivier.gpxroad.android.R
 import com.olivier.gpxroad.android.data.AppSettings
+import com.olivier.gpxroad.android.data.ControlsSide
 import com.olivier.gpxroad.android.data.DistanceUnit
 import com.olivier.gpxroad.android.data.TrackLibrary
 import com.olivier.gpxroad.android.location.LocationTracker
@@ -53,9 +54,13 @@ import com.olivier.gpxroad.android.recording.RideRecorder
 import com.olivier.gpxroad.android.roadbook.ManeuverPictogram
 import com.olivier.gpxroad.android.roadbook.RoadbookTexts
 import com.olivier.gpxroad.android.roadbook.data.OffTrackState
+import com.olivier.gpxroad.android.roadbook.data.RejoinController
+import com.olivier.gpxroad.android.roadbook.data.RejoinDisplay
 import com.olivier.gpxroad.android.roadbook.data.RoadbookData
 import com.olivier.gpxroad.android.ui.Accent
 import com.olivier.gpxroad.shared.LatLon
+import com.olivier.gpxroad.shared.geodesicDistanceMeters
+import com.olivier.gpxroad.shared.ride.SlopeAnalyzer
 import com.olivier.gpxroad.shared.ride.RideCameraConstants
 import com.olivier.gpxroad.shared.roadbook.RejoinPlanner
 import com.olivier.gpxroad.shared.roadbook.RoadbookAnalyzer
@@ -84,11 +89,12 @@ fun RideScreen(
     camera: RideCameraState,
     location: LocationTracker,
     recorder: RideRecorder,
+    rejoin: RejoinController,
     onOpenLibrary: () -> Unit,
 ) {
     val view = LocalView.current
-    DisposableEffect(Unit) {
-        view.keepScreenOn = true
+    DisposableEffect(settings.keepScreenAwake) {
+        view.keepScreenOn = settings.keepScreenAwake
         onDispose { view.keepScreenOn = false }
     }
     val track = library.activeTrack
@@ -123,6 +129,25 @@ fun RideScreen(
     LaunchedEffect(fix, track?.traversalKey) {
         if (track != null && fix != null) offTrack = offTrack.updated(fix, track.latLons, track.cumulative)
     }
+    // Reprise automatique (it18/it33 iOS) : à plus de 100 m de la trace pendant 2 s, chemin par les
+    // routes vers le point le plus proche DEVANT soi, dessiné en pointillé bleu ; fini dès le retour
+    // sur la trace (hystérésis du hors trace).
+    var divergent by remember(track?.traversalKey) { mutableStateOf(false) }
+    LaunchedEffect(fix, track?.traversalKey) {
+        if (track == null || fix == null) return@LaunchedEffect
+        divergent = if (divergent) offTrack.isOffTrack else (projection?.distanceToTrackMeters ?: 0.0) > REJOIN_DIVERGENCE_METERS
+        rejoin.update(fix, track.latLons, track.cumulative, divergent, projection?.cumulativeDistanceMeters?.takeIf { !offTrack.isOffTrack }, roadbookSettings, valhalla)
+    }
+    DisposableEffect(track?.traversalKey) { onDispose { rejoin.reset() } }
+    val rejoinDisplay = rejoin.display?.takeIf { divergent }
+    val rejoinOverlay = rejoinDisplay?.let { d -> d.targetCoordinate?.let { RejoinOverlay(d.routePoints, it) } }
+
+    val slopeWarnings = remember(track?.traversalKey, settings.slopeWarningsEnabled, settings.slopeThreshold) {
+        if (track == null || !settings.slopeWarningsEnabled) emptyList()
+        else SlopeAnalyzer.steepGradeWarnings(track.latLons, track.points.map { it.elevation }, settings.slopeThreshold)
+    }
+    val controlsOnRight = settings.controlsSide == ControlsSide.RIGHT
+
     val nextIndex = projection?.let { p -> maneuvers.indexOfFirst { it.cumulativeDistanceMeters > p.cumulativeDistanceMeters }.takeIf { it >= 0 } }
     val nextDistance = nextIndex?.let { maneuvers[it].cumulativeDistanceMeters - projection.cumulativeDistanceMeters }
 
@@ -131,6 +156,10 @@ fun RideScreen(
             trackKey = track?.traversalKey,
             trackPoints = track?.latLons.orEmpty(),
             maneuvers = maneuvers,
+            traceStyle = TraceStyle(settings.traceColor.argb, settings.traceWidth.widthDp),
+            chevronSpacingMeters = settings.chevronSpacing,
+            slopeWarnings = slopeWarnings,
+            rejoin = rejoinOverlay,
             location = fix,
             northUp = settings.rideNorthUp,
             camera = camera,
@@ -149,14 +178,15 @@ fun RideScreen(
             }
         }
 
-        // Colonne de contrôles (droite) : panneau d'alerte au-dessus, jamais d'autre chose dans cette zone.
+        // Colonne de contrôles (côté réglable) : panneau d'alerte au-dessus, jamais d'autre chose dans cette zone.
         Column(
-            Modifier.align(Alignment.BottomEnd).padding(end = 16.dp, bottom = 16.dp).width(ColumnWidth),
+            Modifier.align(if (controlsOnRight) Alignment.BottomEnd else Alignment.BottomStart).padding(horizontal = 16.dp).padding(bottom = 16.dp).width(ColumnWidth),
             verticalArrangement = Arrangement.spacedBy(10.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
             if (track != null && fix != null) {
                 when {
+                    rejoinDisplay != null -> RejoinBanner(rejoinDisplay, fix, camera.courseDegrees)
                     offTrack.isOffTrack -> OffTrackChip(offTrack, fix, track.latLons, track.cumulative, camera.courseDegrees)
                     nextIndex != null && nextDistance != null && nextDistance <= RideCameraConstants.BANNER_ALERT_START_METERS ->
                         LateralBanner(maneuvers[nextIndex], nextDistance, nextIndex + 1, maneuvers.size, DistanceUnit.KM)
@@ -183,16 +213,18 @@ fun RideScreen(
         // sortie (même calque, comme l'iPhone : aucune nouvelle zone d'overlay).
         var finishing by remember { mutableStateOf(false) }
         Column(
-            Modifier.align(Alignment.BottomStart).padding(start = 16.dp, bottom = 16.dp),
+            Modifier.align(if (controlsOnRight) Alignment.BottomStart else Alignment.BottomEnd).padding(horizontal = 16.dp).padding(bottom = 16.dp),
             verticalArrangement = Arrangement.spacedBy(10.dp),
+            horizontalAlignment = if (controlsOnRight) Alignment.Start else Alignment.End,
         ) {
             RecordingControls(recorder) { finishing = true }
             Column(
                 Modifier.background(PanelBackground, PanelShape).padding(horizontal = 14.dp, vertical = 8.dp),
                 horizontalAlignment = Alignment.CenterHorizontally,
             ) {
-                Text("${camera.rawSpeedKmh.roundToInt()}", color = Color.White, fontSize = 34.sp, fontWeight = FontWeight.Black)
-                Text(stringResource(R.string.ride_speed_unit), color = Color.White.copy(alpha = 0.8f), style = MaterialTheme.typography.labelMedium)
+                val mph = settings.distanceUnit == DistanceUnit.MI
+                Text("${(if (mph) camera.rawSpeedKmh / 1.609344 else camera.rawSpeedKmh).roundToInt()}", color = Color.White, fontSize = 34.sp, fontWeight = FontWeight.Black)
+                Text(if (mph) "mph" else stringResource(R.string.ride_speed_unit), color = Color.White.copy(alpha = 0.8f), style = MaterialTheme.typography.labelMedium)
             }
         }
         if (recorder.wasRestoredAfterInterruption) {
@@ -203,6 +235,54 @@ fun RideScreen(
         if (finishing) EndRideDialog(recorder, library, track?.entry?.name) { finishing = false }
         // Premier suivi d'une trace : « Enregistrer cette sortie ? » (une fois par trace et par lancement).
         if (granted && track != null) RecordingPrompt(recorder, track.entry.id)
+    }
+}
+
+/** Écart à la trace au-delà duquel la reprise automatique se déclenche (après 2 s), comme l'iPhone. */
+private const val REJOIN_DIVERGENCE_METERS = 100.0
+private val RejoinTint = Color(0xD93A3480)
+
+/**
+ * Reprise automatique (`RejoinGuidanceBannerView` iOS), prioritaire dans la colonne : prochain virage
+ * du chemin et « Trace à … », ou « Rejoindre la trace » avec une flèche vers le point de retour.
+ */
+@Composable
+private fun RejoinBanner(display: RejoinDisplay, fix: android.location.Location, course: Double?) {
+    Column(
+        Modifier.width(ColumnWidth).background(RejoinTint, PanelShape).padding(vertical = 12.dp, horizontal = 6.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(6.dp),
+    ) {
+        val index = display.nextManeuverIndex
+        val turnDistance = display.distanceToNextManeuverMeters
+        val remaining = display.remainingToTrackMeters
+        if (index != null && turnDistance != null) {
+            ManeuverPictogram(display.maneuvers[index].checkpoint, Accent, Color.White, Modifier.size(40.dp))
+            Text(RoadbookTexts.countdown(turnDistance, DistanceUnit.KM), color = Color.White, fontWeight = FontWeight.Black, fontSize = 20.sp, maxLines = 1)
+            if (remaining != null) {
+                Text(stringResource(R.string.rejoin_track_at, RoadbookTexts.countdown(remaining, DistanceUnit.KM)), color = Color.White.copy(alpha = 0.85f), fontSize = 11.sp, fontWeight = FontWeight.Bold, textAlign = TextAlign.Center)
+            }
+        } else {
+            val target = display.targetCoordinate
+            val position = LatLon(fix.latitude, fix.longitude)
+            val relative = target?.let { ((RoadbookAnalyzer.bearing(position, it) - (course ?: 0.0)) % 360 + 540) % 360 - 180 } ?: 0.0
+            Canvas(Modifier.size(28.dp).rotate(relative.toFloat())) {
+                val path = Path().apply {
+                    moveTo(size.width / 2, 0f)
+                    lineTo(size.width, size.height)
+                    lineTo(size.width / 2, size.height * 0.72f)
+                    lineTo(0f, size.height)
+                    close()
+                }
+                drawPath(path, Color.White)
+            }
+            Text(
+                stringResource(R.string.rejoin_track),
+                color = Color.White, fontSize = 12.sp, fontWeight = FontWeight.Bold, textAlign = TextAlign.Center,
+            )
+            val distance = remaining ?: target?.let { geodesicDistanceMeters(position, it) }
+            if (distance != null) Text(RoadbookTexts.countdown(distance, DistanceUnit.KM), color = Color.White, fontSize = 18.sp, fontWeight = FontWeight.Black, maxLines = 1)
+        }
     }
 }
 

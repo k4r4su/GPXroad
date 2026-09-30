@@ -113,8 +113,6 @@
     <string name="lm_chapel">Capilla</string>
     <string name="lm_place_of_worship">Lugar de culto</string>
     <string name="lm_wayside_shrine">Oratorio</string>
-    <string name="side_left">a la izquierda</string>
-    <string name="side_right">a la derecha</string>
     <string name="side_away">a %1$s</string>
     <string name="city_entry">Entrada a %1$s</string>
     <string name="city_entry_elided">Entrada a %1$s</string>
@@ -243,4 +241,26 @@
     <string name="track_max_slope">Pendiente máx.</string>
     <string name="track_min_altitude">Altitud mín.</string>
     <string name="track_max_altitude">Altitud máx.</string>
+    <!-- Réglages et reprise du Ride -->
+    <string name="settings_ride">Ride</string>
+    <string name="settings_trace_color">Color de la ruta</string>
+    <string name="settings_trace_width">Grosor</string>
+    <string name="settings_chevron_spacing">Chevrones de dirección</string>
+    <string name="settings_controls_side">Posición de los controles</string>
+    <string name="settings_slope_warnings">Avisos de pendiente</string>
+    <string name="settings_slope_threshold">Umbral de activación</string>
+    <string name="settings_keep_awake">Evitar el reposo en Ride</string>
+    <string name="color_orange">Naranja</string>
+    <string name="color_red">Rojo</string>
+    <string name="color_cyan">Cian</string>
+    <string name="color_yellow">Amarillo</string>
+    <string name="color_magenta">Magenta</string>
+    <string name="color_lime">Verde lima</string>
+    <string name="width_fine">Fina</string>
+    <string name="width_normal">Normal</string>
+    <string name="width_thick">Gruesa</string>
+    <string name="side_left">Izquierda</string>
+    <string name="side_right">Derecha</string>
+    <string name="rejoin_track">Volver\na la ruta</string>
+    <string name="rejoin_track_at">Ruta a %1$s</string>
 </resources>

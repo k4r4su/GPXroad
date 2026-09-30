@@ -15,6 +15,8 @@ import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Canvas
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ImageBitmap
+import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.asAndroidBitmap
 import androidx.compose.ui.graphics.drawscope.CanvasDrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
@@ -34,9 +36,13 @@ import com.olivier.gpxroad.android.net.Http
 import com.olivier.gpxroad.android.roadbook.drawManeuverPictogram
 import com.olivier.gpxroad.android.ui.Accent
 import com.olivier.gpxroad.shared.LatLon
+import com.olivier.gpxroad.shared.ride.DirectionChevrons
 import com.olivier.gpxroad.shared.ride.RideCameraConstants
+import com.olivier.gpxroad.shared.ride.SlopeWarning
 import com.olivier.gpxroad.shared.ride.RideCameraMath
 import com.olivier.gpxroad.shared.roadbook.RoadbookManeuver
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import org.maplibre.android.MapLibre
 import org.maplibre.android.camera.CameraPosition
 import org.maplibre.android.camera.CameraUpdateFactory
@@ -56,18 +62,36 @@ import org.maplibre.geojson.FeatureCollection
 import org.maplibre.geojson.LineString
 import org.maplibre.geojson.Point
 
-/** Couleurs de la trace, comme `TraceAppearance` iOS (orange système, contour noir, épais). */
-private val TRACK_COLOR = android.graphics.Color.rgb(255, 149, 0)
-private const val TRACK_WIDTH = 6f
-private const val TRACK_CASING_WIDTH = TRACK_WIDTH + 3f
 private val POSITION_COLOR = android.graphics.Color.rgb(0, 122, 255)
+/** Chemin de reprise : bleu système en pointillé (comme l'iPhone), distinct de la trace. */
+private val REJOIN_COLOR = android.graphics.Color.rgb(0, 122, 255)
 
 private const val TRACK_SOURCE = "track-source"
+private const val CHEVRON_SOURCE = "chevron-source"
+private const val SLOPE_SOURCE = "slope-source"
+private const val REJOIN_SOURCE = "rejoin-source"
+private const val REJOIN_PIN_SOURCE = "rejoin-pin-source"
 private const val PINS_SOURCE = "pins-source"
 private const val POSITION_SOURCE = "position-source"
+private const val CHEVRON_ICON = "chevron-icon"
+private const val SLOPE_UP_ICON = "slope-up-icon"
+private const val SLOPE_DOWN_ICON = "slope-down-icon"
 
 /**
- * Carte du Ride (équivalent de `RideMapLibreView` iOS) : trace, épingles des virages (mêmes
+ * Apparence de la trace (`TraceAppearance` iOS) : couleur et épaisseur réglables, contour noir
+ * 3 dp plus large ; le chemin de reprise est 1,5 fois plus épais que la trace.
+ */
+data class TraceStyle(val color: Int, val widthDp: Float) {
+    val casingWidth: Float get() = widthDp + 3f
+    val rejoinWidth: Float get() = widthDp * 1.5f
+}
+
+/** Chemin de reprise dessiné (pointillé bleu) et son point d'arrivée sur la trace. */
+data class RejoinOverlay(val route: List<LatLon>, val target: LatLon)
+
+/**
+ * Carte du Ride (équivalent de `RideMapLibreView` iOS) : trace, chevrons de sens (plus espacés au
+ * dézoom, jamais masqués), panneaux de pente, chemin de reprise, épingles des virages (mêmes
  * pictogrammes que le Road Book), position, caméra qui suit — cap en haut (point ancré aux 3/4 de
  * la hauteur) ou nord en haut (point au centre). Un geste suspend le suivi 5 s.
  */
@@ -76,6 +100,10 @@ fun RideMap(
     trackKey: String?,
     trackPoints: List<LatLon>,
     maneuvers: List<RoadbookManeuver>,
+    traceStyle: TraceStyle,
+    chevronSpacingMeters: Double,
+    slopeWarnings: List<SlopeWarning>,
+    rejoin: RejoinOverlay?,
     location: Location?,
     northUp: Boolean,
     camera: RideCameraState,
@@ -91,6 +119,8 @@ fun RideMap(
     var map by remember { mutableStateOf<MapLibreMap?>(null) }
     var style by remember { mutableStateOf<Style?>(null) }
     var appliedCommand by remember { mutableStateOf(-1) }
+    /** Palier de zoom des chevrons (espacement minimal imposé par le zoom) : les chevrons ne sont recalculés que quand il change. */
+    var chevronZoomFloor by remember { mutableStateOf(0.0) }
 
     val lifecycle = LocalLifecycleOwner.current.lifecycle
     DisposableEffect(lifecycle) {
@@ -113,9 +143,12 @@ fun RideMap(
             loaded.addOnCameraMoveStartedListener { reason ->
                 if (reason == MapLibreMap.OnCameraMoveStartedListener.REASON_API_GESTURE) camera.onUserGesture()
             }
+            loaded.addOnCameraIdleListener {
+                chevronZoomFloor = DirectionChevrons.adaptiveSpacingMeters(0.0, loaded.cameraPosition.zoom)
+            }
             val json = (if (Http.isOnline(context)) RideMapStyle.vector(context) else null) ?: RideMapStyle.raster()
             loaded.setStyle(Style.Builder().fromJson(json)) { loadedStyle ->
-                addOverlayLayers(loadedStyle)
+                addOverlayLayers(loadedStyle, traceStyle, density)
                 style = loadedStyle
             }
             map = loaded
@@ -136,6 +169,60 @@ fun RideMap(
         } else {
             source.setGeoJson(Feature.fromGeometry(LineString.fromLngLats(trackPoints.map { Point.fromLngLat(it.longitude, it.latitude) })))
         }
+    }
+
+    // Apparence réglable (Réglages > Apparence) appliquée sans recharger le style.
+    LaunchedEffect(style, traceStyle) {
+        val loadedStyle = style ?: return@LaunchedEffect
+        (loadedStyle.getLayer("track-layer-casing") as? LineLayer)?.setProperties(PropertyFactory.lineWidth(traceStyle.casingWidth))
+        (loadedStyle.getLayer("track-layer") as? LineLayer)?.setProperties(PropertyFactory.lineColor(traceStyle.color), PropertyFactory.lineWidth(traceStyle.widthDp))
+        (loadedStyle.getLayer("rejoin-layer-casing") as? LineLayer)?.setProperties(PropertyFactory.lineWidth(traceStyle.casingWidth))
+        (loadedStyle.getLayer("rejoin-layer") as? LineLayer)?.setProperties(PropertyFactory.lineWidth(traceStyle.rejoinWidth))
+        loadedStyle.addImage(CHEVRON_ICON, chevronBitmap(traceStyle.color, density))
+    }
+
+    // Chevrons : seulement quand la trace ou l'espacement effectif change (jamais à chaque image).
+    LaunchedEffect(style, trackKey, chevronSpacingMeters, chevronZoomFloor) {
+        val source = style?.getSourceAs<GeoJsonSource>(CHEVRON_SOURCE) ?: return@LaunchedEffect
+        val zoom = map?.cameraPosition?.zoom ?: 15.0
+        val spacing = DirectionChevrons.adaptiveSpacingMeters(chevronSpacingMeters, zoom)
+        val features = withContext(Dispatchers.Default) {
+            DirectionChevrons.chevrons(trackPoints, spacing).map { chevron ->
+                Feature.fromGeometry(Point.fromLngLat(chevron.coordinate.longitude, chevron.coordinate.latitude)).apply {
+                    addNumberProperty("bearing", chevron.bearingDegrees)
+                }
+            }
+        }
+        source.setGeoJson(FeatureCollection.fromFeatures(features))
+    }
+
+    // Panneaux de pente (déjà calculés par l'appelant, seulement quand la trace ou le seuil change).
+    LaunchedEffect(style, slopeWarnings) {
+        val source = style?.getSourceAs<GeoJsonSource>(SLOPE_SOURCE) ?: return@LaunchedEffect
+        source.setGeoJson(
+            FeatureCollection.fromFeatures(
+                slopeWarnings.map { warning ->
+                    Feature.fromGeometry(Point.fromLngLat(warning.coordinate.longitude, warning.coordinate.latitude)).apply {
+                        addStringProperty("icon", if (warning.isClimbing) SLOPE_UP_ICON else SLOPE_DOWN_ICON)
+                        addStringProperty("label", "${warning.roundedPercent} %")
+                    }
+                },
+            ),
+        )
+    }
+
+    // Chemin de reprise (pointillé bleu) et son point d'arrivée.
+    LaunchedEffect(style, rejoin) {
+        val loadedStyle = style ?: return@LaunchedEffect
+        val route = rejoin?.route.orEmpty()
+        loadedStyle.getSourceAs<GeoJsonSource>(REJOIN_SOURCE)?.setGeoJson(
+            if (route.size < 2) FeatureCollection.fromFeatures(emptyList())
+            else FeatureCollection.fromFeature(Feature.fromGeometry(LineString.fromLngLats(route.map { Point.fromLngLat(it.longitude, it.latitude) }))),
+        )
+        loadedStyle.getSourceAs<GeoJsonSource>(REJOIN_PIN_SOURCE)?.setGeoJson(
+            rejoin?.target?.let { FeatureCollection.fromFeature(Feature.fromGeometry(Point.fromLngLat(it.longitude, it.latitude))) }
+                ?: FeatureCollection.fromFeatures(emptyList()),
+        )
     }
 
     // Épingles : une image par virage (le pictogramme d'un rond-point dépend de ses branches).
@@ -183,22 +270,80 @@ fun RideMap(
 private const val PIN_SIZE_DP = 40
 private const val CAMERA_ANIMATION_MILLIS = 900
 
-private fun addOverlayLayers(style: Style) {
+private fun addOverlayLayers(style: Style, trace: TraceStyle, density: Density) {
     style.addSource(GeoJsonSource(TRACK_SOURCE))
     style.addLayer(
         LineLayer("track-layer-casing", TRACK_SOURCE).withProperties(
             PropertyFactory.lineColor(android.graphics.Color.BLACK),
-            PropertyFactory.lineWidth(TRACK_CASING_WIDTH),
+            PropertyFactory.lineWidth(trace.casingWidth),
             PropertyFactory.lineCap(Property.LINE_CAP_ROUND),
             PropertyFactory.lineJoin(Property.LINE_JOIN_ROUND),
         ),
     )
     style.addLayer(
         LineLayer("track-layer", TRACK_SOURCE).withProperties(
-            PropertyFactory.lineColor(TRACK_COLOR),
-            PropertyFactory.lineWidth(TRACK_WIDTH),
+            PropertyFactory.lineColor(trace.color),
+            PropertyFactory.lineWidth(trace.widthDp),
             PropertyFactory.lineCap(Property.LINE_CAP_ROUND),
             PropertyFactory.lineJoin(Property.LINE_JOIN_ROUND),
+        ),
+    )
+    // Chevrons : suivent la carte (cap de la trace), contrairement aux panneaux de pente.
+    style.addImage(CHEVRON_ICON, chevronBitmap(trace.color, density))
+    style.addSource(GeoJsonSource(CHEVRON_SOURCE))
+    style.addLayer(
+        SymbolLayer("chevron-layer", CHEVRON_SOURCE).withProperties(
+            PropertyFactory.iconImage(CHEVRON_ICON),
+            PropertyFactory.iconRotate(Expression.get("bearing")),
+            PropertyFactory.iconRotationAlignment(Property.ICON_ROTATION_ALIGNMENT_MAP),
+            PropertyFactory.iconAllowOverlap(true),
+            PropertyFactory.iconIgnorePlacement(true),
+        ),
+    )
+    style.addSource(GeoJsonSource(REJOIN_SOURCE))
+    style.addLayer(
+        LineLayer("rejoin-layer-casing", REJOIN_SOURCE).withProperties(
+            PropertyFactory.lineColor(android.graphics.Color.BLACK),
+            PropertyFactory.lineWidth(trace.casingWidth),
+            PropertyFactory.lineCap(Property.LINE_CAP_ROUND),
+            PropertyFactory.lineJoin(Property.LINE_JOIN_ROUND),
+        ),
+    )
+    style.addLayer(
+        LineLayer("rejoin-layer", REJOIN_SOURCE).withProperties(
+            PropertyFactory.lineColor(REJOIN_COLOR),
+            PropertyFactory.lineWidth(trace.rejoinWidth),
+            PropertyFactory.lineDasharray(arrayOf(2f, 1f)),
+            PropertyFactory.lineJoin(Property.LINE_JOIN_ROUND),
+        ),
+    )
+    style.addSource(GeoJsonSource(REJOIN_PIN_SOURCE))
+    style.addLayer(
+        CircleLayer("rejoin-pin-layer", REJOIN_PIN_SOURCE).withProperties(
+            PropertyFactory.circleRadius(9f),
+            PropertyFactory.circleColor(REJOIN_COLOR),
+            PropertyFactory.circleStrokeColor(android.graphics.Color.WHITE),
+            PropertyFactory.circleStrokeWidth(2f),
+        ),
+    )
+    // Panneaux de pente : restent droits à l'écran, comme un vrai panneau au bord de la route.
+    style.addImage(SLOPE_UP_ICON, slopeBitmap(true, density))
+    style.addImage(SLOPE_DOWN_ICON, slopeBitmap(false, density))
+    style.addSource(GeoJsonSource(SLOPE_SOURCE))
+    style.addLayer(
+        SymbolLayer("slope-layer", SLOPE_SOURCE).withProperties(
+            PropertyFactory.iconImage(Expression.get("icon")),
+            PropertyFactory.iconRotationAlignment(Property.ICON_ROTATION_ALIGNMENT_VIEWPORT),
+            PropertyFactory.iconAllowOverlap(true),
+            PropertyFactory.iconIgnorePlacement(true),
+            PropertyFactory.textField(Expression.get("label")),
+            PropertyFactory.textSize(12f),
+            PropertyFactory.textOffset(arrayOf(0f, 1.6f)),
+            PropertyFactory.textColor(android.graphics.Color.BLACK),
+            PropertyFactory.textHaloColor(android.graphics.Color.WHITE),
+            PropertyFactory.textHaloWidth(1.5f),
+            PropertyFactory.textAllowOverlap(true),
+            PropertyFactory.textIgnorePlacement(true),
         ),
     )
     style.addSource(GeoJsonSource(PINS_SOURCE))
@@ -230,6 +375,43 @@ private fun pinBitmap(maneuver: RoadbookManeuver, sizePx: Float, density: Densit
         drawCircle(Color.White, radius - 1, Offset(radius, radius))
         drawCircle(Color.Black, radius - 2, Offset(radius, radius), style = Stroke(width = 3f))
         inset(sizePx * 0.16f) { drawManeuverPictogram(maneuver.checkpoint, Accent, Color.DarkGray, measurer) }
+    }
+    return image.asAndroidBitmap()
+}
+
+/** Petit chevron plein pointant vers le haut (nord) : `icon-rotate` = cap de la trace. Couleur de la trace, liseré sombre. */
+private fun chevronBitmap(color: Int, density: Density): Bitmap {
+    val side = with(density) { 22.dp.toPx() }
+    val image = ImageBitmap(side.toInt(), side.toInt())
+    CanvasDrawScope().draw(density, LayoutDirection.Ltr, Canvas(image), Size(side, side)) {
+        val path = Path().apply {
+            moveTo(side / 2, side * 0.18f)
+            lineTo(side * 0.82f, side * 0.78f)
+            lineTo(side * 0.18f, side * 0.78f)
+            close()
+        }
+        drawPath(path, Color(color))
+        drawPath(path, Color.Black.copy(alpha = 0.55f), style = Stroke(width = with(density) { 1.5.dp.toPx() }))
+    }
+    return image.asAndroidBitmap()
+}
+
+/** Panneau de pente (triangle jaune cerclé de noir, rampe montante ou descendante), comme l'iPhone. */
+private fun slopeBitmap(isClimbing: Boolean, density: Density): Bitmap {
+    val side = with(density) { 32.dp.toPx() }
+    val image = ImageBitmap(side.toInt(), side.toInt())
+    CanvasDrawScope().draw(density, LayoutDirection.Ltr, Canvas(image), Size(side, side)) {
+        val triangle = Path().apply {
+            moveTo(side / 2, side * 0.06f)
+            lineTo(side * 0.95f, side * 0.92f)
+            lineTo(side * 0.05f, side * 0.92f)
+            close()
+        }
+        drawPath(triangle, Color(0xFFFFCC00))
+        drawPath(triangle, Color.Black, style = Stroke(width = with(density) { 2.5.dp.toPx() }))
+        val (start, end) = if (isClimbing) Offset(side * 0.26f, side * 0.78f) to Offset(side * 0.74f, side * 0.40f)
+        else Offset(side * 0.26f, side * 0.40f) to Offset(side * 0.74f, side * 0.78f)
+        drawLine(Color.Black, start, end, strokeWidth = with(density) { 3.dp.toPx() }, cap = StrokeCap.Round)
     }
     return image.asAndroidBitmap()
 }

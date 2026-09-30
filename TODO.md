@@ -90,10 +90,17 @@ Sessions suivantes :
       l'émulateur avec un GPS rejoué (`geo fix` avec vitesse ; l'émulateur ignore le NMEA et ne
       donne pas de cap : le cap est déduit des positions quand le GPS ne le fournit pas) et sur la
       tablette (GPS réel, à l'arrêt).
-  - [ ] Reste pour la parité du Ride : chemin de reprise automatique dessiné sur la carte (100 m
-        pendant 2 s, bannière dédiée), « Reprendre ici » (tap sur la trace), contournement « Chemin
-        bloqué », chevrons de sens, avertissements de pente, thèmes de carte et réglages de zoom,
-        côté des contrôles, panneau de stats, enregistrement (session 4).
+  - [x] Reprise automatique du Ride (01/10) : à plus de 100 m pendant 2 s, chemin par les routes
+        dessiné en pointillé bleu jusqu'au point de retour, bandeau indigo prioritaire dans la
+        colonne (prochain virage du chemin + « Trace à … », ou flèche « Rejoindre la trace ») ;
+        chevrons de sens (`shared/ride/TrackDecorations`, plus espacés au dézoom), panneaux de pente
+        (seuil 8/10/12/15 %) ; Réglages > Ride : couleur/épaisseur de trace, chevrons, côté des
+        contrôles, pentes, écran allumé ; vitesse en mph si l'unité est en miles. Vérifié sur
+        l'émulateur (GPS simulé à 250 m de vosges-tour).
+  - [ ] Reste pour la parité du Ride : « Reprendre ici » (tap sur la trace), contournement « Chemin
+        bloqué », thèmes de carte et réglages de zoom, panneau de stats.
+  - Écart assumé : réglages de trace globaux (l'iPhone permet aussi couleur/épaisseur/chevrons par
+    trace).
 - [x] 3 — Réseau (faite avant la 2, voir ci-dessus).
 - [x] 4 — Enregistrement de la sortie (30/09) : `RideRecorder` unique pour le processus (indépendant
       des écrans), GPS tenu par un service de premier plan de type localisation (notification avec
