@@ -46,6 +46,10 @@ import com.olivier.gpxroad.android.data.DistanceUnit
 import com.olivier.gpxroad.android.data.TrackLibrary
 import com.olivier.gpxroad.android.location.LocationTracker
 import com.olivier.gpxroad.android.net.ServerSettings
+import com.olivier.gpxroad.android.recording.EndRideDialog
+import com.olivier.gpxroad.android.recording.RecordingControls
+import com.olivier.gpxroad.android.recording.RecordingPrompt
+import com.olivier.gpxroad.android.recording.RideRecorder
 import com.olivier.gpxroad.android.roadbook.ManeuverPictogram
 import com.olivier.gpxroad.android.roadbook.RoadbookTexts
 import com.olivier.gpxroad.android.roadbook.data.OffTrackState
@@ -79,6 +83,7 @@ fun RideScreen(
     data: RoadbookData,
     camera: RideCameraState,
     location: LocationTracker,
+    recorder: RideRecorder,
     onOpenLibrary: () -> Unit,
 ) {
     val view = LocalView.current
@@ -174,14 +179,30 @@ fun RideScreen(
             }
         }
 
-        // Vitesse (gauche), toujours du côté opposé aux contrôles.
+        // Vitesse (gauche), toujours du côté opposé aux contrôles, et au-dessus l'enregistrement de la
+        // sortie (même calque, comme l'iPhone : aucune nouvelle zone d'overlay).
+        var finishing by remember { mutableStateOf(false) }
         Column(
-            Modifier.align(Alignment.BottomStart).padding(start = 16.dp, bottom = 16.dp).background(PanelBackground, PanelShape).padding(horizontal = 14.dp, vertical = 8.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
+            Modifier.align(Alignment.BottomStart).padding(start = 16.dp, bottom = 16.dp),
+            verticalArrangement = Arrangement.spacedBy(10.dp),
         ) {
-            Text("${camera.rawSpeedKmh.roundToInt()}", color = Color.White, fontSize = 34.sp, fontWeight = FontWeight.Black)
-            Text(stringResource(R.string.ride_speed_unit), color = Color.White.copy(alpha = 0.8f), style = MaterialTheme.typography.labelMedium)
+            RecordingControls(recorder) { finishing = true }
+            Column(
+                Modifier.background(PanelBackground, PanelShape).padding(horizontal = 14.dp, vertical = 8.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+            ) {
+                Text("${camera.rawSpeedKmh.roundToInt()}", color = Color.White, fontSize = 34.sp, fontWeight = FontWeight.Black)
+                Text(stringResource(R.string.ride_speed_unit), color = Color.White.copy(alpha = 0.8f), style = MaterialTheme.typography.labelMedium)
+            }
         }
+        if (recorder.wasRestoredAfterInterruption) {
+            Box(Modifier.align(Alignment.TopCenter).padding(12.dp).background(PanelBackground, PanelShape).padding(horizontal = 16.dp, vertical = 10.dp)) {
+                Text(stringResource(R.string.recording_restored), color = Color.White, style = MaterialTheme.typography.bodyMedium, textAlign = TextAlign.Center)
+            }
+        }
+        if (finishing) EndRideDialog(recorder, library, track?.entry?.name) { finishing = false }
+        // Premier suivi d'une trace : « Enregistrer cette sortie ? » (une fois par trace et par lancement).
+        if (granted && track != null) RecordingPrompt(recorder, track.entry.id)
     }
 }
 

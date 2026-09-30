@@ -40,6 +40,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -49,11 +50,14 @@ import com.olivier.gpxroad.android.R
 import com.olivier.gpxroad.android.data.AppSettings
 import com.olivier.gpxroad.android.data.TrackEntry
 import com.olivier.gpxroad.android.data.TrackLibrary
+import com.olivier.gpxroad.android.recording.RideRecorder
+import com.olivier.gpxroad.android.recording.UnsavedRide
+import com.olivier.gpxroad.android.recording.shareGpx
 import com.olivier.gpxroad.android.roadbook.RoadbookTexts
 import com.olivier.gpxroad.shared.gpx.GpxParseException
-import kotlinx.coroutines.launch
 import java.text.DateFormat
 import java.util.Date
+import kotlinx.coroutines.launch
 
 /**
  * Bibliothèque (équivalent de `LibraryView` iOS) : import GPX, trace active (la SEULE que suivent
@@ -61,7 +65,7 @@ import java.util.Date
  * [pendingImport] : fichier GPX ouvert depuis une autre app (« Ouvrir avec GPXroad »).
  */
 @Composable
-fun LibraryScreen(library: TrackLibrary, settings: AppSettings, pendingImport: Uri?, onImportHandled: () -> Unit) {
+fun LibraryScreen(library: TrackLibrary, settings: AppSettings, recorder: RideRecorder, pendingImport: Uri?, onImportHandled: () -> Unit) {
     val context = LocalContext.current
     val snackbar = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
@@ -92,6 +96,13 @@ fun LibraryScreen(library: TrackLibrary, settings: AppSettings, pendingImport: U
 
     var renaming by remember { mutableStateOf<TrackEntry?>(null) }
     var deleting by remember { mutableStateOf<TrackEntry?>(null) }
+    /** Changer de trace pendant une sortie en cours n'est jamais silencieux (it29 iOS). */
+    var switching by remember { mutableStateOf<TrackEntry?>(null) }
+    fun activate(entry: TrackEntry) {
+        if (entry.id == library.activeTrackId) return
+        if (recorder.isInProgress && library.activeTrackId != null) switching = entry else library.setActive(entry.id)
+    }
+    val unsaved = recorder.unsavedRides.rides.sortedByDescending { it.startedMillis }
 
     Scaffold(
         snackbarHost = { SnackbarHost(snackbar) },
@@ -105,18 +116,39 @@ fun LibraryScreen(library: TrackLibrary, settings: AppSettings, pendingImport: U
     ) { padding ->
         Column(Modifier.fillMaxSize().padding(padding)) {
             Text(stringResource(R.string.library_title), style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Bold, modifier = Modifier.padding(16.dp))
-            if (library.tracks.isEmpty()) {
+            if (library.tracks.isEmpty() && unsaved.isEmpty()) {
                 Box(Modifier.fillMaxSize().padding(32.dp), contentAlignment = Alignment.Center) {
                     Text(stringResource(R.string.library_empty), style = MaterialTheme.typography.bodyLarge, textAlign = TextAlign.Center)
                 }
             } else {
                 LazyColumn(Modifier.fillMaxSize()) {
+                    if (unsaved.isNotEmpty()) {
+                        item(key = "unsaved-header") {
+                            Text(stringResource(R.string.unsaved_title), style = MaterialTheme.typography.titleSmall, color = UnsavedAmber, fontWeight = FontWeight.Bold, modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp))
+                        }
+                        items(unsaved, key = { "unsaved-" + it.id }) { ride ->
+                            UnsavedRow(
+                                ride = ride,
+                                onRecover = {
+                                    val text = runCatching { recorder.unsavedRides.file(ride).readText() }.getOrNull()
+                                    val result = text?.let { library.importText(it) }
+                                    if (result is TrackLibrary.ImportResult.Success) {
+                                        recorder.unsavedRides.delete(ride)
+                                        scope.launch { snackbar.showSnackbar(context.getString(R.string.library_imported, result.entry.name)) }
+                                    }
+                                },
+                                onDelete = { recorder.unsavedRides.delete(ride) },
+                            )
+                            HorizontalDivider()
+                        }
+                    }
                     items(library.tracks, key = { it.id }) { entry ->
                         TrackRow(
                             entry = entry,
                             isActive = entry.id == library.activeTrackId,
                             settings = settings,
-                            onActivate = { library.setActive(entry.id) },
+                            onActivate = { activate(entry) },
+                            onShare = { shareGpx(context, library.file(entry), entry.name) },
                             onReverse = { library.setReversed(entry.id, !entry.reversed) },
                             onRename = { renaming = entry },
                             onDelete = { deleting = entry },
@@ -138,6 +170,15 @@ fun LibraryScreen(library: TrackLibrary, settings: AppSettings, pendingImport: U
             dismissButton = { TextButton(onClick = { renaming = null }) { Text(stringResource(R.string.cancel)) } },
         )
     }
+    switching?.let { entry ->
+        AlertDialog(
+            onDismissRequest = { switching = null },
+            title = { Text(stringResource(R.string.switch_track_title)) },
+            text = { Text(stringResource(R.string.switch_track_message, recorder.pointCount, entry.name)) },
+            confirmButton = { TextButton(onClick = { library.setActive(entry.id); switching = null }) { Text(stringResource(R.string.switch_track_confirm)) } },
+            dismissButton = { TextButton(onClick = { switching = null }) { Text(stringResource(R.string.cancel)) } },
+        )
+    }
     deleting?.let { entry ->
         AlertDialog(
             onDismissRequest = { deleting = null },
@@ -154,6 +195,7 @@ private fun TrackRow(
     isActive: Boolean,
     settings: AppSettings,
     onActivate: () -> Unit,
+    onShare: () -> Unit,
     onReverse: () -> Unit,
     onRename: () -> Unit,
     onDelete: () -> Unit,
@@ -178,10 +220,27 @@ private fun TrackRow(
         Box {
             IconButton(onClick = { menu = true }) { Icon(Icons.Filled.MoreVert, contentDescription = stringResource(R.string.library_more)) }
             DropdownMenu(expanded = menu, onDismissRequest = { menu = false }) {
+                DropdownMenuItem(text = { Text(stringResource(R.string.share_gpx)) }, onClick = { menu = false; onShare() })
                 DropdownMenuItem(text = { Text(stringResource(R.string.library_reverse)) }, onClick = { menu = false; onReverse() })
                 DropdownMenuItem(text = { Text(stringResource(R.string.library_rename)) }, onClick = { menu = false; onRename() })
                 DropdownMenuItem(text = { Text(stringResource(R.string.library_delete), color = MaterialTheme.colorScheme.error) }, onClick = { menu = false; onDelete() })
             }
         }
+    }
+}
+
+/** Couleur des sorties à récupérer (ambre, comme l'iPhone). */
+private val UnsavedAmber = Color(0xFFFF9500)
+
+/** Sortie non enregistrée (copie de secours) : « Récupérer » l'ajoute à la Bibliothèque, ou la supprimer. */
+@Composable
+private fun UnsavedRow(ride: UnsavedRide, onRecover: () -> Unit, onDelete: () -> Unit) {
+    Row(Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp), verticalAlignment = Alignment.CenterVertically) {
+        Column(Modifier.weight(1f)) {
+            Text(RideRecorder.unsavedRideName(LocalContext.current, ride.startedMillis), style = MaterialTheme.typography.titleMedium)
+            Text(stringResource(R.string.unsaved_summary, ride.pointCount), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        }
+        TextButton(onClick = onRecover) { Text(stringResource(R.string.unsaved_recover), color = UnsavedAmber, fontWeight = FontWeight.Bold) }
+        TextButton(onClick = onDelete) { Text(stringResource(R.string.library_delete), color = MaterialTheme.colorScheme.error) }
     }
 }

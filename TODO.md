@@ -72,7 +72,23 @@ Sessions suivantes :
         bloqué », chevrons de sens, avertissements de pente, thèmes de carte et réglages de zoom,
         côté des contrôles, panneau de stats, enregistrement (session 4).
 - [x] 3 — Réseau (faite avant la 2, voir ci-dessus).
-- [ ] 4 — Enregistrement en arrière-plan, export/partage GPX, sorties non enregistrées, dossiers.
+- [x] 4 — Enregistrement de la sortie (30/09) : `RideRecorder` unique pour le processus (indépendant
+      des écrans), GPS tenu par un service de premier plan de type localisation (notification avec
+      « Pause »), densité Précis/Léger/Très léger/Ultra léger (règle partagée `shared/recording`),
+      journal point par point (`files/RideRecording/journal.jsonl`) — sortie retrouvée EN PAUSE après un
+      arrêt de l'app —, copie de secours tous les 10 points (« Sorties non enregistrées » : Récupérer /
+      Supprimer, limite réglable), bouton Enregistrer / REC / Pause au-dessus de la vitesse, « Terminer
+      la sortie » (nom « <trace suivie> – date », commentaire, enregistrée SANS remplacer la trace
+      suivie, partage du GPX, suppression confirmée), « Enregistrer cette sortie ? » au premier suivi,
+      confirmation pour changer de trace pendant une sortie, « Partager le GPX » de toute trace, GPX au
+      même format que l'export iOS (`GpxWriter` partagé). Vérifié sur l'émulateur avec un GPS rejoué :
+      49 points en 90 s app en arrière-plan écran éteint, arrêt forcé → 52 points retrouvés en pause,
+      reprise, enregistrement (GPX relu : 1 483 m pour 110 s à 50 km/h), récupération, suppression.
+  - [ ] Tablette : une vraie sortie enregistrée (le propriétaire).
+  - [ ] Reste : dossiers de la Bibliothèque, fiche trace (stats avancées), tracé de la sortie en cours
+        sur la carte.
+  - Écart assumé : tué par le système pendant l'enregistrement, le service ne redémarre pas seul
+    (`START_NOT_STICKY`) ; la sortie est retrouvée en pause au lancement, comme sur l'iPhone.
 - [ ] 5 — Aller à : recherche, guidage Valhalla, Domicile/Travail, signalements.
 - [ ] 6 — Cartes hors ligne, thèmes, PDF, tutoriel, finitions.
 - [ ] 7-8 — Retours terrain, stabilisation.

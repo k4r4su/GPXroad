@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copies temporaires partagées (« Partager le GPX ») : cache/exports seulement. -->
+<paths>
+    <cache-path name="exports" path="exports/" />
+</paths>

@@ -74,6 +74,15 @@ class TrackLibrary(private val context: Context) {
     fun import(uri: Uri): ImportResult {
         val text = runCatching { context.contentResolver.openInputStream(uri)?.use { it.readBytes().decodeToString() } }.getOrNull()
             ?: return ImportResult.Failure(null)
+        return importText(text, fallbackName = displayName(uri), activateIfNone = true)
+    }
+
+    /**
+     * Ajoute un GPX (fichier importé, sortie enregistrée, sortie récupérée). Le texte est copié tel
+     * quel. [activateIfNone] : devient la trace active s'il n'y en a aucune — jamais pour une sortie
+     * enregistrée, qui ne vole pas la trace suivie (comme l'iPhone).
+     */
+    fun importText(text: String, fallbackName: String? = null, activateIfNone: Boolean = false): ImportResult {
         val document = try {
             GpxParser.parse(text)
         } catch (error: GpxParseException) {
@@ -85,7 +94,7 @@ class TrackLibrary(private val context: Context) {
         val latLons = document.points.map { LatLon(it.latitude, it.longitude) }
         val entry = TrackEntry(
             id = id,
-            name = document.name ?: displayName(uri) ?: fileName,
+            name = document.name ?: fallbackName ?: fileName,
             fileName = fileName,
             importDateMillis = System.currentTimeMillis(),
             contentTimeIso = document.metadataTimeIso,
@@ -94,9 +103,12 @@ class TrackLibrary(private val context: Context) {
         )
         tracks = listOf(entry) + tracks
         saveIndex()
-        if (activeTrackId == null) setActive(entry.id)
+        if (activateIfNone && activeTrackId == null) setActive(entry.id)
         return ImportResult.Success(entry)
     }
+
+    /** Fichier GPX stocké (jamais renommé ni modifié). */
+    fun file(entry: TrackEntry): File = File(directory, entry.fileName)
 
     fun setActive(id: String?) {
         activeTrackId = id

@@ -359,6 +359,13 @@ gradle/, settings.gradle.kts, build.gradle.kts, gradlew   build Gradle (racine)
   caméra → zoom identique à `MLNZoomLevelForAltitude`) ; manœuvres = `RoadbookData.maneuvers`, la
   MÊME liste que le Road Book. Rejeu GPS sur l'émulateur : `adb emu geo fix <lon> <lat> <alt> <sat>
   <nœuds>` (le NMEA est ignoré, le cap vaut 0 : il est déduit des positions).
+  Enregistrement Android (`androidApp/.../recording/`) : mêmes règles que « Enregistrement de la
+  sortie » plus bas — `RideRecorder.get(context)` unique pour le processus (jamais lié à un écran),
+  GPS dans `RecordingService` (service de premier plan `foregroundServiceType="location"`, démarré
+  depuis l'écran : l'autorisation « pendant l'utilisation » suffit), journal JSONL point par point,
+  reprise EN PAUSE après un arrêt, secours tous les 10 points ; densité et écriture GPX partagées
+  (`shared/.../recording/`, `GpxWriter` = format de `GPXExporter` iOS). Partage : copie dans
+  `cache/exports` via `FileProvider` (`${applicationId}.files`).
   Vérification : émulateur `gpxroad_test` (GPS simulé par `adb emu geo fix <lon> <lat>`, format
   tablette par `wm size 1200x2000` + `wm density 240`, à remettre à zéro ensuite) et tablette réelle
   Lenovo YT-J706X en débogage Wi-Fi (le port change à chaque réactivation ; le serveur adb doit

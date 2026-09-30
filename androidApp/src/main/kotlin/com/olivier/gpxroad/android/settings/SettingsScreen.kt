@@ -1,7 +1,9 @@
 package com.olivier.gpxroad.android.settings
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -10,12 +12,14 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.RadioButton
 import androidx.compose.material3.SegmentedButton
 import androidx.compose.material3.SegmentedButtonDefaults
 import androidx.compose.material3.SingleChoiceSegmentedButtonRow
 import androidx.compose.material3.Slider
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
@@ -27,6 +31,8 @@ import com.olivier.gpxroad.android.data.DistanceUnit
 import com.olivier.gpxroad.android.net.OverpassClient
 import com.olivier.gpxroad.android.net.RoutingClient
 import com.olivier.gpxroad.android.net.ServerSettings
+import com.olivier.gpxroad.shared.recording.RecordingConstants
+import com.olivier.gpxroad.shared.recording.RecordingDensity
 import kotlin.math.roundToInt
 
 /** Réglages (équivalent partiel de `SettingsView` iOS) : ceux dont le Road Book a besoin aujourd'hui. */
@@ -75,6 +81,10 @@ fun SettingsScreen(settings: AppSettings, servers: ServerSettings, overpass: Ove
         OutlinedButton(onClick = settings::resetRoadbook) { Text(stringResource(R.string.settings_reset)) }
 
         HorizontalDivider()
+        Section(stringResource(R.string.settings_recording))
+        RecordingSection(settings)
+
+        HorizontalDivider()
         Section(stringResource(R.string.settings_landmarks))
         LandmarkCategoriesSection(settings)
 
@@ -105,4 +115,44 @@ private fun Setting(label: String, value: Double, range: ClosedFloatingPointRang
         Text(label, style = MaterialTheme.typography.bodyLarge)
         Slider(value = value.toFloat(), onValueChange = { onChange(it.roundToInt().toDouble()) }, valueRange = range)
     }
+}
+
+/** Réglages > Enregistrement de la sortie (comme l'iPhone) : densité des points, sauvegardes de secours. */
+@Composable
+private fun RecordingSection(settings: AppSettings) {
+    val labels = mapOf(
+        RecordingDensity.PRECIS to R.string.density_precis,
+        RecordingDensity.LEGER to R.string.density_leger,
+        RecordingDensity.TRES_LEGER to R.string.density_tres_leger,
+        RecordingDensity.ULTRA_LEGER to R.string.density_ultra_leger,
+    )
+    Column {
+        RecordingDensity.entries.forEach { density ->
+            Row(
+                Modifier.fillMaxWidth().clickable { settings.updateRecordingDensity(density) }.padding(vertical = 2.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                RadioButton(selected = settings.recordingDensity == density, onClick = { settings.updateRecordingDensity(density) })
+                Column {
+                    Text(stringResource(labels.getValue(density)), style = MaterialTheme.typography.bodyLarge)
+                    Text(
+                        stringResource(R.string.density_detail, density.minIntervalSeconds, density.minDistanceMeters),
+                        style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
+            }
+        }
+    }
+    Text(stringResource(R.string.settings_unsaved_retention), style = MaterialTheme.typography.bodyLarge)
+    val options = RecordingConstants.UNSAVED_RETENTION_OPTIONS
+    SingleChoiceSegmentedButtonRow(Modifier.fillMaxWidth()) {
+        options.forEachIndexed { index, count ->
+            SegmentedButton(
+                selected = settings.unsavedRetention == count,
+                onClick = { settings.updateUnsavedRetention(count) },
+                shape = SegmentedButtonDefaults.itemShape(index, options.size),
+            ) { Text("$count") }
+        }
+    }
+    Text(stringResource(R.string.settings_unsaved_footer), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
 }

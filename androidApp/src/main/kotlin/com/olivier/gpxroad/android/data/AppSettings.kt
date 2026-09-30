@@ -6,6 +6,8 @@ import androidx.compose.runtime.mutableDoubleStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import com.olivier.gpxroad.shared.roadbook.LandmarkCategory
+import com.olivier.gpxroad.shared.recording.RecordingConstants
+import com.olivier.gpxroad.shared.recording.RecordingDensity
 import com.olivier.gpxroad.shared.roadbook.RoadbookConstants
 import com.olivier.gpxroad.shared.roadbook.RoadbookSettings
 import com.olivier.gpxroad.shared.roadbook.TierThresholds
@@ -55,6 +57,26 @@ class AppSettings(context: Context) {
     }
 
     /** Carte du Ride : nord en haut (sinon cap en haut, le défaut de l'iPhone). */
+    /** Densité des points enregistrés (Réglages > Enregistrement de la sortie, comme l'iPhone). */
+    var recordingDensity by mutableStateOf(enumValueOrNull<RecordingDensity>(preferences.getString("recordingDensity", null)) ?: RecordingDensity.PRECIS)
+        private set
+    /** Sauvegardes de secours conservées dans « Sorties non enregistrées ». */
+    var unsavedRetention by mutableStateOf(
+        preferences.getInt("unsavedRetention", RecordingConstants.UNSAVED_RETENTION_DEFAULT).takeIf { it in RecordingConstants.UNSAVED_RETENTION_OPTIONS }
+            ?: RecordingConstants.UNSAVED_RETENTION_DEFAULT,
+    )
+        private set
+
+    fun updateRecordingDensity(value: RecordingDensity) {
+        recordingDensity = value
+        preferences.edit().putString("recordingDensity", value.name).apply()
+    }
+
+    fun updateUnsavedRetention(value: Int) {
+        unsavedRetention = value
+        preferences.edit().putInt("unsavedRetention", value).apply()
+    }
+
     var rideNorthUp by mutableStateOf(preferences.getBoolean("rideNorthUp", false))
         private set
 
