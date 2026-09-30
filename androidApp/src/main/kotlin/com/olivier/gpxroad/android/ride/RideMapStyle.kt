@@ -23,9 +23,12 @@ object RideMapStyle {
     private const val OSM_ATTRIBUTION = "© <a href=\"https://www.openstreetmap.org/copyright\">OpenStreetMap</a> contributors"
 
     /** Style du thème : vectoriel retouché par sa palette, ou Relief (raster OpenTopoMap). */
-    fun forTheme(context: Context, theme: MapTheme, online: Boolean): String {
+    fun forTheme(context: Context, theme: MapTheme, online: Boolean, offlineAvailable: Boolean = false): String {
         val flavor = theme.flavor
         return when {
+            // Hors réseau : le vectoriel si des zones sont gardées hors ligne (Relief n'en a pas :
+            // palette Standard), sinon le raster OSM du cache (comportement d'avant).
+            !online && offlineAvailable -> vector(context, flavor ?: MapColorFlavor.STANDARD) ?: raster()
             !online -> raster()
             flavor == null -> raster(OPENTOPOMAP_TILES, OPENTOPOMAP_ATTRIBUTION, 17)
             else -> vector(context, flavor) ?: raster()

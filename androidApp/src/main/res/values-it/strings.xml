@@ -383,4 +383,22 @@
     <string name="palette_auto">Automatico</string>
     <string name="palette_paper">Carta (chiaro)</string>
     <string name="palette_night">Scuro</string>
+    <!-- Cartes hors ligne -->
+    <string name="offline_title">Mappe offline</string>
+    <string name="offline_zones">Zone scaricate</string>
+    <string name="offline_none">Nessuna zona scaricata.</string>
+    <string name="offline_track_download">Salva la mappa offline (~%1$s)</string>
+    <string name="offline_track_ready">Mappa offline disponibile · %1$s</string>
+    <string name="offline_downloading">Scaricamento… %1$d %%</string>
+    <string name="offline_failed">Scaricamento interrotto — riprova con la rete.</string>
+    <string name="offline_track_hint">Corridoio di 1 km per lato della traccia. Senza rete, la mappa di Ride resta leggibile in questa zona.</string>
+    <string name="offline_around_me">Intorno alla mia posizione</string>
+    <string name="offline_radius">Raggio: %1$d km</string>
+    <string name="offline_max_zoom">Dettaglio massimo: livello %1$d</string>
+    <string name="offline_estimate">≈ %1$d tasselli · ~%2$s</string>
+    <string name="offline_too_large">Zona troppo grande — riduci il raggio o il dettaglio.</string>
+    <string name="offline_download">Scarica</string>
+    <string name="offline_no_position">Posizione GPS sconosciuta — apri Ride per trovarla.</string>
+    <string name="offline_circle_name">Intorno a %1$s · %2$d km</string>
+    <string name="offline_footer">I tasselli vettoriali servono per le tavolozze Standard, Contrasto elevato e Terroso. Rilievo non viene salvato offline: senza rete la mappa passa a Standard.</string>
 </resources>

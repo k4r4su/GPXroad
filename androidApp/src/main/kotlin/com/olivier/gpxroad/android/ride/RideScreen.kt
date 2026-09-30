@@ -48,6 +48,7 @@ import com.olivier.gpxroad.android.data.TrackLibrary
 import com.olivier.gpxroad.android.location.LocationTracker
 import com.olivier.gpxroad.android.nav.GoToPill
 import com.olivier.gpxroad.android.sync.SharedBlockageSync
+import com.olivier.gpxroad.android.offline.OfflineMaps
 import com.olivier.gpxroad.shared.ride.SharedBlockages
 import com.olivier.gpxroad.android.nav.NavDestination
 import com.olivier.gpxroad.android.nav.NavPanel
@@ -107,6 +108,7 @@ fun RideScreen(
     session: RideSession,
     nav: NavSession,
     blockageSync: SharedBlockageSync,
+    offline: OfflineMaps,
     onOpenLibrary: () -> Unit,
 ) {
     val view = LocalView.current
@@ -206,6 +208,7 @@ fun RideScreen(
             maneuvers = maneuvers,
             traceStyle = TraceStyle(settings.traceColor.argb, settings.traceWidth.widthDp),
             mapTheme = settings.mapTheme,
+            offlineAvailable = offline.hasZones,
             anchorY = settings.anchorY,
             chevronSpacingMeters = settings.chevronSpacing,
             slopeWarnings = slopeWarnings,

@@ -383,4 +383,22 @@
     <string name="palette_auto">Automatisch</string>
     <string name="palette_paper">Papier (hell)</string>
     <string name="palette_night">Dunkel</string>
+    <!-- Cartes hors ligne -->
+    <string name="offline_title">Offline-Karten</string>
+    <string name="offline_zones">Heruntergeladene Gebiete</string>
+    <string name="offline_none">Kein heruntergeladenes Gebiet.</string>
+    <string name="offline_track_download">Karte offline speichern (~%1$s)</string>
+    <string name="offline_track_ready">Offline-Karte verfügbar · %1$s</string>
+    <string name="offline_downloading">Wird geladen… %1$d %%</string>
+    <string name="offline_failed">Download unterbrochen — mit Netz erneut versuchen.</string>
+    <string name="offline_track_hint">1-km-Korridor auf beiden Seiten des Tracks. Ohne Netz bleibt die Ride-Karte in diesem Gebiet lesbar.</string>
+    <string name="offline_around_me">Um meine Position</string>
+    <string name="offline_radius">Radius: %1$d km</string>
+    <string name="offline_max_zoom">Maximale Detailstufe: %1$d</string>
+    <string name="offline_estimate">≈ %1$d Kacheln · ~%2$s</string>
+    <string name="offline_too_large">Gebiet zu groß — Radius oder Detail verringern.</string>
+    <string name="offline_download">Herunterladen</string>
+    <string name="offline_no_position">GPS-Position unbekannt — öffne Ride, um sie zu finden.</string>
+    <string name="offline_circle_name">Um %1$s · %2$d km</string>
+    <string name="offline_footer">Die Vektorkacheln dienen den Paletten Standard, Hoher Kontrast und Erdig. Relief wird nicht offline gespeichert: ohne Netz wechselt die Karte zu Standard.</string>
 </resources>

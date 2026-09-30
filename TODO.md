@@ -162,6 +162,16 @@ Sessions suivantes :
         panneaux d'entrée de ville en ligne, pagination), partage/impression. Vérifié sur
         l'émulateur (PDF de vosges-tour, 9 pages).
   - [x] Thèmes de carte (voir Ride).
+  - [x] Cartes hors ligne (01/10) : fiche d'une trace > « Garder la carte hors ligne » (couloir de
+        ±1 km, niveaux 10 à 14, estimation avant, progression, suppression) ; Réglages > Cartes hors
+        ligne (zones gardées, zone circulaire autour de sa position 1-200 km, détail 10-14,
+        estimation, plafond de 200 000 tuiles). Stockage hors ligne de MapLibre, tuiles vectorielles
+        (style Liberty d'OpenFreeMap comme référence : mêmes adresses que le style embarqué) ; hors
+        réseau, la carte du Ride garde le vectoriel. Géométrie partagée `shared/offline/OfflineArea`.
+        Vérifié sur l'émulateur : vosges-tour 13 Mo (estimé 9,4), mode avion, carte lisible au
+        milieu des Vosges (zone jamais affichée avant).
+  - Écarts assumés : zone circulaire autour de la position (pas de carte à déplacer comme
+    l'iPhone) ; Relief (raster) non gardé hors ligne — hors réseau la carte passe en Standard.
 - [ ] 7-8 — Retours terrain, stabilisation.
 
 ## Itération 34 — ronds-points sans ambiguïté, distances par paliers — v0.0.34

@@ -385,4 +385,22 @@
     <string name="palette_auto">Automatique</string>
     <string name="palette_paper">Papier (clair)</string>
     <string name="palette_night">Sombre</string>
+    <!-- Cartes hors ligne -->
+    <string name="offline_title">Cartes hors ligne</string>
+    <string name="offline_zones">Zones téléchargées</string>
+    <string name="offline_none">Aucune zone téléchargée.</string>
+    <string name="offline_track_download">Garder la carte hors ligne (~%1$s)</string>
+    <string name="offline_track_ready">Carte hors ligne disponible · %1$s</string>
+    <string name="offline_downloading">Téléchargement… %1$d %%</string>
+    <string name="offline_failed">Téléchargement interrompu — réessaie avec du réseau.</string>
+    <string name="offline_track_hint">Couloir de 1 km de chaque côté de la trace. Hors réseau, la carte du Ride reste lisible sur cette zone.</string>
+    <string name="offline_around_me">Autour de ma position</string>
+    <string name="offline_radius">Rayon : %1$d km</string>
+    <string name="offline_max_zoom">Détail maximal : niveau %1$d</string>
+    <string name="offline_estimate">≈ %1$d tuiles · ~%2$s</string>
+    <string name="offline_too_large">Zone trop grande — réduis le rayon ou le détail.</string>
+    <string name="offline_download">Télécharger</string>
+    <string name="offline_no_position">Position GPS inconnue — ouvre le Ride pour la trouver.</string>
+    <string name="offline_circle_name">Autour de %1$s · %2$d km</string>
+    <string name="offline_footer">Les tuiles vectorielles servent aux palettes Standard, Contraste élevé et Terreux. Relief n\'est pas gardé hors ligne : sans réseau, la carte passe en Standard.</string>
 </resources>

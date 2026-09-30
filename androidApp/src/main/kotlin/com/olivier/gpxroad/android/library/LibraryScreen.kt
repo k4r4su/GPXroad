@@ -53,6 +53,7 @@ import com.olivier.gpxroad.android.data.AppSettings
 import com.olivier.gpxroad.android.data.TrackEntry
 import com.olivier.gpxroad.android.data.TrackFolder
 import com.olivier.gpxroad.android.data.TrackLibrary
+import com.olivier.gpxroad.android.offline.OfflineMaps
 import com.olivier.gpxroad.android.recording.RideRecorder
 import com.olivier.gpxroad.android.recording.UnsavedRide
 import com.olivier.gpxroad.android.recording.shareGpx
@@ -72,7 +73,7 @@ private val UnsavedAmber = Color(0xFFFF9500)
  * dossier, suppression). [pendingImport] : fichier GPX ouvert depuis une autre app.
  */
 @Composable
-fun LibraryScreen(library: TrackLibrary, settings: AppSettings, recorder: RideRecorder, pendingImport: Uri?, onImportHandled: () -> Unit) {
+fun LibraryScreen(library: TrackLibrary, settings: AppSettings, recorder: RideRecorder, offline: OfflineMaps, pendingImport: Uri?, onImportHandled: () -> Unit) {
     val context = LocalContext.current
     val snackbar = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
@@ -201,6 +202,7 @@ fun LibraryScreen(library: TrackLibrary, settings: AppSettings, recorder: RideRe
                 entry = current,
                 library = library,
                 settings = settings,
+                offline = offline,
                 isActive = current.id == library.activeTrackId,
                 onDismiss = { opened = null },
                 onActivate = { activate(current) },

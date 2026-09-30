@@ -32,8 +32,16 @@ import com.olivier.gpxroad.android.data.AppSettings
 import com.olivier.gpxroad.android.data.DistanceUnit
 import com.olivier.gpxroad.android.data.TrackEntry
 import com.olivier.gpxroad.android.data.TrackLibrary
+import com.olivier.gpxroad.android.offline.OfflineMaps
+import com.olivier.gpxroad.android.offline.TrackOfflineRow
 import com.olivier.gpxroad.android.roadbook.RoadbookTexts
+import com.olivier.gpxroad.shared.LatLon
 import com.olivier.gpxroad.shared.track.TrackMetrics
+import com.olivier.gpxroad.shared.track.TrackSummary
+import com.olivier.gpxroad.shared.gpx.GpxPoint
+import androidx.compose.runtime.produceState
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import com.olivier.gpxroad.shared.track.TrackMetricsCalculator
 import kotlin.math.roundToInt
 
@@ -47,6 +55,7 @@ fun TrackSheet(
     entry: TrackEntry,
     library: TrackLibrary,
     settings: AppSettings,
+    offline: OfflineMaps,
     isActive: Boolean,
     onDismiss: () -> Unit,
     onActivate: () -> Unit,
@@ -56,9 +65,16 @@ fun TrackSheet(
     onMove: () -> Unit,
     onDelete: () -> Unit,
 ) {
-    val points = remember(entry.id) { library.document(entry)?.points.orEmpty() }
-    val summary = remember(entry.id) { TrackMetricsCalculator.summary(points) }
-    val metrics = remember(entry.id) { TrackMetricsCalculator.compute(points) }
+    // Lecture du GPX et calculs hors du fil principal : la feuille s'ouvre tout de suite.
+    val loaded by produceState<Triple<List<GpxPoint>, TrackSummary, TrackMetrics?>?>(null, entry.id) {
+        value = withContext(Dispatchers.Default) {
+            val points = library.document(entry)?.points.orEmpty()
+            Triple(points, TrackMetricsCalculator.summary(points), TrackMetricsCalculator.compute(points))
+        }
+    }
+    val points = loaded?.first.orEmpty()
+    val summary = loaded?.second ?: TrackSummary(entry.lengthMeters, 0.0)
+    val metrics = loaded?.third
     var showAdvanced by remember { mutableStateOf(false) }
     val unit = settings.distanceUnit
 
@@ -83,8 +99,12 @@ fun TrackSheet(
                     Text((if (showAdvanced) "▾ " else "▸ ") + stringResource(R.string.track_advanced))
                 }
                 if (showAdvanced) AdvancedGrid(metrics, unit)
-            } else {
+            } else if (loaded != null) {
                 Text(stringResource(R.string.track_advanced_unavailable), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant, textAlign = TextAlign.Center)
+            }
+            if (loaded != null) {
+                val latLons = remember(entry.id, points.size) { points.map { LatLon(it.latitude, it.longitude) } }
+                TrackOfflineRow(entry.id, entry.name, latLons, offline)
             }
             Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(10.dp)) {
                 if (!isActive) Button(onClick = { onActivate(); onDismiss() }, Modifier.fillMaxWidth()) { Text(stringResource(R.string.track_follow)) }

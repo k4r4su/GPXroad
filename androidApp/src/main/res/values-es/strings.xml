@@ -383,4 +383,22 @@
     <string name="palette_auto">Automático</string>
     <string name="palette_paper">Papel (claro)</string>
     <string name="palette_night">Oscuro</string>
+    <!-- Cartes hors ligne -->
+    <string name="offline_title">Mapas sin conexión</string>
+    <string name="offline_zones">Zonas descargadas</string>
+    <string name="offline_none">Ninguna zona descargada.</string>
+    <string name="offline_track_download">Guardar el mapa sin conexión (~%1$s)</string>
+    <string name="offline_track_ready">Mapa sin conexión disponible · %1$s</string>
+    <string name="offline_downloading">Descargando… %1$d %%</string>
+    <string name="offline_failed">Descarga interrumpida: vuelve a intentarlo con conexión.</string>
+    <string name="offline_track_hint">Corredor de 1 km a cada lado de la ruta. Sin red, el mapa de Ride sigue legible en esta zona.</string>
+    <string name="offline_around_me">Alrededor de mi posición</string>
+    <string name="offline_radius">Radio: %1$d km</string>
+    <string name="offline_max_zoom">Detalle máximo: nivel %1$d</string>
+    <string name="offline_estimate">≈ %1$d teselas · ~%2$s</string>
+    <string name="offline_too_large">Zona demasiado grande: reduce el radio o el detalle.</string>
+    <string name="offline_download">Descargar</string>
+    <string name="offline_no_position">Posición GPS desconocida: abre Ride para encontrarla.</string>
+    <string name="offline_circle_name">Alrededor de %1$s · %2$d km</string>
+    <string name="offline_footer">Las teselas vectoriales sirven para las paletas Estándar, Alto contraste y Terroso. Relieve no se guarda sin conexión: sin red, el mapa pasa a Estándar.</string>
 </resources>

@@ -383,4 +383,22 @@
     <string name="palette_auto">Automatic</string>
     <string name="palette_paper">Paper (light)</string>
     <string name="palette_night">Dark</string>
+    <!-- Cartes hors ligne -->
+    <string name="offline_title">Offline maps</string>
+    <string name="offline_zones">Downloaded areas</string>
+    <string name="offline_none">No downloaded area.</string>
+    <string name="offline_track_download">Keep the map offline (~%1$s)</string>
+    <string name="offline_track_ready">Offline map available · %1$s</string>
+    <string name="offline_downloading">Downloading… %1$d %%</string>
+    <string name="offline_failed">Download interrupted — try again with a connection.</string>
+    <string name="offline_track_hint">1 km corridor on each side of the track. Without network, the Ride map stays readable in this area.</string>
+    <string name="offline_around_me">Around my position</string>
+    <string name="offline_radius">Radius: %1$d km</string>
+    <string name="offline_max_zoom">Maximum detail: level %1$d</string>
+    <string name="offline_estimate">≈ %1$d tiles · ~%2$s</string>
+    <string name="offline_too_large">Area too large — reduce the radius or detail.</string>
+    <string name="offline_download">Download</string>
+    <string name="offline_no_position">GPS position unknown — open Ride to find it.</string>
+    <string name="offline_circle_name">Around %1$s · %2$d km</string>
+    <string name="offline_footer">Vector tiles serve the Standard, High contrast and Earthy palettes. Relief is not kept offline: without network, the map switches to Standard.</string>
 </resources>

@@ -114,6 +114,8 @@ fun RideMap(
     maneuvers: List<RoadbookManeuver>,
     traceStyle: TraceStyle,
     mapTheme: MapTheme,
+    /** Des zones hors ligne existent : sans réseau, garder le style vectoriel (tuiles gardées). */
+    offlineAvailable: Boolean,
     /** Position du point en cap-en-haut (fraction de la hauteur depuis le haut). */
     anchorY: Double,
     chevronSpacingMeters: Double,
@@ -193,11 +195,11 @@ fun RideMap(
 
     // Style du thème (Réglages > Carte) : le changer recharge le style ; les calques de l'app sont
     // recréés et toutes les données ci-dessous réappliquées (elles dépendent de `style`).
-    LaunchedEffect(map, mapTheme) {
+    LaunchedEffect(map, mapTheme, offlineAvailable) {
         val loadedMap = map ?: return@LaunchedEffect
         style = null
         val online = Http.isOnline(context)
-        val json = withContext(Dispatchers.IO) { RideMapStyle.forTheme(context, mapTheme, online) }
+        val json = withContext(Dispatchers.IO) { RideMapStyle.forTheme(context, mapTheme, online, offlineAvailable) }
         loadedMap.setStyle(Style.Builder().fromJson(json)) { loadedStyle ->
             addOverlayLayers(loadedStyle, traceStyle, density)
             style = loadedStyle

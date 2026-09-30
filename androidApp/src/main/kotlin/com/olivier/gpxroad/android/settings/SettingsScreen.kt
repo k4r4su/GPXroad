@@ -37,6 +37,9 @@ import com.olivier.gpxroad.android.net.OverpassClient
 import com.olivier.gpxroad.android.net.RoutingClient
 import com.olivier.gpxroad.android.net.ServerSettings
 import com.olivier.gpxroad.android.sync.SharedBlockageSync
+import com.olivier.gpxroad.android.offline.OfflineMaps
+import com.olivier.gpxroad.android.offline.OfflineSection
+import com.olivier.gpxroad.shared.LatLon
 import com.olivier.gpxroad.shared.recording.RecordingConstants
 import com.olivier.gpxroad.shared.roadbook.RoadbookPaletteSetting
 import com.olivier.gpxroad.shared.recording.RecordingDensity
@@ -44,7 +47,7 @@ import kotlin.math.roundToInt
 
 /** Réglages (équivalent partiel de `SettingsView` iOS) : ceux dont le Road Book a besoin aujourd'hui. */
 @Composable
-fun SettingsScreen(settings: AppSettings, servers: ServerSettings, overpass: OverpassClient, routing: RoutingClient, blockageSync: SharedBlockageSync) {
+fun SettingsScreen(settings: AppSettings, servers: ServerSettings, overpass: OverpassClient, routing: RoutingClient, blockageSync: SharedBlockageSync, offline: OfflineMaps, position: LatLon?) {
     val context = LocalContext.current
     val version = runCatching { context.packageManager.getPackageInfo(context.packageName, 0).versionName }.getOrNull() ?: "?"
     Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
@@ -69,6 +72,10 @@ fun SettingsScreen(settings: AppSettings, servers: ServerSettings, overpass: Ove
         HorizontalDivider()
         Section(stringResource(R.string.settings_map))
         MapCameraSection(settings)
+
+        HorizontalDivider()
+        Section(stringResource(R.string.offline_title))
+        OfflineSection(offline, position)
 
         HorizontalDivider()
         Section(stringResource(R.string.tab_goto))
