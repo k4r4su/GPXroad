@@ -38,6 +38,7 @@ import com.olivier.gpxroad.android.net.RoutingClient
 import com.olivier.gpxroad.android.net.ServerSettings
 import com.olivier.gpxroad.android.sync.SharedBlockageSync
 import com.olivier.gpxroad.shared.recording.RecordingConstants
+import com.olivier.gpxroad.shared.roadbook.RoadbookPaletteSetting
 import com.olivier.gpxroad.shared.recording.RecordingDensity
 import kotlin.math.roundToInt
 
@@ -79,6 +80,11 @@ fun SettingsScreen(settings: AppSettings, servers: ServerSettings, overpass: Ove
 
         HorizontalDivider()
         Section(stringResource(R.string.settings_roadbook))
+        SettingChoice(
+            stringResource(R.string.roadbook_palette), RoadbookPaletteSetting.entries, settings.roadbookPalette,
+            { stringResource(when (it) { RoadbookPaletteSetting.AUTOMATIC -> R.string.palette_auto; RoadbookPaletteSetting.PAPER -> R.string.palette_paper; RoadbookPaletteSetting.NIGHT -> R.string.palette_night }) },
+            settings::updateRoadbookPalette,
+        )
         Setting(stringResource(R.string.settings_light, settings.lightThreshold.roundToInt()), settings.lightThreshold, 10f..60f) {
             settings.updateThresholds(it, settings.markedThreshold, settings.hardThreshold, settings.veryHardThreshold)
         }

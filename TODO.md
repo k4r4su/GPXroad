@@ -155,6 +155,13 @@ Sessions suivantes :
     coup (l'iPhone disait la même consigne deux fois).
   - [ ] Reste : limitation de vitesse (Overpass), trafic, signalements partagés.
 - [ ] 6 — Cartes hors ligne, thèmes, PDF, tutoriel, finitions.
+  - [x] Road Book (01/10) : palette automatique papier le jour / sombre la nuit (lever et coucher
+        du soleil à la position, `shared/roadbook/RoadbookPalette`, réévaluée toutes les 5 min),
+        réglage Automatique / Papier / Sombre ; export PDF (A4 portrait/paysage, compact/confortable,
+        Cap en pictogramme ou degrés, km/mi, taille de police, colonnes Cumulé et Note, repères et
+        panneaux d'entrée de ville en ligne, pagination), partage/impression. Vérifié sur
+        l'émulateur (PDF de vosges-tour, 9 pages).
+  - [x] Thèmes de carte (voir Ride).
 - [ ] 7-8 — Retours terrain, stabilisation.
 
 ## Itération 34 — ronds-points sans ambiguïté, distances par paliers — v0.0.34

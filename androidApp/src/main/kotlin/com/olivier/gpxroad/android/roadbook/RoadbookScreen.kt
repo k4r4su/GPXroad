@@ -59,6 +59,11 @@ import com.olivier.gpxroad.android.data.AppSettings
 import com.olivier.gpxroad.android.data.DistanceUnit
 import com.olivier.gpxroad.android.data.LoadedTrack
 import com.olivier.gpxroad.android.data.ReadingMode
+import com.olivier.gpxroad.android.ui.RoadbookPaletteTheme
+import com.olivier.gpxroad.shared.roadbook.RoadbookPalette
+import com.olivier.gpxroad.shared.roadbook.RoadbookPaletteResolver
+import androidx.compose.runtime.produceState
+import kotlinx.coroutines.delay
 import com.olivier.gpxroad.android.data.TrackLibrary
 import com.olivier.gpxroad.android.location.LocationTracker
 import com.olivier.gpxroad.android.net.ServerSettings
@@ -102,6 +107,36 @@ fun RoadbookScreen(
         view.keepScreenOn = true
         onDispose { view.keepScreenOn = false }
     }
+    // Palette papier / sombre (automatique : lever et coucher du soleil à la position), réévaluée
+    // toutes les 5 minutes tant que l'écran reste ouvert.
+    val clock by produceState(System.currentTimeMillis()) {
+        while (true) {
+            delay(RoadbookPaletteResolver.REEVALUATION_INTERVAL_SECONDS * 1000L)
+            value = System.currentTimeMillis()
+        }
+    }
+    val fix = location.location
+    val palette = remember(clock, settings.roadbookPalette, fix != null) {
+        RoadbookPaletteResolver.resolve(
+            settings.roadbookPalette, clock, fix?.let { LatLon(it.latitude, it.longitude) },
+            java.util.Calendar.getInstance().get(java.util.Calendar.HOUR_OF_DAY),
+        )
+    }
+    RoadbookPaletteTheme(night = palette == RoadbookPalette.NIGHT) {
+        RoadbookContent(library, settings, servers, data, rejoin, location, onOpenLibrary)
+    }
+}
+
+@Composable
+private fun RoadbookContent(
+    library: TrackLibrary,
+    settings: AppSettings,
+    servers: ServerSettings,
+    data: RoadbookData,
+    rejoin: RejoinController,
+    location: LocationTracker,
+    onOpenLibrary: () -> Unit,
+) {
     val track = library.activeTrack
     if (track == null) {
         CenteredMessage(stringResource(R.string.no_track), stringResource(R.string.no_track_hint), stringResource(R.string.open_library), onOpenLibrary)
@@ -126,7 +161,7 @@ fun RoadbookScreen(
     val entries = remember(list, selection) { list?.let { RoadbookEntry.merge(it, selection.standalone) } }
 
     Column(Modifier.fillMaxSize()) {
-        Header(track, settings, onOpenLibrary)
+        Header(track, settings, entries, selection.attached, onOpenLibrary)
         LandmarkBanner(data.landmarkPhase) { data.retryLandmarks() }
         HorizontalDivider()
         when {
@@ -145,16 +180,23 @@ fun RoadbookScreen(
 }
 
 @Composable
-private fun Header(track: LoadedTrack, settings: AppSettings, onOpenLibrary: () -> Unit) {
+private fun Header(track: LoadedTrack, settings: AppSettings, entries: List<RoadbookEntry>?, attached: Map<Int, LandmarkInfo>, onOpenLibrary: () -> Unit) {
+    var exporting by remember { mutableStateOf(false) }
     Column(Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 10.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-        Text(
-            track.entry.name,
-            style = MaterialTheme.typography.titleLarge,
-            fontWeight = FontWeight.SemiBold,
-            maxLines = 1,
-            overflow = TextOverflow.Ellipsis,
-            modifier = Modifier.clickable(onClick = onOpenLibrary),
-        )
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Text(
+                track.entry.name,
+                style = MaterialTheme.typography.titleLarge,
+                fontWeight = FontWeight.SemiBold,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+                modifier = Modifier.weight(1f).clickable(onClick = onOpenLibrary),
+            )
+            if (entries != null) TextButton(onClick = { exporting = true }) { Text("PDF", fontWeight = FontWeight.Bold) }
+        }
+        if (exporting && entries != null) {
+            PdfExportDialog(track.entry.name, entries, attached, settings, onDismiss = { exporting = false })
+        }
         val modes = listOf(ReadingMode.GPS_ASSISTED to R.string.mode_gps, ReadingMode.LIST to R.string.mode_list)
         SingleChoiceSegmentedButtonRow(Modifier.fillMaxWidth()) {
             modes.forEachIndexed { index, (mode, label) ->

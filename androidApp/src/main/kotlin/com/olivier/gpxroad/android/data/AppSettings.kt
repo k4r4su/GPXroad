@@ -14,6 +14,7 @@ import com.olivier.gpxroad.shared.roadbook.LandmarkCategory
 import com.olivier.gpxroad.shared.recording.RecordingConstants
 import com.olivier.gpxroad.shared.recording.RecordingDensity
 import com.olivier.gpxroad.shared.roadbook.RoadbookConstants
+import com.olivier.gpxroad.shared.roadbook.RoadbookPaletteSetting
 import com.olivier.gpxroad.shared.roadbook.RoadbookSettings
 import com.olivier.gpxroad.shared.roadbook.TierThresholds
 
@@ -123,6 +124,24 @@ class AppSettings(context: Context) {
         private set
     var anchorY by mutableDoubleStateOf(preferences.getDouble("anchorY", RideCameraConstants.ANCHOR_Y_FRACTION_DEFAULT))
         private set
+
+    /** Options du dernier export PDF du Road Book (retrouvées au suivant, comme l'iPhone). */
+    var pdfOptionsJson by mutableStateOf(preferences.getString("pdfOptions", null))
+        private set
+
+    fun updatePdfOptionsJson(value: String) {
+        pdfOptionsJson = value
+        preferences.edit().putString("pdfOptions", value).apply()
+    }
+
+    /** Palette du Road Book : automatique (soleil), papier ou sombre. */
+    var roadbookPalette by mutableStateOf(enumValueOrNull<RoadbookPaletteSetting>(preferences.getString("roadbookPalette", null)) ?: RoadbookPaletteSetting.AUTOMATIC)
+        private set
+
+    fun updateRoadbookPalette(value: RoadbookPaletteSetting) {
+        roadbookPalette = value
+        preferences.edit().putString("roadbookPalette", value.name).apply()
+    }
 
     fun updateMapTheme(value: MapTheme) {
         mapTheme = value

@@ -355,4 +355,32 @@
     <string name="zoom_min">Eng (niedrige Geschwindigkeit): %1$s</string>
     <string name="zoom_max">Weit (hohe Geschwindigkeit): %1$s</string>
     <string name="settings_map">Karte und Kamera</string>
+    <!-- Export PDF et palette du Road Book -->
+    <string name="pdf_partial">Teilstrecke</string>
+    <string name="pdf_cumulative">Gesamt</string>
+    <string name="pdf_heading">Kurs</string>
+    <string name="pdf_degrees">Grad</string>
+    <string name="pdf_note">Notiz</string>
+    <string name="pdf_page">Seite %1$d/%2$d</string>
+    <string name="pdf_export">PDF-Export</string>
+    <string name="pdf_note_column">Notizspalte</string>
+    <string name="pdf_density">Dichte</string>
+    <string name="pdf_cumulative_column">Gesamtstrecke</string>
+    <string name="pdf_generate">Erzeugen und teilen</string>
+    <string name="pdf_orientation">Ausrichtung</string>
+    <string name="pdf_portrait">Hochformat</string>
+    <string name="pdf_landscape">Querformat</string>
+    <string name="pdf_compact">Kompakt</string>
+    <string name="pdf_comfortable">Komfortabel</string>
+    <string name="pdf_pictogram">Piktogramm</string>
+    <string name="pdf_small">Klein</string>
+    <string name="pdf_medium">Mittel</string>
+    <string name="pdf_large">Groß</string>
+    <string name="pdf_font_size">Schriftgröße</string>
+    <string name="pdf_unit">Einheit</string>
+    <string name="pdf_count">%1$d Manöver auf „%2$s“ erkannt.</string>
+    <string name="roadbook_palette">Roadbook-Palette</string>
+    <string name="palette_auto">Automatisch</string>
+    <string name="palette_paper">Papier (hell)</string>
+    <string name="palette_night">Dunkel</string>
 </resources>
