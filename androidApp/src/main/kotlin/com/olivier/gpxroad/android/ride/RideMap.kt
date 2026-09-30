@@ -8,6 +8,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
@@ -108,7 +109,10 @@ fun RideMap(
     northUp: Boolean,
     camera: RideCameraState,
     modifier: Modifier = Modifier,
+    /** Tap sur la carte : coordonnée et tolérance (m) équivalant à 36 dp au zoom courant. */
+    onMapTap: (LatLon, Double) -> Unit = { _, _ -> },
 ) {
+    val currentOnMapTap by rememberUpdatedState(onMapTap)
     val context = LocalContext.current
     val density = LocalDensity.current
     val measurer = rememberTextMeasurer()
@@ -142,6 +146,11 @@ fun RideMap(
             loaded.uiSettings.isCompassEnabled = false
             loaded.addOnCameraMoveStartedListener { reason ->
                 if (reason == MapLibreMap.OnCameraMoveStartedListener.REASON_API_GESTURE) camera.onUserGesture()
+            }
+            loaded.addOnMapClickListener { point ->
+                val metersPerPixel = loaded.projection.getMetersPerPixelAtLatitude(point.latitude)
+                currentOnMapTap(LatLon(point.latitude, point.longitude), metersPerPixel * RESUME_TAP_TOLERANCE_DP * density.density)
+                false
             }
             loaded.addOnCameraIdleListener {
                 chevronZoomFloor = DirectionChevrons.adaptiveSpacingMeters(0.0, loaded.cameraPosition.zoom)
@@ -268,6 +277,8 @@ fun RideMap(
 }
 
 private const val PIN_SIZE_DP = 40
+/** Tolérance du tap sur la trace (« Reprendre la trace ici »), comme les 36 points de l'iPhone. */
+private const val RESUME_TAP_TOLERANCE_DP = 36
 private const val CAMERA_ANIMATION_MILLIS = 900
 
 private fun addOverlayLayers(style: Style, trace: TraceStyle, density: Density) {

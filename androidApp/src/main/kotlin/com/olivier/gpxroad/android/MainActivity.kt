@@ -38,6 +38,7 @@ import com.olivier.gpxroad.android.recording.RideRecorder
 import com.olivier.gpxroad.android.roadbook.data.RejoinController
 import com.olivier.gpxroad.android.roadbook.data.RoadbookData
 import com.olivier.gpxroad.android.ride.RideCameraState
+import com.olivier.gpxroad.android.ride.RideSession
 import com.olivier.gpxroad.android.ride.RideScreen
 import com.olivier.gpxroad.android.roadbook.RoadbookScreen
 import com.olivier.gpxroad.android.settings.SettingsScreen
@@ -65,7 +66,7 @@ class MainActivity : ComponentActivity() {
         val servers = ServerSettings(applicationContext)
         val overpass = OverpassClient(applicationContext, servers)
         val routing = RoutingClient()
-        val services = AppServices(library, settings, location, servers, overpass, routing, RoadbookData(applicationContext, servers, overpass, routing), RejoinController(routing), RejoinController(routing), RideCameraState(), RideRecorder.get(applicationContext))
+        val services = AppServices(library, settings, location, servers, overpass, routing, RoadbookData(applicationContext, servers, overpass, routing), RejoinController(routing), RejoinController(routing), RideSession(routing), RideCameraState(), RideRecorder.get(applicationContext))
         setContent {
             GPXroadTheme {
                 GPXroadApp(services, incomingGpx) { incomingGpx = null }
@@ -97,6 +98,7 @@ private class AppServices(
     val rejoin: RejoinController,
     /** Reprise automatique du Ride (100 m pendant 2 s), distincte de celle du Road Book. */
     val rideRejoin: RejoinController,
+    val rideSession: RideSession,
     val rideCamera: RideCameraState,
     /** Enregistrement de la sortie : unique pour tout le processus, indépendant de l'activité. */
     val recorder: RideRecorder,
@@ -132,7 +134,7 @@ private fun GPXroadApp(services: AppServices, incomingGpx: Uri?, onImportHandled
     ) { padding ->
         Box(Modifier.fillMaxSize().padding(padding)) {
             when (tab) {
-                AppTab.RIDE -> RideScreen(library, settings, services.servers, services.roadbook, services.rideCamera, services.location, services.recorder, services.rideRejoin) { tab = AppTab.LIBRARY }
+                AppTab.RIDE -> RideScreen(library, settings, services.servers, services.roadbook, services.rideCamera, services.location, services.recorder, services.rideRejoin, services.rideSession) { tab = AppTab.LIBRARY }
                 AppTab.ROADBOOK -> RoadbookScreen(library, settings, services.servers, services.roadbook, services.rejoin, services.location) { tab = AppTab.LIBRARY }
                 AppTab.LIBRARY -> LibraryScreen(library, settings, services.recorder, incomingGpx, onImportHandled)
                 AppTab.SETTINGS -> SettingsScreen(settings, services.servers, services.overpass, services.routing)

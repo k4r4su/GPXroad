@@ -263,4 +263,26 @@
     <string name="side_right">Rechts</string>
     <string name="rejoin_track">Zurück\nzum Track</string>
     <string name="rejoin_track_at">Track in %1$s</string>
+    <!-- Mesures du Ride et « Reprendre la trace ici » -->
+    <string name="stats_title">Messwerte</string>
+    <string name="stats_speed">Geschwindigkeit</string>
+    <string name="stats_average">Durchschnitt</string>
+    <string name="stats_max">Max.</string>
+    <string name="stats_remaining">Verbleibend</string>
+    <string name="stats_covered">Zurückgelegt</string>
+    <string name="stats_arrival">Ankunft</string>
+    <string name="stats_time_remaining">Verbleibende Zeit</string>
+    <string name="stats_collapse">Messwerte einklappen</string>
+    <string name="stats_expand">Geschwindigkeit, für mehr Messwerte tippen</string>
+    <string name="stats_start_recording">Aufzeichnung starten</string>
+    <string name="stats_pause_recording">Pausieren</string>
+    <string name="stats_resume_recording">Aufzeichnung fortsetzen</string>
+    <string name="resume_title_preview">Track hier fortsetzen?</string>
+    <string name="resume_title_active">Wiedereinstieg läuft</string>
+    <string name="resume_confirm">Hier fortsetzen</string>
+    <string name="resume_cancel_active">Wiedereinstieg abbrechen</string>
+    <string name="resume_bird">%1$s Luftlinie</string>
+    <string name="resume_road">%1$s über die Straße</string>
+    <string name="resume_computing">Route wird berechnet…</string>
+    <string name="resume_network_error">Netz für die Route nötig — Luftlinie angezeigt</string>
 </resources>

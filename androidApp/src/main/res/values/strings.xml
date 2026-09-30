@@ -265,4 +265,26 @@
     <string name="side_right">Droite</string>
     <string name="rejoin_track">Rejoindre\nla trace</string>
     <string name="rejoin_track_at">Trace à %1$s</string>
+    <!-- Mesures du Ride et « Reprendre la trace ici » -->
+    <string name="stats_title">Mesures</string>
+    <string name="stats_speed">Vitesse</string>
+    <string name="stats_average">Moyenne</string>
+    <string name="stats_max">Max</string>
+    <string name="stats_remaining">Restant</string>
+    <string name="stats_covered">Parcouru</string>
+    <string name="stats_arrival">Arrivée</string>
+    <string name="stats_time_remaining">Durée restante</string>
+    <string name="stats_collapse">Replier les mesures</string>
+    <string name="stats_expand">Vitesse, toucher pour plus de mesures</string>
+    <string name="stats_start_recording">Démarrer l\'enregistrement</string>
+    <string name="stats_pause_recording">Mettre en pause</string>
+    <string name="stats_resume_recording">Reprendre l\'enregistrement</string>
+    <string name="resume_title_preview">Reprendre la trace ici ?</string>
+    <string name="resume_title_active">Reprise en cours</string>
+    <string name="resume_confirm">Reprendre ici</string>
+    <string name="resume_cancel_active">Annuler la reprise</string>
+    <string name="resume_bird">%1$s à vol d\'oiseau</string>
+    <string name="resume_road">%1$s par la route</string>
+    <string name="resume_computing">Calcul de l\'itinéraire…</string>
+    <string name="resume_network_error">Réseau requis pour l\'itinéraire — vol d\'oiseau affiché</string>
 </resources>

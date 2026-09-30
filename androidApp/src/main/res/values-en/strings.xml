@@ -263,4 +263,26 @@
     <string name="side_right">Right</string>
     <string name="rejoin_track">Rejoin\nthe track</string>
     <string name="rejoin_track_at">Track %1$s away</string>
+    <!-- Mesures du Ride et « Reprendre la trace ici » -->
+    <string name="stats_title">Stats</string>
+    <string name="stats_speed">Speed</string>
+    <string name="stats_average">Average</string>
+    <string name="stats_max">Max</string>
+    <string name="stats_remaining">Remaining</string>
+    <string name="stats_covered">Covered</string>
+    <string name="stats_arrival">Arrival</string>
+    <string name="stats_time_remaining">Time remaining</string>
+    <string name="stats_collapse">Collapse the stats</string>
+    <string name="stats_expand">Speed, tap for more stats</string>
+    <string name="stats_start_recording">Start recording</string>
+    <string name="stats_pause_recording">Pause</string>
+    <string name="stats_resume_recording">Resume recording</string>
+    <string name="resume_title_preview">Resume the track here?</string>
+    <string name="resume_title_active">Rejoining</string>
+    <string name="resume_confirm">Resume here</string>
+    <string name="resume_cancel_active">Cancel rejoin</string>
+    <string name="resume_bird">%1$s as the crow flies</string>
+    <string name="resume_road">%1$s by road</string>
+    <string name="resume_computing">Calculating route…</string>
+    <string name="resume_network_error">Network required for the route — straight line shown</string>
 </resources>

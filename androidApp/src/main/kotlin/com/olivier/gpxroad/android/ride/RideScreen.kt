@@ -70,8 +70,8 @@ import kotlinx.coroutines.delay
 import kotlin.math.roundToInt
 
 /** Fond des panneaux du Ride (équivalent de `ridePanelStyle` iOS) : sombre translucide, lisible au soleil. */
-private val PanelBackground = Color(0xD9202020)
-private val PanelShape = RoundedCornerShape(16.dp)
+internal val PanelBackground = Color(0xD9202020)
+internal val PanelShape = RoundedCornerShape(16.dp)
 private val ColumnWidth: Dp = 92.dp
 
 /**
@@ -90,6 +90,7 @@ fun RideScreen(
     location: LocationTracker,
     recorder: RideRecorder,
     rejoin: RejoinController,
+    session: RideSession,
     onOpenLibrary: () -> Unit,
 ) {
     val view = LocalView.current
@@ -135,12 +136,21 @@ fun RideScreen(
     var divergent by remember(track?.traversalKey) { mutableStateOf(false) }
     LaunchedEffect(fix, track?.traversalKey) {
         if (track == null || fix == null) return@LaunchedEffect
-        divergent = if (divergent) offTrack.isOffTrack else (projection?.distanceToTrackMeters ?: 0.0) > REJOIN_DIVERGENCE_METERS
+        session.onLocation(fix, track.traversalKey, track.cumulative.lastOrNull(), projection?.cumulativeDistanceMeters)
+        session.updateResume(fix, projection?.distanceToTrackMeters)
+        // Une reprise manuelle en cours prime : pas de reprise automatique en parallèle (comme l'iPhone).
+        divergent = session.manualResume == null &&
+            if (divergent) offTrack.isOffTrack else (projection?.distanceToTrackMeters ?: 0.0) > REJOIN_DIVERGENCE_METERS
         rejoin.update(fix, track.latLons, track.cumulative, divergent, projection?.cumulativeDistanceMeters?.takeIf { !offTrack.isOffTrack }, roadbookSettings, valhalla)
     }
     DisposableEffect(track?.traversalKey) { onDispose { rejoin.reset() } }
     val rejoinDisplay = rejoin.display?.takeIf { divergent }
-    val rejoinOverlay = rejoinDisplay?.let { d -> d.targetCoordinate?.let { RejoinOverlay(d.routePoints, it) } }
+    val manualResume = session.manualResume
+    val rejoinOverlay = when {
+        // Aperçu non routé : vol d'oiseau jusqu'au point touché.
+        manualResume != null -> RejoinOverlay(manualResume.route.ifEmpty { listOfNotNull(fix?.let { LatLon(it.latitude, it.longitude) }, manualResume.target) }, manualResume.target)
+        else -> rejoinDisplay?.let { d -> d.targetCoordinate?.let { RejoinOverlay(d.routePoints, it) } }
+    }
 
     val slopeWarnings = remember(track?.traversalKey, settings.slopeWarningsEnabled, settings.slopeThreshold) {
         if (track == null || !settings.slopeWarningsEnabled) emptyList()
@@ -164,7 +174,17 @@ fun RideScreen(
             northUp = settings.rideNorthUp,
             camera = camera,
             modifier = Modifier.fillMaxSize(),
+            onMapTap = { tap, tolerance ->
+                if (track != null) session.requestResume(tap, track.latLons, track.cumulative, tolerance, fix, valhalla)
+            },
         )
+        manualResume?.let { resume ->
+            ResumeCard(
+                resume, fix, camera.courseDegrees, settings.distanceUnit,
+                onConfirm = session::confirmResume, onCancel = session::cancelResume,
+                modifier = Modifier.align(Alignment.TopCenter).padding(12.dp),
+            )
+        }
 
         when {
             !granted -> CenterCard {
@@ -184,6 +204,17 @@ fun RideScreen(
             verticalArrangement = Arrangement.spacedBy(10.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
+            // « Me recentrer » EN HAUT de la colonne (ordre de l'iPhone) : son apparition ne décale
+            // jamais +/− sous le doigt (sinon le 2e tap sur « − » tombait sur lui).
+            val now by produceState(System.currentTimeMillis(), camera.lastGestureMillis) {
+                while (true) {
+                    value = System.currentTimeMillis()
+                    delay(500)
+                }
+            }
+            if (camera.isManualOverrideActive(now) || camera.manualDistanceMeters != null) {
+                ControlButton("◎", stringResource(R.string.ride_recenter)) { camera.recenter() }
+            }
             if (track != null && fix != null) {
                 when {
                     rejoinDisplay != null -> RejoinBanner(rejoinDisplay, fix, camera.courseDegrees)
@@ -198,33 +229,29 @@ fun RideScreen(
             }
             ControlButton("+", stringResource(R.string.ride_zoom_in)) { camera.zoomIn() }
             ControlButton("−", stringResource(R.string.ride_zoom_out)) { camera.zoomOut() }
-            val now by produceState(System.currentTimeMillis(), camera.lastGestureMillis) {
-                while (true) {
-                    value = System.currentTimeMillis()
-                    delay(500)
-                }
-            }
-            if (camera.isManualOverrideActive(now) || camera.manualDistanceMeters != null) {
-                ControlButton("◎", stringResource(R.string.ride_recenter)) { camera.recenter() }
-            }
         }
 
         // Vitesse (gauche), toujours du côté opposé aux contrôles, et au-dessus l'enregistrement de la
         // sortie (même calque, comme l'iPhone : aucune nouvelle zone d'overlay).
         var finishing by remember { mutableStateOf(false) }
+        var statsExpanded by remember { mutableStateOf(false) }
         Column(
             Modifier.align(if (controlsOnRight) Alignment.BottomStart else Alignment.BottomEnd).padding(horizontal = 16.dp).padding(bottom = 16.dp),
             verticalArrangement = Arrangement.spacedBy(10.dp),
             horizontalAlignment = if (controlsOnRight) Alignment.Start else Alignment.End,
         ) {
-            RecordingControls(recorder) { finishing = true }
-            Column(
-                Modifier.background(PanelBackground, PanelShape).padding(horizontal = 14.dp, vertical = 8.dp),
-                horizontalAlignment = Alignment.CenterHorizontally,
-            ) {
-                val mph = settings.distanceUnit == DistanceUnit.MI
-                Text("${(if (mph) camera.rawSpeedKmh / 1.609344 else camera.rawSpeedKmh).roundToInt()}", color = Color.White, fontSize = 34.sp, fontWeight = FontWeight.Black)
-                Text(if (mph) "mph" else stringResource(R.string.ride_speed_unit), color = Color.White.copy(alpha = 0.8f), style = MaterialTheme.typography.labelMedium)
+            if (statsExpanded) {
+                RideStatsPanel(session, recorder, camera.rawSpeedKmh, settings.distanceUnit, onCollapse = { statsExpanded = false }, onFinish = { finishing = true })
+            } else {
+                RecordingControls(recorder) { finishing = true }
+                val expandLabel = stringResource(R.string.stats_expand)
+                Column(
+                    Modifier.background(PanelBackground, PanelShape).clickable(onClickLabel = expandLabel) { statsExpanded = true }.padding(horizontal = 14.dp, vertical = 8.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                ) {
+                    Text(speedValue(camera.rawSpeedKmh, settings.distanceUnit), color = Color.White, fontSize = 34.sp, fontWeight = FontWeight.Black)
+                    Text(speedUnitLabel(settings.distanceUnit), color = Color.White.copy(alpha = 0.8f), style = MaterialTheme.typography.labelMedium)
+                }
             }
         }
         if (recorder.wasRestoredAfterInterruption) {

@@ -263,4 +263,26 @@
     <string name="side_right">Derecha</string>
     <string name="rejoin_track">Volver\na la ruta</string>
     <string name="rejoin_track_at">Ruta a %1$s</string>
+    <!-- Mesures du Ride et « Reprendre la trace ici » -->
+    <string name="stats_title">Datos</string>
+    <string name="stats_speed">Velocidad</string>
+    <string name="stats_average">Media</string>
+    <string name="stats_max">Máx.</string>
+    <string name="stats_remaining">Restante</string>
+    <string name="stats_covered">Recorrido</string>
+    <string name="stats_arrival">Llegada</string>
+    <string name="stats_time_remaining">Tiempo restante</string>
+    <string name="stats_collapse">Plegar los datos</string>
+    <string name="stats_expand">Velocidad, toca para más datos</string>
+    <string name="stats_start_recording">Iniciar la grabación</string>
+    <string name="stats_pause_recording">Pausar</string>
+    <string name="stats_resume_recording">Reanudar la grabación</string>
+    <string name="resume_title_preview">¿Reanudar la ruta aquí?</string>
+    <string name="resume_title_active">Reincorporación en curso</string>
+    <string name="resume_confirm">Reanudar aquí</string>
+    <string name="resume_cancel_active">Cancelar la reincorporación</string>
+    <string name="resume_bird">%1$s en línea recta</string>
+    <string name="resume_road">%1$s por carretera</string>
+    <string name="resume_computing">Calculando la ruta…</string>
+    <string name="resume_network_error">Se necesita red para la ruta: se muestra la línea recta</string>
 </resources>

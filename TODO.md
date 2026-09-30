@@ -97,8 +97,15 @@ Sessions suivantes :
         (seuil 8/10/12/15 %) ; Réglages > Ride : couleur/épaisseur de trace, chevrons, côté des
         contrôles, pentes, écran allumé ; vitesse en mph si l'unité est en miles. Vérifié sur
         l'émulateur (GPS simulé à 250 m de vosges-tour).
-  - [ ] Reste pour la parité du Ride : « Reprendre ici » (tap sur la trace), contournement « Chemin
-        bloqué », thèmes de carte et réglages de zoom, panneau de stats.
+  - [x] « Reprendre la trace ici » (01/10) : tap sur la trace (36 dp de tolérance), carte « Reprendre la
+        trace ici ? » (vol d'oiseau, distance par la route), confirmation, fin à 30 m du point ou dès
+        le retour sur la trace ; la reprise automatique se tait pendant ce temps. Panneau « Mesures »
+        en touchant la vitesse (moyenne, max, restant, % parcouru, arrivée et durée restante à la
+        moyenne des 5 dernières minutes, enregistrement, Terminer) — `shared/ride/RideStats`.
+        « Me recentrer » passé EN HAUT de la colonne (comme l'iPhone) : en apparaissant, il ne
+        décale plus « − » sous le doigt (le 2e tap sur « − » recentrait). Vérifié sur l'émulateur.
+  - [ ] Reste pour la parité du Ride : contournement « Chemin bloqué », thèmes de carte et
+        réglages de zoom.
   - Écart assumé : réglages de trace globaux (l'iPhone permet aussi couleur/épaisseur/chevrons par
     trace).
 - [x] 3 — Réseau (faite avant la 2, voir ci-dessus).
