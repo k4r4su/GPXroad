@@ -73,6 +73,7 @@ import com.olivier.gpxroad.shared.LatLon
 import com.olivier.gpxroad.shared.roadbook.LandmarkCheckpoint
 import com.olivier.gpxroad.shared.roadbook.LandmarkInfo
 import com.olivier.gpxroad.shared.roadbook.RoadbookEntry
+import com.olivier.gpxroad.shared.roadbook.RoadbookFocusRule
 import com.olivier.gpxroad.shared.roadbook.RoadbookLiveProgress
 import com.olivier.gpxroad.shared.roadbook.RoadbookManeuver
 import com.olivier.gpxroad.shared.roadbook.TrackGeometry
@@ -260,7 +261,7 @@ private fun LandmarkRow(landmark: LandmarkCheckpoint, distance: String) {
         Text(RoadbookTexts.emoji(landmark.info.category), fontSize = 30.sp)
         Column(Modifier.weight(1f)) {
             Text(RoadbookTexts.landmarkLabel(resources, landmark.info), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold, maxLines = 2)
-            Text(RoadbookTexts.landmarkDetail(resources, landmark.info), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 1)
+            Text(RoadbookTexts.landmarkDetail(resources, landmark.info), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 2)
         }
         Text(distance, fontSize = 22.sp, fontWeight = FontWeight.Bold)
     }
@@ -357,11 +358,16 @@ private fun GpsAssisted(
         rejoin.update(position, track.latLons, track.cumulative, offTrack.isOffTrack, current, settings.roadbookSettings, servers.valhalla)
     }
     val positions = remember(entries) { entries.map { it.cumulativeDistanceMeters } }
-    val progress = current?.let { RoadbookLiveProgress.next(positions, it) }
+    // Priorité au virage sur les repères de décor qui le précèdent de près (règle partagée, comme l'iPhone).
+    val speed = fix?.takeIf { it.hasSpeed() }?.speed?.toDouble()
+    val progress = current?.let { RoadbookFocusRule.focus(entries, RoadbookLiveProgress.next(positions, it), it, speed) }
+    val leading = progress?.leadingLandmarkIndex?.let { index ->
+        (entries.getOrNull(index) as? RoadbookEntry.Landmark)?.let { it.landmark to (progress.leadingLandmarkDistanceMeters ?: 0.0) }
+    }
     val rejoinDisplay = rejoin.display
     val upcoming = when {
         offTrack.isOffTrack && rejoinDisplay?.status == RejoinDisplay.Status.ROUTED -> rejoinSteps(rejoinDisplay, entries, attached)
-        progress != null && current != null -> upcomingSteps(entries, attached, progress.index, current)
+        progress != null && current != null -> upcomingSteps(entries, attached, progress.heroIndex, current)
         else -> emptyList()
     }
 
@@ -374,8 +380,8 @@ private fun GpsAssisted(
             Box(modifier, contentAlignment = Alignment.Center) {
                 when {
                     offTrack.isOffTrack -> RejoinHero(offTrack, rejoinDisplay, unit)
-                    progress != null -> when (val entry = entries[progress.index]) {
-                        is RoadbookEntry.Maneuver -> BigManeuverCard(entry.maneuver, progress.distanceRemainingMeters, unit, attached[entry.index])
+                    progress != null -> when (val entry = entries[progress.heroIndex]) {
+                        is RoadbookEntry.Maneuver -> BigManeuverCard(entry.maneuver, progress.distanceRemainingMeters, unit, attached[entry.index], leading)
                         is RoadbookEntry.Landmark -> BigLandmarkCard(entry.landmark, progress.distanceRemainingMeters, unit)
                     }
                     fix == null -> Text(stringResource(R.string.waiting_gps), style = MaterialTheme.typography.titleLarge, textAlign = TextAlign.Center)
@@ -401,10 +407,12 @@ private fun GpsAssisted(
 }
 
 @Composable
-private fun BigManeuverCard(maneuver: RoadbookManeuver, remainingMeters: Double, unit: DistanceUnit, landmark: LandmarkInfo?) {
+private fun BigManeuverCard(maneuver: RoadbookManeuver, remainingMeters: Double, unit: DistanceUnit, landmark: LandmarkInfo?, leading: Pair<LandmarkCheckpoint, Double>? = null) {
     val resources = LocalContext.current.resources
     val details = listOfNotNull(
         RoadbookTexts.roundaboutDetail(resources, maneuver.checkpoint),
+        // Repère de décor juste avant le virage : « ⛪ Église Saint-Martin à gauche · 150 m ».
+        leading?.let { (checkpoint, distance) -> "${RoadbookTexts.emoji(checkpoint.info.category)} ${RoadbookTexts.landmarkDisplayLabel(resources, checkpoint.info)} · ${RoadbookTexts.countdown(distance, unit)}" },
         landmark?.let { RoadbookTexts.landmarkDisplayLabel(resources, it) },
     )
     BigCard(
@@ -594,8 +602,8 @@ private fun UpcomingManeuverRow(maneuver: RoadbookManeuver, rank: Int, landmark:
         PictogramWithLandmark(maneuver, landmark, 52)
         Column(Modifier.weight(1f)) {
             Text(RoadbookTexts.instruction(resources, maneuver.checkpoint), fontSize = 20.sp, fontWeight = FontWeight.SemiBold, maxLines = 2)
-            RoadbookTexts.roundaboutDetail(resources, maneuver.checkpoint)?.let { Text(it, style = MaterialTheme.typography.bodyMedium, maxLines = 1) }
-            landmark?.let { Text(RoadbookTexts.landmarkDisplayLabel(resources, it), style = MaterialTheme.typography.bodyMedium, maxLines = 1) }
+            RoadbookTexts.roundaboutDetail(resources, maneuver.checkpoint)?.let { Text(it, style = MaterialTheme.typography.bodyMedium, maxLines = 2) }
+            landmark?.let { Text(RoadbookTexts.landmarkDisplayLabel(resources, it), style = MaterialTheme.typography.bodyMedium, maxLines = 2) }
         }
         Column(horizontalAlignment = Alignment.End) {
             Text(RoadbookTexts.countdown(distance, unit), fontSize = 26.sp, fontWeight = FontWeight.Bold)

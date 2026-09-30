@@ -23,6 +23,9 @@ struct RoadbookFocusedView: View {
     /// Index du prochain élément dans `entries` (`RoadbookLiveProgress.nextEntry`).
     let currentEntryIndex: Int?
     let distanceRemainingMeters: Double?
+    /// Repère de décor juste avant le virage affiché en grand (it34, `RoadbookFocusRule`) : montré
+    /// en ligne secondaire de la carte du virage plutôt qu'en grande carte à lui seul.
+    var leadingLandmark: RoadbookLeadingLandmark? = nil
     /// Position actuelle projetée sur la trace — distance "dans combien" des éléments suivants.
     let currentCumulativeDistanceMeters: Double?
     let unit: DistanceUnit
@@ -173,9 +176,9 @@ struct RoadbookFocusedView: View {
             switch entries[currentEntryIndex] {
             case .maneuver(let current, _):
                 if isLandscape {
-                    RoadbookBigManeuverCardLandscape(maneuver: current, distanceRemainingMeters: distanceRemainingMeters, unit: unit, landmark: landmarks[current.id] ?? nil)
+                    RoadbookBigManeuverCardLandscape(maneuver: current, distanceRemainingMeters: distanceRemainingMeters, unit: unit, landmark: landmarks[current.id] ?? nil, leading: leadingLandmark)
                 } else {
-                    RoadbookBigManeuverCard(maneuver: current, distanceRemainingMeters: distanceRemainingMeters, unit: unit, landmark: landmarks[current.id] ?? nil)
+                    RoadbookBigManeuverCard(maneuver: current, distanceRemainingMeters: distanceRemainingMeters, unit: unit, landmark: landmarks[current.id] ?? nil, leading: leadingLandmark)
                 }
             case .landmark(let landmark):
                 RoadbookBigLandmarkCard(landmark: landmark, distanceRemainingMeters: distanceRemainingMeters, unit: unit, isLandscape: isLandscape)
@@ -256,17 +259,17 @@ private struct RoadbookBigLandmarkCard: View {
                             .layoutPriority(1)
                     }
                     .layoutPriority(1)
-                    HStack(alignment: .firstTextBaseline, spacing: 12) {
-                        Text(landmark.info.localizedLabel)
-                            .font(.system(size: 34, weight: .bold, design: .rounded))
-                            .lineLimit(1)
-                            .minimumScaleFactor(0.5)
-                            .layoutPriority(1)
-                        Text(RoadbookLandmarkRowText.detail(landmark.info))
-                            .font(.title3)
-                            .foregroundStyle(.secondary)
-                            .lineLimit(1)
-                            .minimumScaleFactor(0.7)
+                    // Nom et détail côte à côte s'ils tiennent, sinon le détail passe dessous (it34 :
+                    // « Église · à… » coupé à côté d'un nom long).
+                    ViewThatFits(in: .horizontal) {
+                        HStack(alignment: .firstTextBaseline, spacing: 12) {
+                            landscapeName
+                            landscapeDetail
+                        }
+                        VStack(spacing: 0) {
+                            landscapeName
+                            landscapeDetail
+                        }
                     }
                 }
                 .padding(.horizontal, 20)
@@ -284,6 +287,20 @@ private struct RoadbookBigLandmarkCard: View {
         }
         .buttonStyle(.plain)
         .accessibilityLabel(String(localized: "Prochain repère : \(landmark.info.displayLabel), dans \(unit.countdownString(fromMeters: distanceRemainingMeters))", bundle: .appLanguage))
+    }
+
+    private var landscapeName: some View {
+        Text(landmark.info.localizedLabel)
+            .font(.system(size: 34, weight: .bold, design: .rounded))
+            .lineLimit(1)
+            .minimumScaleFactor(0.6)
+    }
+
+    private var landscapeDetail: some View {
+        Text(RoadbookLandmarkRowText.detail(landmark.info))
+            .font(.title3)
+            .foregroundStyle(.secondary)
+            .lineLimit(1)
     }
 
     private func distanceText(size: CGFloat) -> some View {
@@ -367,6 +384,7 @@ private struct RoadbookBigManeuverCard: View {
     let distanceRemainingMeters: Double
     let unit: DistanceUnit
     let landmark: RoadbookLandmarkInfo?
+    var leading: RoadbookLeadingLandmark? = nil
 
     /// Spec "roadbook-jump-to-map" — retour terrain : "clic sur un virage... aller dans l'onglet
     /// Ride pour voir de quel virage on parle". `AppNavigationState` reste le SEUL point de
@@ -427,6 +445,14 @@ private struct RoadbookBigManeuverCard: View {
                         .lineLimit(2)
                         .minimumScaleFactor(0.7)
                 }
+                if let leading {
+                    Text(leading.text(unit: unit))
+                        .font(.title3.bold())
+                        .foregroundStyle(.orange)
+                        .multilineTextAlignment(.center)
+                        .lineLimit(2)
+                        .minimumScaleFactor(0.7)
+                }
                 if let landmark {
                     Text(landmark.displayLabel)
                         .font(.title3.bold())
@@ -457,6 +483,7 @@ private struct RoadbookBigManeuverCardLandscape: View {
     let distanceRemainingMeters: Double
     let unit: DistanceUnit
     let landmark: RoadbookLandmarkInfo?
+    var leading: RoadbookLeadingLandmark? = nil
 
     /// Spec "roadbook-jump-to-map" — voir `RoadbookBigManeuverCard` (portrait) pour le détail.
     @EnvironmentObject private var navigationState: AppNavigationState
@@ -470,9 +497,22 @@ private struct RoadbookBigManeuverCardLandscape: View {
         .buttonStyle(.plain)
     }
 
+    /// Lignes secondaires, au plus deux (hauteur de la carte paysage) : route de sortie d'un
+    /// rond-point, repère de décor juste avant, repère du carrefour.
+    private var secondaryLines: [(text: String, isLandmark: Bool)] {
+        var lines: [(String, Bool)] = []
+        if let detail = maneuver.checkpoint.roundaboutDetail { lines.append((detail, false)) }
+        if let leading { lines.append((leading.text(unit: unit), true)) }
+        if let landmark { lines.append((landmark.displayLabel, true)) }
+        return Array(lines.prefix(2))
+    }
+
+    /// It34 (retour terrain, Ferrette : « le texte est tronqué ») : le texte passait ENTRE la flèche
+    /// et la distance, sur ~150 pt (« Chapelle Notre-Dame-des-Anges à… », rond-point en petits
+    /// caractères). Désormais sous la distance, sur toute la largeur restante ; flèche et distance
+    /// gardent leur taille (demande du propriétaire), le cap rejoint la ligne de l'instruction.
     private var cardContent: some View {
-        HStack(spacing: 24) {
-            // It33 : flèche et distance agrandies à la hauteur réelle de la carte paysage.
+        HStack(alignment: .center, spacing: 24) {
             ZStack(alignment: .bottomTrailing) {
                 RoadbookManeuverIcon(checkpoint: maneuver.checkpoint, size: 150)
                     .foregroundStyle(Color.accentColor)
@@ -483,46 +523,35 @@ private struct RoadbookBigManeuverCardLandscape: View {
                 }
             }
 
-            // Fix "roadbook-landscape-tier-label-truncated" (it25, retour terrain avec capture :
-            // "Virage prononcé" tronqué en "Virage pr...") — agrandi une seconde fois par erreur
-            // en même temps que le pictogramme/la distance ; la demande portait explicitement sur
-            // "la flèche" et "la distance", pas ce texte. Revenu à sa taille d'origine
-            // (`.headline`, qui tenait déjà correctement) + `minimumScaleFactor` en filet de
-            // sécurité plutôt qu'une troncature "..." si jamais l'espace redevient juste.
-            VStack(alignment: .leading, spacing: 4) {
-                Text(maneuver.checkpoint.instructionLabel)
-                    .font(.system(.title2, design: .rounded).bold())
-                    .lineLimit(2)
-                    .minimumScaleFactor(0.6)
-                if let detail = maneuver.checkpoint.roundaboutDetail {
-                    Text(detail)
-                        .font(.headline)
-                        .lineLimit(2)
+            VStack(alignment: .leading, spacing: 2) {
+                Text(unit.countdownString(fromMeters: distanceRemainingMeters))
+                    .font(.system(size: 96, weight: .heavy, design: .rounded))
+                    .monospacedDigit()
+                    .minimumScaleFactor(0.4)
+                    .lineLimit(1)
+                HStack(alignment: .firstTextBaseline, spacing: 12) {
+                    Text(maneuver.checkpoint.instructionLabel)
+                        .font(.system(.title2, design: .rounded).bold())
+                        .lineLimit(1)
                         .minimumScaleFactor(0.7)
+                        .layoutPriority(1)
+                    Text("Cap \(Int(maneuver.headingDegrees.rounded()))°")
+                        .font(.subheadline.monospacedDigit())
+                        .foregroundStyle(.secondary)
+                        .lineLimit(1)
                 }
-                if let landmark {
-                    Text(landmark.displayLabel)
+                ForEach(Array(secondaryLines.enumerated()), id: \.offset) { _, line in
+                    Text(line.text)
                         .font(.headline)
-                        .foregroundStyle(.orange)
-                        .lineLimit(2)
-                        .minimumScaleFactor(0.7)
+                        .foregroundStyle(line.isLandmark ? Color.orange : Color.primary)
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.75)
                 }
-                Text("Cap \(Int(maneuver.headingDegrees.rounded()))°")
-                    .font(.subheadline.monospacedDigit())
-                    .foregroundStyle(.secondary)
             }
-
-            Spacer(minLength: 12)
-
-            Text(unit.countdownString(fromMeters: distanceRemainingMeters))
-                .font(.system(size: 96, weight: .heavy, design: .rounded))
-                .monospacedDigit()
-                .minimumScaleFactor(0.4)
-                .lineLimit(1)
-                .layoutPriority(1)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .layoutPriority(1)
         }
-        .padding(.leading, 20)
-        .padding(.trailing, 20)
+        .padding(.horizontal, 20)
     }
 }
 
@@ -581,8 +610,9 @@ private struct RoadbookUpcomingRow: View {
                     Text(landmark.displayLabel)
                         .font(.subheadline)
                         .foregroundStyle(.orange)
-                        .lineLimit(1)
-                        .minimumScaleFactor(0.8)
+                        .lineLimit(2)
+                        .minimumScaleFactor(0.85)
+                        .fixedSize(horizontal: false, vertical: true)
                 }
             }
 
@@ -622,10 +652,12 @@ private struct RoadbookUpcomingLandmarkRow: View {
                 RoadbookLandmarkIcon(category: landmark.info.category, size: 28)
                     .frame(width: 72)
                 VStack(alignment: .leading, spacing: 1) {
+                    // Deux lignes plutôt qu'une coupure (« Église Saint-B… », retour terrain it34).
                     Text(landmark.info.localizedLabel)
                         .font(.body.bold())
-                        .lineLimit(1)
-                        .minimumScaleFactor(0.7)
+                        .lineLimit(2)
+                        .minimumScaleFactor(0.85)
+                        .fixedSize(horizontal: false, vertical: true)
                     Text(RoadbookLandmarkRowText.detail(landmark.info))
                         .font(.caption)
                         .foregroundStyle(.secondary)
@@ -735,3 +767,17 @@ private struct RoadbookFocusStatusView: View {
         }
     }
 }
+
+/// Repère de décor affiché dans la carte du virage qui le suit de près (it34, `RoadbookFocusRule`).
+struct RoadbookLeadingLandmark: Equatable {
+    let landmark: RoadbookLandmarkCheckpoint
+    let distanceMeters: Double
+
+    /// « ⛪ Église Saint-Martin à gauche · 150 m »
+    func text(unit: DistanceUnit) -> String {
+        "\(landmark.info.category.emoji) \(landmark.info.displayLabel) · \(unit.countdownString(fromMeters: distanceMeters))"
+    }
+
+    static func == (lhs: Self, rhs: Self) -> Bool { lhs.landmark.id == rhs.landmark.id && lhs.distanceMeters == rhs.distanceMeters }
+}
+

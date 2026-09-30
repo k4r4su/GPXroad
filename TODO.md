@@ -22,6 +22,14 @@ secret dans le dépôt ».
 - **À mesurer avant** : charge et bande passante du serveur de la maison si tous les utilisateurs
   y passent (Overpass surtout) ; exposition de l'IP de la maison.
 
+## 30/09 — virage prioritaire sur les repères de décor, textes non tronqués (iOS + Android)
+
+Retour terrain (Ferrette, wahlbach-moulin-bas) : église, borne et station en 160 m juste avant un
+virage → on ne voyait pas le virage en paysage ; textes tronqués. Règle choisie avec le propriétaire :
+repères de décor seulement, virage à ≤ 300 m ou 15 s. Détail : RoadBook/CLAUDE.md.
+- [ ] Terrain : Ferrette (paysage) — le virage apparaît dès ~300 m avec « ⛪ Église … · 50 m » dessous.
+- [ ] Terrain : plus aucun texte coupé en paysage (virages, ronds-points, repères, liste Ensuite).
+
 ## Android — session 1 : socle, Bibliothèque, Road Book GPS — v0.0.34 (Android)
 
 Plan validé le 29/09 (6 à 8 sessions pour la parité). Règle : toute logique pure nouvelle va dans

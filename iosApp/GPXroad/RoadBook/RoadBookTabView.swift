@@ -110,9 +110,10 @@ struct RoadBookTabView: View {
 
     /// Prochain élément (virage OU repère, le plus proche) — `nil` tant que le mode Assisté GPS
     /// n'a pas de position exploitable.
-    private var liveEntry: (index: Int, distanceRemainingMeters: Double)? {
+    private var liveEntry: RoadbookLiveProgress.Focus? {
         guard let current = liveCumulativeDistanceMeters else { return nil }
-        return RoadbookLiveProgress.nextEntry(entries: entries, currentCumulativeDistanceMeters: current)
+        let speed = locationManager.currentLocation.flatMap { $0.speed >= 0 ? $0.speed : nil }
+        return RoadbookLiveProgress.focus(entries: entries, currentCumulativeDistanceMeters: current, speedMetersPerSecond: speed)
     }
 
     /// Hors trace (it30) : même règle que le Ride (`OffTrackDetector`), mis à jour à chaque
@@ -473,6 +474,11 @@ struct RoadBookTabView: View {
                 entries: entries,
                 currentEntryIndex: liveEntry?.index,
                 distanceRemainingMeters: liveEntry?.distanceRemainingMeters,
+                leadingLandmark: liveEntry.flatMap { focus in
+                    guard let index = focus.leadingLandmarkIndex, let distance = focus.leadingLandmarkDistanceMeters,
+                          entries.indices.contains(index), case .landmark(let landmark) = entries[index] else { return nil }
+                    return RoadbookLeadingLandmark(landmark: landmark, distanceMeters: distance)
+                },
                 currentCumulativeDistanceMeters: liveCumulativeDistanceMeters,
                 unit: settings.roadbookPDFOptions.distanceUnit,
                 hasLocationFix: locationManager.currentLocation != nil,

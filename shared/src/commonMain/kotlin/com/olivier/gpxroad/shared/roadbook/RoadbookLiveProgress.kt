@@ -43,3 +43,56 @@ object OffTrackDetector {
             distanceToTrackMeters > RoadbookConstants.OFF_TRACK_ENTER_METERS
         }
 }
+
+/**
+ * Ce que le Road Book assisté affiche EN GRAND : [heroIndex] (rang dans la liste virages + repères)
+ * et sa distance ; [leadingLandmarkIndex] : repère de décor passé en ligne secondaire de la carte
+ * du virage (« ⛪ Église à 150 m »), `null` sinon.
+ */
+data class RoadbookFocus(
+    val heroIndex: Int,
+    val distanceRemainingMeters: Double,
+    val leadingLandmarkIndex: Int? = null,
+    val leadingLandmarkDistanceMeters: Double? = null,
+)
+
+/**
+ * Priorité au virage (retour terrain du 30/09, Ferrette : église, borne, station puis virage en
+ * 160 m — « on n'a pas le temps de voir le virage »). Quand le prochain élément est un repère de
+ * DÉCOR et qu'un virage suit à moins de [TURN_PRIORITY_MIN_METERS] ou de [TURN_PRIORITY_SECONDS]
+ * à la vitesse actuelle (le plus grand des deux), seulement séparé d'autres repères de décor, la
+ * grande carte montre le virage ; le repère le plus proche devient sa ligne secondaire. Les repères
+ * qui demandent une action (panneaux, feux, passage à niveau, entrée d'agglomération, ralentisseur)
+ * gardent leur grande carte.
+ */
+object RoadbookFocusRule {
+    const val TURN_PRIORITY_MIN_METERS = 300.0
+    const val TURN_PRIORITY_SECONDS = 15.0
+
+    /** Repère de décor : ne demande aucune action au conducteur. */
+    fun isDecor(category: LandmarkCategory): Boolean =
+        category.group != LandmarkGroup.SIGN && category != LandmarkCategory.SPEED_BUMP
+
+    /**
+     * @param progress résultat de [RoadbookLiveProgress.next] sur les positions de [entries].
+     * @param speedMetersPerSecond vitesse actuelle (`null` ou négative : distance minimale seule).
+     */
+    fun focus(entries: List<RoadbookEntry>, progress: LiveProgress?, currentCumulativeDistanceMeters: Double, speedMetersPerSecond: Double?): RoadbookFocus? {
+        progress ?: return null
+        val plain = RoadbookFocus(progress.index, progress.distanceRemainingMeters)
+        val first = entries.getOrNull(progress.index) as? RoadbookEntry.Landmark ?: return plain
+        if (!isDecor(first.landmark.info.category)) return plain
+        val window = maxOf(TURN_PRIORITY_MIN_METERS, (speedMetersPerSecond ?: 0.0).coerceAtLeast(0.0) * TURN_PRIORITY_SECONDS)
+        for (j in progress.index + 1 until entries.size) {
+            when (val entry = entries[j]) {
+                is RoadbookEntry.Landmark -> if (!isDecor(entry.landmark.info.category)) return plain
+                is RoadbookEntry.Maneuver -> {
+                    val distance = entry.cumulativeDistanceMeters - currentCumulativeDistanceMeters
+                    if (distance > window) return plain
+                    return RoadbookFocus(j, maxOf(distance, 0.0), progress.index, progress.distanceRemainingMeters)
+                }
+            }
+        }
+        return plain
+    }
+}

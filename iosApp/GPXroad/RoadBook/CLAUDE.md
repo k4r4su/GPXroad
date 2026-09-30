@@ -708,3 +708,20 @@ roadbook de rallye, numéro seulement s'il est sûr, route de sortie (« → D 4
   d'une branche autour du centre ≠ direction de la route (routes tangentes), tronçon OSM de sortie
   de quelques mètres (cap non fiable → cap de la trace pour la sortie prise), chaussée de sens
   inverse de la route d'arrivée comptée comme branche, sortie repoussée par le placement.
+
+## 30/09 — virage prioritaire et textes non tronqués (retour terrain, Ferrette)
+
+« Beaucoup de repères dont deux à la suite (une église et un virage juste après) : on n'a pas le
+temps de voir le virage en mode paysage » ; « le texte est parfois tronqué ». Rejoué sur le Road Book
+RÉEL de l'iPhone (caches copiés en lecture seule, wahlbach-moulin-bas en sens inverse) : à Ferrette,
+église (4 449 m), borne (4 508 m), station (4 604 m), virage (4 607 m).
+- `RoadbookFocusRule` (Kotlin) : repère de décor + virage à ≤ 300 m / 15 s → le virage en grand,
+  le repère en ligne secondaire (`RoadbookLeadingLandmark`). Repères « action » inchangés.
+- Carte de virage PAYSAGE : le texte passait entre la flèche et la distance (~150 pt : « Chapelle
+  Notre-Dame-des-Anges à… », rond-point en petits caractères) → sous la distance, toute la largeur ;
+  flèche et distance gardent leur taille ; cap sur la ligne de l'instruction ; 2 lignes secondaires
+  au plus. Carte de repère paysage : détail sous le nom quand il ne tient pas (`ViewThatFits`).
+  Liste « Ensuite » : noms de repères sur 2 lignes au lieu d'une coupure.
+- Vérifié par rendu (ImageRenderer, harnais temporaire hors dépôt) ; limite : ImageRenderer ne rend
+  pas la liste défilante, corrigée d'après le code.
+

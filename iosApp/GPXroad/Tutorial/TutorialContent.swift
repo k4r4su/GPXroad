@@ -83,6 +83,7 @@ enum TutorialContent {
                     String(localized: "Assisté GPS : le prochain élément en grand, avec la distance qui diminue, puis la liste de ce qui suit.", bundle: .appLanguage),
                     String(localized: "Roadbook classique : toute la liste avec distances partielles et cumulées, comme sur papier.", bundle: .appLanguage),
                     String(localized: "Le prochain élément est toujours le plus proche, virage ou repère : un stop à 200 m passe avant un virage à 300 m.", bundle: .appLanguage),
+                    String(localized: "Exception : un repère de décor (église, pont, station…) suivi de près par un virage laisse la grande carte au virage, et s'affiche en dessous.", bundle: .appLanguage),
                     String(localized: "Si tu t'écartes de la trace, le Road Book te guide par la route jusqu'à elle : les virages du chemin, puis « Retour sur la trace », avec le badge « Hors trace ».", bundle: .appLanguage),
                     String(localized: "Le point de retour est toujours devant toi sur la trace, jamais en arrière ; si tu le dépasses, un nouveau est calculé au bout de 10 s.", bundle: .appLanguage),
                 ]),

@@ -442,6 +442,13 @@ gradle/, settings.gradle.kts, build.gradle.kts, gradlew   build Gradle (racine)
   d'où l'on vient (`RoundaboutAnalyzer.sectorAngle`), jamais d'après l'angle.
   Téléchargé par l'onglet Road Book, relu (jamais téléchargé) par le Ride. Validé sur 28 ronds-points
   réels (planche de contrôle, harnais temporaire hors dépôt interrogeant l'Overpass du LAN).
+- **Virage prioritaire sur les repères de décor (30/09, retour terrain Ferrette)** — dans le Road
+  Book assisté, un repère de DÉCOR (tout sauf panneaux, feux, passage à niveau, entrée
+  d'agglomération, ralentisseur : `RoadbookFocusRule.isDecor`) suivi d'un virage à ≤ 300 m ou
+  ≤ 15 s (le plus grand) laisse la grande carte au virage ; le repère le plus proche passe en ligne
+  secondaire (« ⛪ Église … · 50 m »). Règle partagée `RoadbookFocusRule.focus`, façades
+  `RoadbookLiveProgress.focus` (iOS, conversion des 12 éléments suivants seulement) et
+  `RoadbookScreen` (Android).
 - **Compte à rebours par paliers (29/09, demande du propriétaire)** — toute distance EN DIRECT
   jusqu'au prochain virage / repère / point de reprise (Road Book focalisé et liste, bannière
   latérale du Ride, puce et bannière hors trace, guidage Nav) passe par
