@@ -5,7 +5,10 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableDoubleStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import com.olivier.gpxroad.shared.map.MapTheme
 import com.olivier.gpxroad.shared.ride.DirectionChevrons
+import com.olivier.gpxroad.shared.ride.RideCameraConstants
+import com.olivier.gpxroad.shared.ride.ZoomPreset
 import com.olivier.gpxroad.shared.ride.SlopeAnalyzer
 import com.olivier.gpxroad.shared.roadbook.LandmarkCategory
 import com.olivier.gpxroad.shared.recording.RecordingConstants
@@ -103,6 +106,48 @@ class AppSettings(context: Context) {
         private set
     var keepScreenAwake by mutableStateOf(preferences.getBoolean("keepScreenAwake", true))
         private set
+
+    // MARK: carte et caméra du Ride (mêmes défauts et plages que l'iPhone)
+
+    var mapTheme by mutableStateOf(enumValueOrNull<MapTheme>(preferences.getString("mapTheme", null)) ?: MapTheme.STANDARD)
+        private set
+    var autoZoomEnabled by mutableStateOf(preferences.getBoolean("autoZoom", true))
+        private set
+    var zoomPreset by mutableStateOf(enumValueOrNull<ZoomPreset>(preferences.getString("zoomPreset", null)) ?: ZoomPreset.NORMAL)
+        private set
+    var autoZoomMin by mutableDoubleStateOf(preferences.getDouble("autoZoomMin", RideCameraConstants.AUTO_ZOOM_MIN_METERS_DEFAULT))
+        private set
+    var autoZoomMax by mutableDoubleStateOf(preferences.getDouble("autoZoomMax", RideCameraConstants.AUTO_ZOOM_MAX_METERS_DEFAULT))
+        private set
+    var defaultZoom by mutableDoubleStateOf(preferences.getDouble("defaultZoom", RideCameraConstants.DEFAULT_RIDE_ZOOM_METERS))
+        private set
+    var anchorY by mutableDoubleStateOf(preferences.getDouble("anchorY", RideCameraConstants.ANCHOR_Y_FRACTION_DEFAULT))
+        private set
+
+    fun updateMapTheme(value: MapTheme) {
+        mapTheme = value
+        preferences.edit().putString("mapTheme", value.name).apply()
+    }
+
+    /** Bornes toujours ordonnées (serré ≤ large), comme l'iPhone. */
+    fun updateAutoZoom(enabled: Boolean, preset: ZoomPreset, min: Double, max: Double) {
+        autoZoomEnabled = enabled
+        zoomPreset = preset
+        autoZoomMin = minOf(min, max)
+        autoZoomMax = maxOf(min, max)
+        preferences.edit().putBoolean("autoZoom", enabled).putString("zoomPreset", preset.name)
+            .putDouble("autoZoomMin", autoZoomMin).putDouble("autoZoomMax", autoZoomMax).apply()
+    }
+
+    fun updateDefaultZoom(value: Double) {
+        defaultZoom = value
+        preferences.edit().putDouble("defaultZoom", value).apply()
+    }
+
+    fun updateAnchorY(value: Double) {
+        anchorY = value
+        preferences.edit().putDouble("anchorY", value).apply()
+    }
 
     /** « Aller à » : annonces vocales (activées par défaut, comme l'iPhone) et leur volume. */
     var voiceEnabled by mutableStateOf(preferences.getBoolean("voiceEnabled", true))

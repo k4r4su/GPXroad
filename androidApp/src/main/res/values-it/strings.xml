@@ -338,4 +338,21 @@
     <string name="shared_footer">Un percorso bloccato che segnali viene aggiunto a un database condiviso anonimo, per avvisare gli altri utenti che passano di lì.</string>
     <string name="shared_server">URL del server (punti bloccati)</string>
     <string name="shared_server_footer">Lasciarlo vuoto disattiva ogni tentativo di rete per questa funzione.</string>
+    <!-- Carte et caméra du Ride -->
+    <string name="map_theme">Tema della mappa</string>
+    <string name="theme_standard">Standard</string>
+    <string name="theme_high_contrast">Contrasto elevato</string>
+    <string name="theme_earthy">Terroso</string>
+    <string name="theme_relief">Rilievo</string>
+    <string name="camera_anchor">Posizione del punto blu: %1$d %% dall\'alto</string>
+    <string name="camera_anchor_footer">Dove la posizione è ancorata sullo schermo in modalità inseguimento con direzione in alto — più in basso lascia più traccia visibile davanti.</string>
+    <string name="camera_default_zoom">Zoom predefinito: %1$s</string>
+    <string name="camera_default_zoom_footer">Livello di zoom all\'inizio di un Ride, prima del primo movimento — poi subentra lo zoom automatico (velocità).</string>
+    <string name="camera_auto_zoom">Zoom automatico</string>
+    <string name="zoom_prudent">Prudente</string>
+    <string name="zoom_normal">Bilanciato</string>
+    <string name="zoom_fast">Aggressivo</string>
+    <string name="zoom_min">Stretto (velocità bassa): %1$s</string>
+    <string name="zoom_max">Ampio (velocità alta): %1$s</string>
+    <string name="settings_map">Mappa e fotocamera</string>
 </resources>

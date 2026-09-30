@@ -340,4 +340,21 @@
     <string name="shared_footer">Un chemin bloqué que tu signales est ajouté à une base partagée anonyme, pour alerter les autres utilisateurs qui passent par là.</string>
     <string name="shared_server">URL du serveur (points bloqués)</string>
     <string name="shared_server_footer">Laisser vide désactive toute tentative réseau vers cette fonctionnalité.</string>
+    <!-- Carte et caméra du Ride -->
+    <string name="map_theme">Thème de carte</string>
+    <string name="theme_standard">Standard</string>
+    <string name="theme_high_contrast">Contraste élevé</string>
+    <string name="theme_earthy">Terreux</string>
+    <string name="theme_relief">Relief</string>
+    <string name="camera_anchor">Position point bleu : %1$d %% depuis le haut</string>
+    <string name="camera_anchor_footer">Où la position s\'ancre à l\'écran en mode suivi cap-en-haut — plus bas laisse plus de trace visible devant soi.</string>
+    <string name="camera_default_zoom">Zoom par défaut : %1$s</string>
+    <string name="camera_default_zoom_footer">Niveau de zoom au tout début d\'un Ride, avant le premier mouvement — le zoom automatique (vitesse) prend ensuite le relais.</string>
+    <string name="camera_auto_zoom">Zoom automatique</string>
+    <string name="zoom_prudent">Conservateur</string>
+    <string name="zoom_normal">Équilibré</string>
+    <string name="zoom_fast">Agressif</string>
+    <string name="zoom_min">Serré (vitesse faible) : %1$s</string>
+    <string name="zoom_max">Large (vitesse haute) : %1$s</string>
+    <string name="settings_map">Carte et caméra</string>
 </resources>

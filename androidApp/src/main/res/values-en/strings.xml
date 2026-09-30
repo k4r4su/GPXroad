@@ -338,4 +338,21 @@
     <string name="shared_footer">A blocked path you report is added to an anonymous shared database, to warn other users passing by.</string>
     <string name="shared_server">Server URL (blocked points)</string>
     <string name="shared_server_footer">Leaving it empty disables any network attempt for this feature.</string>
+    <!-- Carte et caméra du Ride -->
+    <string name="map_theme">Map theme</string>
+    <string name="theme_standard">Standard</string>
+    <string name="theme_high_contrast">High contrast</string>
+    <string name="theme_earthy">Earthy</string>
+    <string name="theme_relief">Relief</string>
+    <string name="camera_anchor">Blue dot position: %1$d %% from the top</string>
+    <string name="camera_anchor_footer">Where your position is anchored on screen in heading-up follow mode — lower leaves more track visible ahead.</string>
+    <string name="camera_default_zoom">Default zoom: %1$s</string>
+    <string name="camera_default_zoom_footer">Zoom level at the very start of a Ride, before the first movement — automatic (speed) zoom then takes over.</string>
+    <string name="camera_auto_zoom">Automatic zoom</string>
+    <string name="zoom_prudent">Conservative</string>
+    <string name="zoom_normal">Balanced</string>
+    <string name="zoom_fast">Aggressive</string>
+    <string name="zoom_min">Tight (low speed): %1$s</string>
+    <string name="zoom_max">Wide (high speed): %1$s</string>
+    <string name="settings_map">Map and camera</string>
 </resources>

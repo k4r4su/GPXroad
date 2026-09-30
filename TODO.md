@@ -114,7 +114,12 @@ Sessions suivantes :
   - [ ] iOS à corriger : un détour demandé DEPUIS la trace (cas normal devant un chemin bloqué)
         est effacé au fix suivant (`updateBlockedPathTracking` : « sur la trace à 20 m » → fin du
         détour). Android attend d'avoir quitté la trace (`DetourTracker`).
-  - [ ] Reste pour la parité du Ride : thèmes de carte et réglages de zoom.
+  - [x] Carte et caméra (01/10) : thèmes Standard / Contraste élevé / Terreux (palette appliquée au
+        style vectoriel, `shared/map/ColorFlavorPatcher`, mêmes cas de test que l'iPhone) et Relief
+        (OpenTopoMap) ; position du point en cap-en-haut (55-85 %), zoom par défaut, zoom
+        automatique (activé, Conservateur/Équilibré/Agressif, bornes serré/large). Vérifié sur
+        l'émulateur (Terreux, Relief).
+  - Écart assumé : pas de mode nuit (l'iPhone n'assombrit que le fond raster OSM hors ligne).
   - Écart assumé : réglages de trace globaux (l'iPhone permet aussi couleur/épaisseur/chevrons par
     trace).
 - [x] 3 — Réseau (faite avant la 2, voir ci-dessus).

@@ -338,4 +338,21 @@
     <string name="shared_footer">Ein von dir gemeldeter gesperrter Weg wird einer anonymen gemeinsamen Datenbank hinzugefügt, um andere Nutzer in der Nähe zu warnen.</string>
     <string name="shared_server">Server-URL (Sperrungen)</string>
     <string name="shared_server_footer">Leer lassen deaktiviert jeden Netzwerkversuch für diese Funktion.</string>
+    <!-- Carte et caméra du Ride -->
+    <string name="map_theme">Kartenthema</string>
+    <string name="theme_standard">Standard</string>
+    <string name="theme_high_contrast">Hoher Kontrast</string>
+    <string name="theme_earthy">Erdig</string>
+    <string name="theme_relief">Relief</string>
+    <string name="camera_anchor">Position des blauen Punkts: %1$d %% von oben</string>
+    <string name="camera_anchor_footer">Wo die Position im Folgemodus mit Fahrtrichtung oben am Bildschirm verankert ist — weiter unten lässt mehr Track vor dir sichtbar.</string>
+    <string name="camera_default_zoom">Standardzoom: %1$s</string>
+    <string name="camera_default_zoom_footer">Zoomstufe ganz zu Beginn einer Fahrt, vor der ersten Bewegung — danach übernimmt der automatische (geschwindigkeitsabhängige) Zoom.</string>
+    <string name="camera_auto_zoom">Automatischer Zoom</string>
+    <string name="zoom_prudent">Zurückhaltend</string>
+    <string name="zoom_normal">Ausgewogen</string>
+    <string name="zoom_fast">Aggressiv</string>
+    <string name="zoom_min">Eng (niedrige Geschwindigkeit): %1$s</string>
+    <string name="zoom_max">Weit (hohe Geschwindigkeit): %1$s</string>
+    <string name="settings_map">Karte und Kamera</string>
 </resources>

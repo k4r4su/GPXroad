@@ -29,7 +29,13 @@ import com.olivier.gpxroad.android.data.AppSettings
 import com.olivier.gpxroad.android.data.ControlsSide
 import com.olivier.gpxroad.android.data.TraceColor
 import com.olivier.gpxroad.android.data.TraceWidth
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.material3.FilterChip
+import androidx.compose.material3.Slider
+import com.olivier.gpxroad.shared.map.MapTheme
 import com.olivier.gpxroad.shared.ride.DirectionChevrons
+import com.olivier.gpxroad.shared.ride.ZoomPreset
 import com.olivier.gpxroad.shared.ride.SlopeAnalyzer
 import kotlin.math.roundToInt
 
@@ -72,10 +78,20 @@ fun RideSettingsSection(settings: AppSettings) {
     }
 }
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun <T> SettingChoice(title: String, options: List<T>, selected: T, label: @Composable (T) -> String, onSelect: (T) -> Unit) {
     Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-        Text(title, style = MaterialTheme.typography.bodyLarge)
+        if (title.isNotEmpty()) Text(title, style = MaterialTheme.typography.bodyLarge)
+        // Libellés longs (4 thèmes…) : des pastilles qui passent à la ligne plutôt qu'un texte tronqué.
+        if (options.size >= 4 && options.any { label(it).length > 8 }) {
+            FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                options.forEach { option ->
+                    FilterChip(selected = option == selected, onClick = { onSelect(option) }, label = { Text(label(option)) })
+                }
+            }
+            return@Column
+        }
         SingleChoiceSegmentedButtonRow(Modifier.fillMaxWidth()) {
             options.forEachIndexed { index, option ->
                 SegmentedButton(
@@ -95,3 +111,58 @@ fun SettingToggle(title: String, checked: Boolean, onChange: (Boolean) -> Unit) 
         Switch(checked = checked, onCheckedChange = onChange)
     }
 }
+
+/** Carte et caméra (`MapThemePickerView`, `NavigationSettingsView` iOS) : thème, point, zooms. */
+@Composable
+fun MapCameraSection(settings: AppSettings) {
+    Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+        SettingChoice(
+            stringResource(R.string.map_theme), MapTheme.entries, settings.mapTheme,
+            {
+                stringResource(
+                    when (it) {
+                        MapTheme.STANDARD -> R.string.theme_standard
+                        MapTheme.HIGH_CONTRAST -> R.string.theme_high_contrast
+                        MapTheme.EARTHY -> R.string.theme_earthy
+                        MapTheme.RELIEF -> R.string.theme_relief
+                    },
+                )
+            },
+            settings::updateMapTheme,
+        )
+        Text(stringResource(R.string.camera_anchor, (settings.anchorY * 100).roundToInt()), style = MaterialTheme.typography.bodyLarge)
+        Slider(value = settings.anchorY.toFloat(), onValueChange = { settings.updateAnchorY((it * 100).roundToInt() / 100.0) }, valueRange = 0.55f..0.85f)
+        Footer(stringResource(R.string.camera_anchor_footer))
+        Text(stringResource(R.string.camera_default_zoom, meters(settings.defaultZoom)), style = MaterialTheme.typography.bodyLarge)
+        Slider(value = settings.defaultZoom.toFloat(), onValueChange = { settings.updateDefaultZoom((it / 50).roundToInt() * 50.0) }, valueRange = 300f..6000f)
+        Footer(stringResource(R.string.camera_default_zoom_footer))
+        SettingToggle(stringResource(R.string.camera_auto_zoom), settings.autoZoomEnabled) {
+            settings.updateAutoZoom(it, settings.zoomPreset, settings.autoZoomMin, settings.autoZoomMax)
+        }
+        if (settings.autoZoomEnabled) {
+            SettingChoice(
+                "", ZoomPreset.entries, settings.zoomPreset,
+                {
+                    stringResource(
+                        when (it) {
+                            ZoomPreset.PRUDENT -> R.string.zoom_prudent
+                            ZoomPreset.NORMAL -> R.string.zoom_normal
+                            ZoomPreset.RAPIDE -> R.string.zoom_fast
+                        },
+                    )
+                },
+            ) { settings.updateAutoZoom(true, it, settings.autoZoomMin, settings.autoZoomMax) }
+            Text(stringResource(R.string.zoom_min, meters(settings.autoZoomMin)), style = MaterialTheme.typography.bodyMedium)
+            Slider(value = settings.autoZoomMin.toFloat(), onValueChange = { settings.updateAutoZoom(true, settings.zoomPreset, (it / 50).roundToInt() * 50.0, settings.autoZoomMax) }, valueRange = 100f..3000f)
+            Text(stringResource(R.string.zoom_max, meters(settings.autoZoomMax)), style = MaterialTheme.typography.bodyMedium)
+            Slider(value = settings.autoZoomMax.toFloat(), onValueChange = { settings.updateAutoZoom(true, settings.zoomPreset, settings.autoZoomMin, (it / 50).roundToInt() * 50.0) }, valueRange = 100f..3000f)
+        }
+    }
+}
+
+@Composable
+private fun Footer(text: String) {
+    Text(text, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+}
+
+private fun meters(value: Double): String = if (value >= 1000) "${"%.1f".format(value / 1000)} km" else "${value.roundToInt()} m"

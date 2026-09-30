@@ -205,6 +205,8 @@ fun RideScreen(
             trackPoints = track?.latLons.orEmpty(),
             maneuvers = maneuvers,
             traceStyle = TraceStyle(settings.traceColor.argb, settings.traceWidth.widthDp),
+            mapTheme = settings.mapTheme,
+            anchorY = settings.anchorY,
             chevronSpacingMeters = settings.chevronSpacing,
             slopeWarnings = slopeWarnings,
             rejoin = rejoinOverlay,

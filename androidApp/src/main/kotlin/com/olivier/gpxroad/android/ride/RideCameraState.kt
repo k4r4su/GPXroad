@@ -6,6 +6,7 @@ import androidx.compose.runtime.mutableDoubleStateOf
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import com.olivier.gpxroad.android.data.AppSettings
 import com.olivier.gpxroad.shared.ride.AutoZoom
 import com.olivier.gpxroad.shared.ride.RideCameraConstants
 import com.olivier.gpxroad.shared.ride.SpeedSmoother
@@ -17,13 +18,14 @@ import kotlin.math.min
  * LISSÉE, +/- manuels prioritaires, suivi suspendu 5 s après un geste sur la carte, « Me recentrer ».
  * Vit le temps de l'activité : revenir sur l'onglet ne remet ni le zoom ni la vitesse à zéro.
  */
-class RideCameraState {
+class RideCameraState(private val settings: AppSettings) {
     private val smoother = SpeedSmoother()
-    private val autoZoom = AutoZoom()
+    private var autoZoomPreset = settings.zoomPreset
+    private var autoZoom = AutoZoom(autoZoomPreset)
     private var lastFix: Location? = null
 
     /** Distance caméra automatique (m) ; départ = zoom par défaut de l'iPhone (~1,7 km). */
-    var autoDistanceMeters by mutableDoubleStateOf(RideCameraConstants.DEFAULT_RIDE_ZOOM_METERS)
+    var autoDistanceMeters by mutableDoubleStateOf(settings.defaultZoom)
         private set
     var manualDistanceMeters by mutableStateOf<Double?>(null)
         private set
@@ -62,7 +64,13 @@ class RideCameraState {
         }
         if (lastFix == null || lastFix!!.distanceTo(location) >= MIN_DISTANCE_FOR_COURSE_METERS) lastFix = location
         val smoothed = smoother.add(speedKmh, location.time / 1000.0)
-        autoDistanceMeters = autoZoom.update(smoothed, location.time / 1000.0)
+        // Zoom automatique désactivé : la caméra garde sa dernière distance (+/− restent actifs).
+        if (!settings.autoZoomEnabled) return
+        if (settings.zoomPreset != autoZoomPreset) {
+            autoZoomPreset = settings.zoomPreset
+            autoZoom = AutoZoom(autoZoomPreset)
+        }
+        autoDistanceMeters = autoZoom.update(smoothed, location.time / 1000.0, settings.autoZoomMin, settings.autoZoomMax)
     }
 
     fun zoomIn() = adjustManualZoom(RideCameraConstants.MANUAL_ZOOM_STEP_FACTOR)

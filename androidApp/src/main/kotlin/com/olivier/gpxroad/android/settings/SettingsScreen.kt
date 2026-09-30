@@ -66,6 +66,10 @@ fun SettingsScreen(settings: AppSettings, servers: ServerSettings, overpass: Ove
         RideSettingsSection(settings)
 
         HorizontalDivider()
+        Section(stringResource(R.string.settings_map))
+        MapCameraSection(settings)
+
+        HorizontalDivider()
         Section(stringResource(R.string.tab_goto))
         SettingToggle(stringResource(R.string.nav_voice), settings.voiceEnabled) { settings.updateVoice(it, settings.voiceVolume) }
         if (settings.voiceEnabled) {

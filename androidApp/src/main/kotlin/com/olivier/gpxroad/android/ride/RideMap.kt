@@ -37,6 +37,7 @@ import com.olivier.gpxroad.android.net.Http
 import com.olivier.gpxroad.android.roadbook.drawManeuverPictogram
 import com.olivier.gpxroad.android.ui.Accent
 import com.olivier.gpxroad.shared.LatLon
+import com.olivier.gpxroad.shared.map.MapTheme
 import com.olivier.gpxroad.shared.ride.DirectionChevrons
 import com.olivier.gpxroad.shared.ride.RideCameraConstants
 import com.olivier.gpxroad.shared.ride.SlopeWarning
@@ -112,6 +113,9 @@ fun RideMap(
     trackPoints: List<LatLon>,
     maneuvers: List<RoadbookManeuver>,
     traceStyle: TraceStyle,
+    mapTheme: MapTheme,
+    /** Position du point en cap-en-haut (fraction de la hauteur depuis le haut). */
+    anchorY: Double,
     chevronSpacingMeters: Double,
     slopeWarnings: List<SlopeWarning>,
     rejoin: RejoinOverlay?,
@@ -177,11 +181,6 @@ fun RideMap(
             loaded.addOnCameraIdleListener {
                 chevronZoomFloor = DirectionChevrons.adaptiveSpacingMeters(0.0, loaded.cameraPosition.zoom)
             }
-            val json = (if (Http.isOnline(context)) RideMapStyle.vector(context) else null) ?: RideMapStyle.raster()
-            loaded.setStyle(Style.Builder().fromJson(json)) { loadedStyle ->
-                addOverlayLayers(loadedStyle, traceStyle, density)
-                style = loadedStyle
-            }
             map = loaded
         }
         onDispose {
@@ -189,6 +188,19 @@ fun RideMap(
             mapView.onPause()
             mapView.onStop()
             mapView.onDestroy()
+        }
+    }
+
+    // Style du thème (Réglages > Carte) : le changer recharge le style ; les calques de l'app sont
+    // recréés et toutes les données ci-dessous réappliquées (elles dépendent de `style`).
+    LaunchedEffect(map, mapTheme) {
+        val loadedMap = map ?: return@LaunchedEffect
+        style = null
+        val online = Http.isOnline(context)
+        val json = withContext(Dispatchers.IO) { RideMapStyle.forTheme(context, mapTheme, online) }
+        loadedMap.setStyle(Style.Builder().fromJson(json)) { loadedStyle ->
+            addOverlayLayers(loadedStyle, traceStyle, density)
+            style = loadedStyle
         }
     }
 
@@ -317,7 +329,7 @@ fun RideMap(
     }
 
     // Position et caméra, à chaque fix (et à chaque commande +/- / recentrage / orientation).
-    LaunchedEffect(style, location, northUp, camera.commandToken, camera.effectiveDistanceMeters) {
+    LaunchedEffect(style, location, northUp, camera.commandToken, camera.effectiveDistanceMeters, anchorY) {
         val loadedMap = map ?: return@LaunchedEffect
         val loadedStyle = style ?: return@LaunchedEffect
         val position = location ?: return@LaunchedEffect
@@ -330,7 +342,7 @@ fun RideMap(
         if (heightDp <= 0) return@LaunchedEffect
         val zoom = RideCameraMath.zoomLevel(camera.effectiveDistanceMeters, position.latitude, heightDp.toDouble())
         // Cap en haut : le point à 3/4 de la hauteur (marge haute = (2f - 1) × hauteur).
-        val topPadding = if (northUp) 0.0 else (2 * RideCameraConstants.ANCHOR_Y_FRACTION_DEFAULT - 1) * mapView.height
+        val topPadding = if (northUp) 0.0 else (2 * anchorY - 1) * mapView.height
         val cameraPosition = CameraPosition.Builder()
             .target(LatLng(position.latitude, position.longitude))
             .zoom(zoom)
