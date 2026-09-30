@@ -590,6 +590,28 @@ Android), 0 échec, 0 skip. Le résultat attendu de
 `RoadbookStableRegressionTests` n'a pas changé à it29. Le repli "Entrée de <localité>" (actif
 par défaut depuis it29) fait désormais partie du comportement validé : `RoadbookCityEntryTests`.
 
+## Jalon — navigation Road Book (v0.0.34-roadbook-navigation, tag git annoté)
+
+Validé sur le terrain par le propriétaire le 30/09 (iPhone, trajets réels) : « les ronds-points
+c'est top, plus de changement de direction inutile alors qu'on suit juste la route ». Référence
+pour toute évolution des règles de navigation du Road Book :
+- **Vrais carrefours seulement quand la route est connue** (it33 bis) : Valhalla recale la trace,
+  une route qui tourne n'est jamais un changement de direction ; géométrie hors de la partie
+  recalée (`MapMatchCoverage`).
+- **Ronds-points analysés sur OSM** (it34) : numéro de sortie compté comme la signalisation (jamais
+  celui de Valhalla), dessin de toutes les branches, direction depuis la trace avec le vocabulaire
+  du propriétaire (≤ 20° tout droit, légèrement, 75-105° à gauche/droite, fortement, demi-tour =
+  même route), route de sortie, ronds-points enchaînés.
+- **Distances en direct par paliers** (`DistanceCountdown`).
+- Même code partagé sur Android (Road Book vérifié ligne à ligne identique à l'iPhone le 29/09).
+
+Garde-fous à garder verts : `RoundaboutAnalyzerTest`, `MapMatchCoverageTest`,
+`DistanceCountdownTest` (Kotlin), `RoadbookRoundaboutTests`, `RoadbookMapMatchingTests`,
+`RideSessionManagerMapMatchingTests`, `RoadbookStableRegressionTests` (iOS). Au jalon : 517 tests
+iOS, 69 tests Kotlin (iOS et Android), 7 tests unitaires Android, 0 échec, 0 skip. Changer une règle
+de navigation = rejouer d'abord la planche de contrôle des ronds-points réels (voir
+RoadBook/CLAUDE.md, it34) et la faire valider au propriétaire.
+
 ## Enregistrement de la sortie (fix "recording-survives-tabs-and-background", it30)
 
 Perte de données corrigée : la capture vivait dans `RideSessionManager`, dont le GPS s'arrête

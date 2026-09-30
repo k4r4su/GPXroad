@@ -79,6 +79,9 @@ Sessions suivantes :
 
 ## Itération 34 — ronds-points sans ambiguïté, distances par paliers — v0.0.34
 
+**Jalon `v0.0.34-roadbook-navigation`** : validé sur le terrain le 30/09 (« les ronds-points c'est
+top, plus de changement de direction inutile alors qu'on suit juste la route »).
+
 Commits `roadbook-route-aware-only-where-matched`, `distance-countdown-steps`,
 `roadbook-city-entry-card-truncated`, `roadbook-roundabouts-from-osm`.
 - Ronds-points : numéro de sortie OSM (celui de Valhalla était « 2 » partout), dessin de toutes les
@@ -94,11 +97,11 @@ Commits `roadbook-route-aware-only-where-matched`, `distance-countdown-steps`,
 
 Commits `roadbook-junctions-only-when-route-known`, `overpass-self-hosted-basic-auth`.
 Checklist manuelle (iPhone, Valhalla activé — badge vert) :
-- [ ] Wahlbach travail full : plus de « virage léger » à 1,5 km (on reste sur la Rue de Franken),
+- [x] Wahlbach travail full : plus de « virage léger » à 1,5 km (on reste sur la Rue de Franken),
       ni sur les courbes de la D 419 (10,5 / 16,1 / 16,6 km).
 - [ ] Riespach (wahlbach-moulin-bas, dans les deux sens) : seul le vrai carrefour est annoncé,
       assez tôt, sans « virage » intermédiaire dans la courbe de la D 463.
-- [ ] Ronds-points (Road Book, bannière Ride, PDF) : rond-point dessiné, trajet jusqu'à la bonne
+- [x] Ronds-points (Road Book, bannière Ride, PDF) : rond-point dessiné, trajet jusqu'à la bonne
       sortie, numéro de sortie au centre ; la sortie dessinée correspond à celle prise.
 - [ ] Réglages > Avancé > Serveur Overpass : activer, saisir l'adresse publique
       (`https://overpass.zim.ovh/api/interpreter`), l'adresse locale
