@@ -213,4 +213,34 @@
     <string name="density_detail">Ein Punkt alle %1$d s oder %2$d m</string>
     <string name="settings_unsaved_retention">Aufbewahrte Sicherungskopien</string>
     <string name="settings_unsaved_footer">Während der Aufzeichnung wird automatisch eine Sicherungskopie der laufenden Fahrt gespeichert — in der Bibliothek wiederherstellbar, falls du „Fahrt beenden“ vergisst. Die ältesten über diese Zahl hinaus werden gelöscht.</string>
+    <!-- Dossiers et fiche d'une trace -->
+    <string name="folder_new">Neuer Ordner</string>
+    <string name="folder_name">Ordnername</string>
+    <string name="folder_unfiled">Nicht zugeordnet</string>
+    <string name="folder_rename">Ordner umbenennen</string>
+    <string name="folder_delete">Ordner löschen</string>
+    <string name="folder_delete_title">Ordner löschen?</string>
+    <string name="folder_delete_message">„%1$s“ wird gelöscht. Seine %2$d Tracks werden nicht gelöscht: Sie kommen zurück in „Nicht zugeordnet“.</string>
+    <string name="folder_actions">Aktionen für Ordner %1$s</string>
+    <string name="folder_empty">Kein Track in diesem Ordner</string>
+    <string name="folder_move">Verschieben</string>
+    <string name="folder_move_to">Verschieben nach</string>
+    <string name="folder_hint">Ordner dienen zum Sortieren der Tracks; am aktiven Track ändern sie nichts.</string>
+    <string name="library_delete_irreversible">Diese Aktion kann nicht rückgängig gemacht werden.</string>
+    <string name="track_active_for_ride">Aktiver Track für Ride</string>
+    <string name="track_follow">Diesem Track folgen</string>
+    <string name="track_distance">Entfernung</string>
+    <string name="track_points">Punkte</string>
+    <string name="track_elevation_gain">Aufstieg</string>
+    <string name="track_elevation_loss">Abstieg</string>
+    <string name="track_advanced">Erweiterte Statistiken</string>
+    <string name="track_advanced_unavailable">Erweiterte Statistiken nicht verfügbar — dieser Track hat keine verwertbaren Zeitstempel (externer Import ohne echte Zeiten).</string>
+    <string name="track_total_duration">Gesamtdauer</string>
+    <string name="track_moving_duration">Davon in Bewegung</string>
+    <string name="track_average_speed">Durchschnittsgeschwindigkeit</string>
+    <string name="track_moving_average">Durchschnitt in Bewegung</string>
+    <string name="track_max_speed">Höchstgeschwindigkeit</string>
+    <string name="track_max_slope">Max. Steigung</string>
+    <string name="track_min_altitude">Min. Höhe</string>
+    <string name="track_max_altitude">Max. Höhe</string>
 </resources>

@@ -33,6 +33,8 @@ data class TrackEntry(
     val reversed: Boolean = false,
 )
 
+data class TrackFolder(val id: String, val name: String)
+
 /** Trace chargée, dans son sens de parcours. */
 class LoadedTrack(val entry: TrackEntry, val document: GpxDocument) {
     val points: List<GpxPoint> = TrackOrder.reordered(document.points, entry.reversed)
@@ -56,6 +58,16 @@ class TrackLibrary(private val context: Context) {
         private set
 
     private var cache: LoadedTrack? = null
+
+    /** Dossiers (it31 iOS) — purement organisationnels, `Tracks/folders.json` ; `null` = « Non classé ». */
+    var folders by mutableStateOf<List<TrackFolder>>(emptyList())
+        private set
+    var folderAssignments by mutableStateOf<Map<String, String>>(emptyMap())
+        private set
+
+    init {
+        loadFolders()
+    }
 
     val activeTrack: LoadedTrack?
         get() {
@@ -107,6 +119,9 @@ class TrackLibrary(private val context: Context) {
         return ImportResult.Success(entry)
     }
 
+    /** Contenu GPX d'une trace (fiche : statistiques). */
+    fun document(entry: TrackEntry): GpxDocument? = runCatching { GpxParser.parse(file(entry).readText()) }.getOrNull()
+
     /** Fichier GPX stocké (jamais renommé ni modifié). */
     fun file(entry: TrackEntry): File = File(directory, entry.fileName)
 
@@ -124,7 +139,74 @@ class TrackLibrary(private val context: Context) {
         File(directory, entry.fileName).delete()
         tracks = tracks.filterNot { it.id == id }
         saveIndex()
+        if (folderAssignments.containsKey(id)) {
+            folderAssignments = folderAssignments - id
+            saveFolders()
+        }
         if (activeTrackId == id) setActive(null)
+    }
+
+    // MARK: dossiers (mêmes règles que `LibraryFolders.swift`)
+
+    val sortedFolders: List<TrackFolder> get() = folders.sortedBy { it.name.lowercase() }
+
+    fun folderOf(trackId: String): String? = folderAssignments[trackId]?.takeIf { id -> folders.any { it.id == id } }
+
+    fun tracksIn(folderId: String?): List<TrackEntry> = tracks.filter { folderOf(it.id) == folderId }
+
+    /** `null` si le nom est vide ou déjà pris (sans tenir compte de la casse). */
+    fun createFolder(name: String): TrackFolder? {
+        val cleaned = validFolderName(name, null) ?: return null
+        val folder = TrackFolder(UUID.randomUUID().toString().uppercase(), cleaned)
+        folders = folders + folder
+        saveFolders()
+        return folder
+    }
+
+    fun renameFolder(id: String, name: String): Boolean {
+        val cleaned = validFolderName(name, id) ?: return false
+        folders = folders.map { if (it.id == id) it.copy(name = cleaned) else it }
+        saveFolders()
+        return true
+    }
+
+    /** Les traces du dossier ne sont JAMAIS supprimées : elles retournent dans « Non classé ». */
+    fun deleteFolder(id: String) {
+        folders = folders.filterNot { it.id == id }
+        folderAssignments = folderAssignments.filterValues { it != id }
+        saveFolders()
+    }
+
+    fun move(trackId: String, folderId: String?) {
+        folderAssignments = if (folderId == null) folderAssignments - trackId else folderAssignments + (trackId to folderId)
+        saveFolders()
+    }
+
+    private fun validFolderName(name: String, excluding: String?): String? {
+        val cleaned = name.trim()
+        if (cleaned.isEmpty() || folders.any { it.id != excluding && it.name.equals(cleaned, ignoreCase = true) }) return null
+        return cleaned
+    }
+
+    private fun loadFolders() {
+        runCatching {
+            val o = JSONObject(File(directory, "folders.json").readText())
+            val list = o.getJSONArray("folders")
+            folders = (0 until list.length()).map { list.getJSONObject(it).let { f -> TrackFolder(f.getString("id"), f.getString("name")) } }
+            val assignments = o.getJSONObject("assignments")
+            val trackIds = tracks.map { it.id }.toSet()
+            val folderIds = folders.map { it.id }.toSet()
+            folderAssignments = assignments.keys().asSequence().associateWith { assignments.getString(it) }
+                .filter { (track, folder) -> track in trackIds && folder in folderIds }
+        }
+    }
+
+    private fun saveFolders() {
+        val list = JSONArray()
+        folders.forEach { list.put(JSONObject().put("id", it.id).put("name", it.name)) }
+        val assignments = JSONObject()
+        folderAssignments.forEach { (track, folder) -> assignments.put(track, folder) }
+        File(directory, "folders.json").writeText(JSONObject().put("folders", list).put("assignments", assignments).toString())
     }
 
     private fun update(id: String, change: (TrackEntry) -> TrackEntry) {

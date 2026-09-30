@@ -215,4 +215,34 @@
     <string name="density_detail">Un point toutes les %1$d s ou %2$d m</string>
     <string name="settings_unsaved_retention">Sauvegardes de secours conservées</string>
     <string name="settings_unsaved_footer">Pendant l\'enregistrement, une copie de secours de la sortie en cours est sauvegardée automatiquement — récupérable dans la Bibliothèque si tu oublies « Terminer la sortie ». Les plus anciennes au-delà de ce nombre sont supprimées.</string>
+    <!-- Dossiers et fiche d'une trace -->
+    <string name="folder_new">Nouveau dossier</string>
+    <string name="folder_name">Nom du dossier</string>
+    <string name="folder_unfiled">Non classé</string>
+    <string name="folder_rename">Renommer le dossier</string>
+    <string name="folder_delete">Supprimer le dossier</string>
+    <string name="folder_delete_title">Supprimer le dossier ?</string>
+    <string name="folder_delete_message">« %1$s » est supprimé. Ses %2$d traces ne sont pas supprimées : elles retournent dans « Non classé ».</string>
+    <string name="folder_actions">Actions du dossier %1$s</string>
+    <string name="folder_empty">Aucune trace dans ce dossier</string>
+    <string name="folder_move">Déplacer</string>
+    <string name="folder_move_to">Déplacer vers</string>
+    <string name="folder_hint">Les dossiers servent à ranger les traces ; ils ne changent rien à la trace active.</string>
+    <string name="library_delete_irreversible">Cette action est irréversible.</string>
+    <string name="track_active_for_ride">Trace active pour le Ride</string>
+    <string name="track_follow">Suivre cette trace</string>
+    <string name="track_distance">Distance</string>
+    <string name="track_points">Points</string>
+    <string name="track_elevation_gain">Dénivelé +</string>
+    <string name="track_elevation_loss">Dénivelé −</string>
+    <string name="track_advanced">Statistiques avancées</string>
+    <string name="track_advanced_unavailable">Statistiques avancées indisponibles — cette trace n\'a pas d\'horodatage exploitable (import externe sans temps réel).</string>
+    <string name="track_total_duration">Durée totale</string>
+    <string name="track_moving_duration">Dont en mouvement</string>
+    <string name="track_average_speed">Vitesse moyenne</string>
+    <string name="track_moving_average">Moyenne en mouvement</string>
+    <string name="track_max_speed">Vitesse max</string>
+    <string name="track_max_slope">Pente max</string>
+    <string name="track_min_altitude">Altitude min</string>
+    <string name="track_max_altitude">Altitude max</string>
 </resources>

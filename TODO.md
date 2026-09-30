@@ -22,6 +22,21 @@ secret dans le dépôt ».
 - **À mesurer avant** : charge et bande passante du serveur de la maison si tous les utilisateurs
   y passent (Overpass surtout) ; exposition de l'IP de la maison.
 
+## Android — refonte UI/UX (demande du 01/10, PRIORITAIRE après la parité fonctionnelle)
+
+Retour du propriétaire : « on dirait Android 1.6, il faut clairement une interface dans l'ère du
+temps, la version iOS est vraiment correcte mais l'Android c'est une catastrophe ».
+
+- [ ] Reprendre la hiérarchie visuelle de l'iPhone (cartes arrondies, fonds translucides sur la carte,
+      grandes valeurs lisibles, espacements généreux) plutôt que les écrans Material « bruts » actuels.
+- [ ] Material 3 moderne : couleurs dynamiques/thème GPXroad cohérent, typographie soignée, icônes
+      (Material Symbols) sur les actions, barre de navigation avec icônes, feuilles modales (bottom
+      sheets) au lieu des boîtes de dialogue en série.
+- [ ] Bibliothèque : cartes de trace avec aperçu, dossiers repliables, fiche trace en feuille.
+- [ ] Ride / Road Book : superpositions façon iOS (pastilles vitesse/REC, carte du prochain virage).
+- [ ] Réglages : sections groupées avec icônes, comme l'iPhone.
+- [ ] Validation par captures côte à côte iOS / Android sur tablette et téléphone.
+
 ## 30/09 — virage prioritaire sur les repères de décor, textes non tronqués (iOS + Android)
 
 Retour terrain (Ferrette, wahlbach-moulin-bas) : église, borne et station en 160 m juste avant un
@@ -93,8 +108,10 @@ Sessions suivantes :
       49 points en 90 s app en arrière-plan écran éteint, arrêt forcé → 52 points retrouvés en pause,
       reprise, enregistrement (GPX relu : 1 483 m pour 110 s à 50 km/h), récupération, suppression.
   - [ ] Tablette : une vraie sortie enregistrée (le propriétaire).
-  - [ ] Reste : dossiers de la Bibliothèque, fiche trace (stats avancées), tracé de la sortie en cours
-        sur la carte.
+  - [x] Dossiers de la Bibliothèque (01/10, `Tracks/folders.json`, mêmes règles que l'iPhone :
+        « Non classé » virtuel, supprimer un dossier ne supprime jamais ses traces) et fiche d'une
+        trace en feuille (distance, points, dénivelé, statistiques avancées partagées
+        `shared/track/TrackMetrics`, actions). Vérifié sur l'émulateur.
   - Écart assumé : tué par le système pendant l'enregistrement, le service ne redémarre pas seul
     (`START_NOT_STICKY`) ; la sortie est retrouvée en pause au lancement, comme sur l'iPhone.
 - [ ] 5 — Aller à : recherche, guidage Valhalla, Domicile/Travail, signalements.

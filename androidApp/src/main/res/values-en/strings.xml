@@ -213,4 +213,34 @@
     <string name="density_detail">One point every %1$d s or %2$d m</string>
     <string name="settings_unsaved_retention">Backup copies kept</string>
     <string name="settings_unsaved_footer">While recording, a backup copy of the current ride is saved automatically — recoverable in the Library if you forget “Finish the ride”. The oldest beyond this number are deleted.</string>
+    <!-- Dossiers et fiche d'une trace -->
+    <string name="folder_new">New folder</string>
+    <string name="folder_name">Folder name</string>
+    <string name="folder_unfiled">Unfiled</string>
+    <string name="folder_rename">Rename folder</string>
+    <string name="folder_delete">Delete folder</string>
+    <string name="folder_delete_title">Delete the folder?</string>
+    <string name="folder_delete_message">“%1$s” is deleted. Its %2$d tracks are not deleted: they go back to “Unfiled”.</string>
+    <string name="folder_actions">Actions for folder %1$s</string>
+    <string name="folder_empty">No track in this folder</string>
+    <string name="folder_move">Move</string>
+    <string name="folder_move_to">Move to</string>
+    <string name="folder_hint">Folders are for organizing tracks; they don\'t change the active track.</string>
+    <string name="library_delete_irreversible">This action cannot be undone.</string>
+    <string name="track_active_for_ride">Active track for Ride</string>
+    <string name="track_follow">Follow this track</string>
+    <string name="track_distance">Distance</string>
+    <string name="track_points">Points</string>
+    <string name="track_elevation_gain">Elevation gain</string>
+    <string name="track_elevation_loss">Elevation loss</string>
+    <string name="track_advanced">Advanced statistics</string>
+    <string name="track_advanced_unavailable">Advanced statistics unavailable — this track has no usable timestamps (external import without real times).</string>
+    <string name="track_total_duration">Total duration</string>
+    <string name="track_moving_duration">Of which moving</string>
+    <string name="track_average_speed">Average speed</string>
+    <string name="track_moving_average">Moving average</string>
+    <string name="track_max_speed">Max speed</string>
+    <string name="track_max_slope">Max slope</string>
+    <string name="track_min_altitude">Min altitude</string>
+    <string name="track_max_altitude">Max altitude</string>
 </resources>

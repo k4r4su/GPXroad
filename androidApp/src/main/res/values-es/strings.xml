@@ -213,4 +213,34 @@
     <string name="density_detail">Un punto cada %1$d s o %2$d m</string>
     <string name="settings_unsaved_retention">Copias de seguridad conservadas</string>
     <string name="settings_unsaved_footer">Durante la grabación se guarda automáticamente una copia de seguridad de la salida en curso, recuperable en la Biblioteca si olvidas «Terminar la salida». Las más antiguas por encima de este número se eliminan.</string>
+    <!-- Dossiers et fiche d'une trace -->
+    <string name="folder_new">Nueva carpeta</string>
+    <string name="folder_name">Nombre de la carpeta</string>
+    <string name="folder_unfiled">Sin clasificar</string>
+    <string name="folder_rename">Renombrar la carpeta</string>
+    <string name="folder_delete">Eliminar la carpeta</string>
+    <string name="folder_delete_title">¿Eliminar la carpeta?</string>
+    <string name="folder_delete_message">Se elimina «%1$s». Sus %2$d rutas no se eliminan: vuelven a «Sin clasificar».</string>
+    <string name="folder_actions">Acciones de la carpeta %1$s</string>
+    <string name="folder_empty">Ninguna ruta en esta carpeta</string>
+    <string name="folder_move">Mover</string>
+    <string name="folder_move_to">Mover a</string>
+    <string name="folder_hint">Las carpetas sirven para ordenar las rutas; no cambian la ruta activa.</string>
+    <string name="library_delete_irreversible">Esta acción es irreversible.</string>
+    <string name="track_active_for_ride">Ruta activa para Ride</string>
+    <string name="track_follow">Seguir esta ruta</string>
+    <string name="track_distance">Distancia</string>
+    <string name="track_points">Puntos</string>
+    <string name="track_elevation_gain">Desnivel +</string>
+    <string name="track_elevation_loss">Desnivel −</string>
+    <string name="track_advanced">Estadísticas avanzadas</string>
+    <string name="track_advanced_unavailable">Estadísticas avanzadas no disponibles: esta ruta no tiene marcas de tiempo utilizables (importación externa sin tiempos reales).</string>
+    <string name="track_total_duration">Duración total</string>
+    <string name="track_moving_duration">De ello en movimiento</string>
+    <string name="track_average_speed">Velocidad media</string>
+    <string name="track_moving_average">Media en movimiento</string>
+    <string name="track_max_speed">Velocidad máx.</string>
+    <string name="track_max_slope">Pendiente máx.</string>
+    <string name="track_min_altitude">Altitud mín.</string>
+    <string name="track_max_altitude">Altitud máx.</string>
 </resources>

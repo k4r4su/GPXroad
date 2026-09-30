@@ -96,6 +96,38 @@ object IsoTime {
         return "${year.toString().padStart(4, '0')}-${two(month)}-${two(day)}T${two(secondsOfDay / 3600)}:${two(secondsOfDay % 3600 / 60)}:${two(secondsOfDay % 60)}Z"
     }
 
+    /**
+     * Lecture d'une date ISO 8601 (`2026-09-28T08:31:05Z`, fraction de seconde et décalage `+02:00`
+     * acceptés), en ms depuis 1970 UTC ; `null` si le texte n'en est pas une.
+     */
+    fun parse(text: String): Long? {
+        val match = ISO.matchEntire(text.trim()) ?: return null
+        val g = match.groupValues
+        val year = g[1].toLong()
+        val month = g[2].toLong()
+        val day = g[3].toLong()
+        if (month !in 1..12 || day !in 1..31) return null
+        val hour = g[4].toLong()
+        val minute = g[5].toLong()
+        val second = g[6].toLong()
+        val millis = g[7].takeIf { it.isNotEmpty() }?.drop(1)?.padEnd(3, '0')?.take(3)?.toLong() ?: 0L
+        val offsetSeconds = when {
+            g[8].isEmpty() || g[8] == "Z" || g[8] == "z" -> 0L
+            else -> (if (g[8][0] == '-') -1 else 1) * (g[9].toLong() * 3600 + g[10].toLong() * 60)
+        }
+        // Jours depuis 1970 (inverse de l'algorithme de H. Hinnant).
+        val y = if (month <= 2) year - 1 else year
+        val era = floorDiv(y, 400)
+        val yoe = y - era * 400
+        val mp = if (month > 2) month - 3 else month + 9
+        val doy = (153 * mp + 2) / 5 + day - 1
+        val doe = yoe * 365 + yoe / 4 - yoe / 100 + doy
+        val days = era * 146_097 + doe - 719_468
+        return ((days * 86_400 + hour * 3600 + minute * 60 + second) - offsetSeconds) * 1000 + millis
+    }
+
+    private val ISO = Regex("(\\d{4})-(\\d{2})-(\\d{2})[T ](\\d{2}):(\\d{2}):(\\d{2})(\\.\\d+)?(Z|z|[+-](\\d{2}):?(\\d{2}))?")
+
     private fun floorDiv(a: Long, b: Long): Long {
         val q = a / b
         return if ((a % b != 0L) && ((a < 0) != (b < 0))) q - 1 else q

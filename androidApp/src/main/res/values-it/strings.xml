@@ -213,4 +213,34 @@
     <string name="density_detail">Un punto ogni %1$d s o %2$d m</string>
     <string name="settings_unsaved_retention">Copie di sicurezza conservate</string>
     <string name="settings_unsaved_footer">Durante la registrazione viene salvata automaticamente una copia di sicurezza dell\'uscita in corso, recuperabile nella Libreria se dimentichi «Termina l\'uscita». Le più vecchie oltre questo numero vengono eliminate.</string>
+    <!-- Dossiers et fiche d'une trace -->
+    <string name="folder_new">Nuova cartella</string>
+    <string name="folder_name">Nome della cartella</string>
+    <string name="folder_unfiled">Non classificato</string>
+    <string name="folder_rename">Rinomina la cartella</string>
+    <string name="folder_delete">Elimina la cartella</string>
+    <string name="folder_delete_title">Eliminare la cartella?</string>
+    <string name="folder_delete_message">«%1$s» viene eliminata. Le sue %2$d tracce non vengono eliminate: tornano in «Non classificato».</string>
+    <string name="folder_actions">Azioni della cartella %1$s</string>
+    <string name="folder_empty">Nessuna traccia in questa cartella</string>
+    <string name="folder_move">Sposta</string>
+    <string name="folder_move_to">Sposta in</string>
+    <string name="folder_hint">Le cartelle servono a ordinare le tracce; non cambiano la traccia attiva.</string>
+    <string name="library_delete_irreversible">Questa azione è irreversibile.</string>
+    <string name="track_active_for_ride">Traccia attiva per Ride</string>
+    <string name="track_follow">Segui questa traccia</string>
+    <string name="track_distance">Distanza</string>
+    <string name="track_points">Punti</string>
+    <string name="track_elevation_gain">Dislivello +</string>
+    <string name="track_elevation_loss">Dislivello −</string>
+    <string name="track_advanced">Statistiche avanzate</string>
+    <string name="track_advanced_unavailable">Statistiche avanzate non disponibili: questa traccia non ha orari utilizzabili (importazione esterna senza tempi reali).</string>
+    <string name="track_total_duration">Durata totale</string>
+    <string name="track_moving_duration">Di cui in movimento</string>
+    <string name="track_average_speed">Velocità media</string>
+    <string name="track_moving_average">Media in movimento</string>
+    <string name="track_max_speed">Velocità max</string>
+    <string name="track_max_slope">Pendenza max</string>
+    <string name="track_min_altitude">Altitudine min</string>
+    <string name="track_max_altitude">Altitudine max</string>
 </resources>
