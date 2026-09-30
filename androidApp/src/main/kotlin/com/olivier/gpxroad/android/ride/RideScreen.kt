@@ -46,6 +46,18 @@ import com.olivier.gpxroad.android.data.ControlsSide
 import com.olivier.gpxroad.android.data.DistanceUnit
 import com.olivier.gpxroad.android.data.TrackLibrary
 import com.olivier.gpxroad.android.location.LocationTracker
+import com.olivier.gpxroad.android.nav.GoToPill
+import com.olivier.gpxroad.android.nav.NavDestination
+import com.olivier.gpxroad.android.nav.NavPanel
+import com.olivier.gpxroad.android.nav.NavSession
+import com.olivier.gpxroad.android.nav.NavThenBanner
+import com.olivier.gpxroad.android.nav.profileLabel
+import com.olivier.gpxroad.shared.nav.GoToProfile
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.TextButton
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.ui.platform.LocalContext
 import com.olivier.gpxroad.android.net.ServerSettings
 import com.olivier.gpxroad.android.recording.EndRideDialog
 import com.olivier.gpxroad.android.recording.RecordingControls
@@ -91,9 +103,11 @@ fun RideScreen(
     recorder: RideRecorder,
     rejoin: RejoinController,
     session: RideSession,
+    nav: NavSession,
     onOpenLibrary: () -> Unit,
 ) {
     val view = LocalView.current
+    val context = LocalContext.current
     DisposableEffect(settings.keepScreenAwake) {
         view.keepScreenOn = settings.keepScreenAwake
         onDispose { view.keepScreenOn = false }
@@ -135,11 +149,14 @@ fun RideScreen(
     // sur la trace (hystérésis du hors trace).
     var divergent by remember(track?.traversalKey) { mutableStateOf(false) }
     LaunchedEffect(fix, track?.traversalKey) {
-        if (track == null || fix == null) return@LaunchedEffect
-        session.onLocation(fix, track.traversalKey, track.cumulative.lastOrNull(), projection?.cumulativeDistanceMeters)
+        if (fix == null) return@LaunchedEffect
+        session.onLocation(fix, track?.traversalKey, track?.cumulative?.lastOrNull(), projection?.cumulativeDistanceMeters)
+        nav.onLocation(fix, settings.voiceEnabled, settings.voiceVolume.toFloat(), valhalla)
+        if (track == null) return@LaunchedEffect
         session.updateResume(fix, projection?.distanceToTrackMeters)
-        // Une reprise manuelle en cours prime : pas de reprise automatique en parallèle (comme l'iPhone).
-        divergent = session.manualResume == null &&
+        // Une reprise manuelle en cours prime : pas de reprise automatique en parallèle (comme l'iPhone) ;
+        // un guidage « Aller à » suspend toute la reprise de trace (un seul guidage à la fois).
+        divergent = session.manualResume == null && !nav.isActive &&
             if (divergent) offTrack.isOffTrack else (projection?.distanceToTrackMeters ?: 0.0) > REJOIN_DIVERGENCE_METERS
         rejoin.update(fix, track.latLons, track.cumulative, divergent, projection?.cumulativeDistanceMeters?.takeIf { !offTrack.isOffTrack }, roadbookSettings, valhalla)
     }
@@ -158,6 +175,13 @@ fun RideScreen(
     }
     val controlsOnRight = settings.controlsSide == ControlsSide.RIGHT
 
+    // Guidage « Aller à » : un seul guidage à la fois, le Road Book de la trace se tait.
+    val navTick = nav.tick
+    val navTracker = nav.tracker
+    val goTo = nav.goTo
+    val guidingTrace = !nav.isActive
+    var goHere by remember { mutableStateOf<LatLon?>(null) }
+
     val nextIndex = projection?.let { p -> maneuvers.indexOfFirst { it.cumulativeDistanceMeters > p.cumulativeDistanceMeters }.takeIf { it >= 0 } }
     val nextDistance = nextIndex?.let { maneuvers[it].cumulativeDistanceMeters - projection.cumulativeDistanceMeters }
 
@@ -170,14 +194,45 @@ fun RideScreen(
             chevronSpacingMeters = settings.chevronSpacing,
             slopeWarnings = slopeWarnings,
             rejoin = rejoinOverlay,
+            navRoute = navTracker?.route?.points,
+            navTraveledCount = navTracker?.traveledPointCount?.takeIf { navTick >= 0 } ?: 0,
+            goToRoute = goTo?.points?.takeIf { it.size > 1 },
             location = fix,
             northUp = settings.rideNorthUp,
             camera = camera,
             modifier = Modifier.fillMaxSize(),
             onMapTap = { tap, tolerance ->
-                if (track != null) session.requestResume(tap, track.latLons, track.cumulative, tolerance, fix, valhalla)
+                if (track != null) {
+                    // Taper sur la trace pendant un « Aller à » y revient (arrête ce guidage), comme l'iPhone.
+                    val onTrack = TrackGeometry.project(tap, track.latLons, track.cumulative)?.let { it.distanceToTrackMeters <= tolerance } == true
+                    if (onTrack && nav.isActive) nav.stop()
+                    session.requestResume(tap, track.latLons, track.cumulative, tolerance, fix, valhalla)
+                }
             },
+            onMapLongTap = { goHere = it },
         )
+        goHere?.let { point ->
+            GoHereDialog(onDismiss = { goHere = null }) { profile ->
+                goHere = null
+                session.cancelResume()
+                nav.start(NavDestination(context.getString(R.string.nav_map_point), point, profile), fix, valhalla)
+            }
+        }
+        // Bandeau du guidage « Aller à » (en haut, à la place de la carte « Reprendre »).
+        Column(Modifier.align(Alignment.TopCenter).padding(12.dp), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(6.dp)) {
+            val destination = nav.destination
+            if (navTracker != null && destination != null) {
+                val stopLabel = stringResource(if (track != null) R.string.nav_back_to_track else R.string.nav_stop)
+                NavPanel(navTracker.currentManeuver, navTracker.distanceToManeuverMeters, destination.label, nav.isRecomputing, stopLabel, onStop = nav::stop)
+                navTracker.nextManeuverIfChained?.let { NavThenBanner(it) }
+            } else if (goTo != null) {
+                GoToPill(goTo, nav.goToRemainingMeters, nav.isRequesting, nav.failed, settings.distanceUnit, onCancel = nav::stop)
+            } else if (nav.isRequesting && destination != null) {
+                Box(Modifier.background(PanelBackground, PanelShape).padding(horizontal = 16.dp, vertical = 10.dp)) {
+                    Text(stringResource(R.string.nav_requesting) + " · " + destination.label, color = Color.White, maxLines = 1)
+                }
+            }
+        }
         manualResume?.let { resume ->
             ResumeCard(
                 resume, fix, camera.courseDegrees, settings.distanceUnit,
@@ -215,7 +270,7 @@ fun RideScreen(
             if (camera.isManualOverrideActive(now) || camera.manualDistanceMeters != null) {
                 ControlButton("◎", stringResource(R.string.ride_recenter)) { camera.recenter() }
             }
-            if (track != null && fix != null) {
+            if (track != null && fix != null && guidingTrace) {
                 when {
                     rejoinDisplay != null -> RejoinBanner(rejoinDisplay, fix, camera.courseDegrees)
                     offTrack.isOffTrack -> OffTrackChip(offTrack, fix, track.latLons, track.cumulative, camera.courseDegrees)
@@ -241,7 +296,11 @@ fun RideScreen(
             horizontalAlignment = if (controlsOnRight) Alignment.Start else Alignment.End,
         ) {
             if (statsExpanded) {
-                RideStatsPanel(session, recorder, camera.rawSpeedKmh, settings.distanceUnit, onCollapse = { statsExpanded = false }, onFinish = { finishing = true })
+                // Pendant un « Aller à », restant/arrivée le long de son itinéraire (comme l'iPhone).
+                val progress = navTracker?.let { session.progressAlong(it.route.totalDistanceMeters, it.route.totalDistanceMeters - it.remainingMeters) }
+                    ?: goTo?.let { g -> nav.goToRemainingMeters?.let { session.progressAlong(g.lengthMeters, g.lengthMeters - it) } }
+                    ?: session.progress
+                RideStatsPanel(session, progress, recorder, camera.rawSpeedKmh, settings.distanceUnit, onCollapse = { statsExpanded = false }, onFinish = { finishing = true })
             } else {
                 RecordingControls(recorder) { finishing = true }
                 val expandLabel = stringResource(R.string.stats_expand)
@@ -263,6 +322,25 @@ fun RideScreen(
         // Premier suivi d'une trace : « Enregistrer cette sortie ? » (une fois par trace et par lancement).
         if (granted && track != null) RecordingPrompt(recorder, track.entry.id)
     }
+}
+
+/** Appui long sur la carte (`commitGoTo` iOS) : « Aller ici » en Itinéraire, Piste ou Mixte. */
+@Composable
+private fun GoHereDialog(onDismiss: () -> Unit, onGo: (GoToProfile) -> Unit) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(stringResource(R.string.nav_go_here)) },
+        text = {
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                Text(stringResource(R.string.nav_go_here_message))
+                GoToProfile.entries.forEach { profile ->
+                    OutlinedButton(onClick = { onGo(profile) }, modifier = Modifier.fillMaxWidth()) { Text(profileLabel(profile)) }
+                }
+            }
+        },
+        confirmButton = {},
+        dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.cancel)) } },
+    )
 }
 
 /** Écart à la trace au-delà duquel la reprise automatique se déclenche (après 2 s), comme l'iPhone. */

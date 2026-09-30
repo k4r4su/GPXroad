@@ -64,6 +64,9 @@ class RideSession(private val routing: RoutingClient) {
         progress = if (trackLengthMeters != null && cumulativeMeters != null) stats.progress(trackLengthMeters, cumulativeMeters) else null
     }
 
+    /** Restant / % / arrivée le long d'un autre parcours (itinéraire « Aller à »). */
+    fun progressAlong(lengthMeters: Double, cumulativeMeters: Double): RideProgress = stats.progress(lengthMeters, cumulativeMeters)
+
     /** Tap sur la carte : sur la trace (à [toleranceMeters] près), propose d'y reprendre. */
     fun requestResume(tap: LatLon, points: List<LatLon>, cumulative: DoubleArray, toleranceMeters: Double, origin: Location?, valhalla: ValhallaConfiguration?) {
         if (manualResume != null || points.size < 2) return

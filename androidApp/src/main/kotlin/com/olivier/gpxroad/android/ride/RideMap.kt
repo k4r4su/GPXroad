@@ -72,6 +72,12 @@ private const val CHEVRON_SOURCE = "chevron-source"
 private const val SLOPE_SOURCE = "slope-source"
 private const val REJOIN_SOURCE = "rejoin-source"
 private const val REJOIN_PIN_SOURCE = "rejoin-pin-source"
+private const val NAV_SOURCE = "nav-source"
+private const val GOTO_SOURCE = "goto-source"
+/** « Aller à » riche : restant bleu, parcouru gris atténué ; simple : pointillé cyan (comme l'iPhone). */
+private val NAV_COLOR = android.graphics.Color.rgb(10, 132, 255)
+private val NAV_TRAVELED_COLOR = android.graphics.Color.argb(170, 142, 142, 147)
+private val GOTO_COLOR = android.graphics.Color.rgb(50, 173, 230)
 private const val PINS_SOURCE = "pins-source"
 private const val POSITION_SOURCE = "position-source"
 private const val CHEVRON_ICON = "chevron-icon"
@@ -105,14 +111,19 @@ fun RideMap(
     chevronSpacingMeters: Double,
     slopeWarnings: List<SlopeWarning>,
     rejoin: RejoinOverlay?,
+    navRoute: List<LatLon>?,
+    navTraveledCount: Int,
+    goToRoute: List<LatLon>?,
     location: Location?,
     northUp: Boolean,
     camera: RideCameraState,
     modifier: Modifier = Modifier,
     /** Tap sur la carte : coordonnée et tolérance (m) équivalant à 36 dp au zoom courant. */
     onMapTap: (LatLon, Double) -> Unit = { _, _ -> },
+    onMapLongTap: (LatLon) -> Unit = {},
 ) {
     val currentOnMapTap by rememberUpdatedState(onMapTap)
+    val currentOnMapLongTap by rememberUpdatedState(onMapLongTap)
     val context = LocalContext.current
     val density = LocalDensity.current
     val measurer = rememberTextMeasurer()
@@ -151,6 +162,10 @@ fun RideMap(
                 val metersPerPixel = loaded.projection.getMetersPerPixelAtLatitude(point.latitude)
                 currentOnMapTap(LatLon(point.latitude, point.longitude), metersPerPixel * RESUME_TAP_TOLERANCE_DP * density.density)
                 false
+            }
+            loaded.addOnMapLongClickListener { point ->
+                currentOnMapLongTap(LatLon(point.latitude, point.longitude))
+                true
             }
             loaded.addOnCameraIdleListener {
                 chevronZoomFloor = DirectionChevrons.adaptiveSpacingMeters(0.0, loaded.cameraPosition.zoom)
@@ -234,6 +249,32 @@ fun RideMap(
         )
     }
 
+    // « Aller à » riche : deux morceaux (parcouru / restant) dans la même source, filtrés par couche.
+    LaunchedEffect(style, navRoute, navTraveledCount) {
+        val source = style?.getSourceAs<GeoJsonSource>(NAV_SOURCE) ?: return@LaunchedEffect
+        val points = navRoute.orEmpty()
+        if (points.size < 2) {
+            source.setGeoJson(FeatureCollection.fromFeatures(emptyList()))
+            return@LaunchedEffect
+        }
+        fun line(part: List<LatLon>, traveled: Boolean) = Feature.fromGeometry(LineString.fromLngLats(part.map { Point.fromLngLat(it.longitude, it.latitude) })).apply {
+            addBooleanProperty("traveled", traveled)
+        }
+        val count = navTraveledCount.coerceIn(0, points.size)
+        val features = if (count <= 1 || count >= points.size) listOf(line(points, false))
+        else listOf(line(points.subList(0, count), true), line(points.subList(count - 1, points.size), false))
+        source.setGeoJson(FeatureCollection.fromFeatures(features))
+    }
+
+    LaunchedEffect(style, goToRoute) {
+        val source = style?.getSourceAs<GeoJsonSource>(GOTO_SOURCE) ?: return@LaunchedEffect
+        val points = goToRoute.orEmpty()
+        source.setGeoJson(
+            if (points.size < 2) FeatureCollection.fromFeatures(emptyList())
+            else FeatureCollection.fromFeature(Feature.fromGeometry(LineString.fromLngLats(points.map { Point.fromLngLat(it.longitude, it.latitude) }))),
+        )
+    }
+
     // Épingles : une image par virage (le pictogramme d'un rond-point dépend de ses branches).
     LaunchedEffect(style, maneuvers) {
         val loadedStyle = style ?: return@LaunchedEffect
@@ -309,6 +350,40 @@ private fun addOverlayLayers(style: Style, trace: TraceStyle, density: Density) 
             PropertyFactory.iconRotationAlignment(Property.ICON_ROTATION_ALIGNMENT_MAP),
             PropertyFactory.iconAllowOverlap(true),
             PropertyFactory.iconIgnorePlacement(true),
+        ),
+    )
+    style.addSource(GeoJsonSource(NAV_SOURCE))
+    style.addLayer(
+        LineLayer("nav-layer-casing", NAV_SOURCE).withProperties(
+            PropertyFactory.lineColor(android.graphics.Color.BLACK),
+            PropertyFactory.lineWidth(trace.casingWidth),
+            PropertyFactory.lineCap(Property.LINE_CAP_ROUND),
+            PropertyFactory.lineJoin(Property.LINE_JOIN_ROUND),
+        ),
+    )
+    style.addLayer(
+        LineLayer("nav-layer-traveled", NAV_SOURCE).withProperties(
+            PropertyFactory.lineColor(NAV_TRAVELED_COLOR),
+            PropertyFactory.lineWidth(trace.widthDp),
+            PropertyFactory.lineCap(Property.LINE_CAP_ROUND),
+            PropertyFactory.lineJoin(Property.LINE_JOIN_ROUND),
+        ).withFilter(Expression.eq(Expression.get("traveled"), Expression.literal(true))),
+    )
+    style.addLayer(
+        LineLayer("nav-layer", NAV_SOURCE).withProperties(
+            PropertyFactory.lineColor(NAV_COLOR),
+            PropertyFactory.lineWidth(trace.widthDp),
+            PropertyFactory.lineCap(Property.LINE_CAP_ROUND),
+            PropertyFactory.lineJoin(Property.LINE_JOIN_ROUND),
+        ).withFilter(Expression.eq(Expression.get("traveled"), Expression.literal(false))),
+    )
+    style.addSource(GeoJsonSource(GOTO_SOURCE))
+    style.addLayer(
+        LineLayer("goto-layer", GOTO_SOURCE).withProperties(
+            PropertyFactory.lineColor(GOTO_COLOR),
+            PropertyFactory.lineWidth(trace.widthDp * 1.2f),
+            PropertyFactory.lineDasharray(arrayOf(2f, 1f)),
+            PropertyFactory.lineJoin(Property.LINE_JOIN_ROUND),
         ),
     )
     style.addSource(GeoJsonSource(REJOIN_SOURCE))

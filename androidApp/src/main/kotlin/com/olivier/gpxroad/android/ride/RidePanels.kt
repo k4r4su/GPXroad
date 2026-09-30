@@ -36,6 +36,7 @@ import com.olivier.gpxroad.android.recording.rememberRecordingStarter
 import com.olivier.gpxroad.android.roadbook.RoadbookTexts
 import com.olivier.gpxroad.shared.LatLon
 import com.olivier.gpxroad.shared.geodesicDistanceMeters
+import com.olivier.gpxroad.shared.ride.RideProgress
 import com.olivier.gpxroad.shared.roadbook.RoadbookAnalyzer
 import java.text.DateFormat
 import java.util.Date
@@ -53,10 +54,9 @@ fun speedUnitLabel(unit: DistanceUnit): String = if (unit == DistanceUnit.MI) "m
  * restant, % parcouru, arrivée et durée restante ; enregistrement et « Terminer la sortie ».
  */
 @Composable
-fun RideStatsPanel(session: RideSession, recorder: RideRecorder, speedKmh: Double, unit: DistanceUnit, onCollapse: () -> Unit, onFinish: () -> Unit) {
+fun RideStatsPanel(session: RideSession, progress: RideProgress?, recorder: RideRecorder, speedKmh: Double, unit: DistanceUnit, onCollapse: () -> Unit, onFinish: () -> Unit) {
     val start = rememberRecordingStarter(recorder)
     val speedUnit = speedUnitLabel(unit)
-    val progress = session.progress
     Column(
         Modifier.widthIn(max = 272.dp).background(PanelBackground, PanelShape).padding(14.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp),

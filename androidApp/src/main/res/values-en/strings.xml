@@ -285,4 +285,36 @@
     <string name="resume_road">%1$s by road</string>
     <string name="resume_computing">Calculating route…</string>
     <string name="resume_network_error">Network required for the route — straight line shown</string>
+    <!-- Aller à -->
+    <string name="tab_goto">Go to</string>
+    <string name="nav_home">Home</string>
+    <string name="nav_work">Work</string>
+    <string name="nav_recent">Recent searches</string>
+    <string name="nav_search_hint">Address or place</string>
+    <string name="nav_profile_route">Route</string>
+    <string name="nav_profile_offroad">Trail</string>
+    <string name="nav_profile_mixed">Mixed</string>
+    <string name="nav_search_failed">Search failed — check your connection.</string>
+    <string name="nav_no_result">No place found.</string>
+    <string name="nav_towards">To %1$s</string>
+    <string name="nav_then">Then</string>
+    <string name="nav_back_to_track">Back to the track</string>
+    <string name="nav_stop">Stop guidance</string>
+    <string name="nav_voice">Voice guidance</string>
+    <string name="nav_volume">Volume</string>
+    <string name="nav_set_home">Set as Home</string>
+    <string name="nav_set_work">Set as Work</string>
+    <string name="nav_use_position_home">My position as Home</string>
+    <string name="nav_use_position_work">My position as Work</string>
+    <string name="nav_clear_favorite">Remove this favorite address</string>
+    <string name="nav_favorite_unset">Not set — long-press a result</string>
+    <string name="nav_favorites_hint">Long-press Home or Work to change it. During guidance, the Road Book and track rejoin pause; the track stays visible.</string>
+    <string name="nav_goto_summary">Route ≈ %1$s · ~%2$d min</string>
+    <string name="nav_goto_direct">No route possible — direct guidance.</string>
+    <string name="nav_cancel_goto">Cancel this guidance</string>
+    <string name="nav_go_here">Go here</string>
+    <string name="nav_go_here_message">Choose how to reach this point.</string>
+    <string name="nav_map_point">Point on the map</string>
+    <string name="nav_requesting">Calculating route…</string>
+    <string name="nav_rich_needs_valhalla">Detailed guidance (maneuvers, voice) with Valhalla set up in Settings; otherwise simple guidance.</string>
 </resources>

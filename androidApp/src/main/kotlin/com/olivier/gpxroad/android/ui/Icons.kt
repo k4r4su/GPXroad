@@ -16,3 +16,13 @@ val LibraryIcon: ImageVector = ImageVector.Builder("Library", 24.dp, 24.dp, 24f,
         moveTo(3f, 19.5f); lineTo(21f, 19.5f); lineTo(21f, 21f); lineTo(3f, 21f); close()
     }
 }.build()
+
+/** Icône « Travail » (mallette) — absente des icônes Material de base. */
+val WorkIcon: ImageVector = ImageVector.Builder("Work", 24.dp, 24.dp, 24f, 24f).apply {
+    path(fill = SolidColor(Color.Black)) {
+        // Poignée.
+        moveTo(9f, 3.5f); lineTo(15f, 3.5f); lineTo(15f, 7f); lineTo(13.5f, 7f); lineTo(13.5f, 5f); lineTo(10.5f, 5f); lineTo(10.5f, 7f); lineTo(9f, 7f); close()
+        // Corps.
+        moveTo(3f, 7.5f); lineTo(21f, 7.5f); lineTo(21f, 19.5f); lineTo(3f, 19.5f); close()
+    }
+}.build()

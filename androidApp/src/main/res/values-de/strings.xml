@@ -285,4 +285,36 @@
     <string name="resume_road">%1$s über die Straße</string>
     <string name="resume_computing">Route wird berechnet…</string>
     <string name="resume_network_error">Netz für die Route nötig — Luftlinie angezeigt</string>
+    <!-- Aller à -->
+    <string name="tab_goto">Ziel</string>
+    <string name="nav_home">Zuhause</string>
+    <string name="nav_work">Arbeit</string>
+    <string name="nav_recent">Letzte Suchen</string>
+    <string name="nav_search_hint">Adresse oder Ort</string>
+    <string name="nav_profile_route">Route</string>
+    <string name="nav_profile_offroad">Piste</string>
+    <string name="nav_profile_mixed">Gemischt</string>
+    <string name="nav_search_failed">Suche nicht möglich — prüfe deine Verbindung.</string>
+    <string name="nav_no_result">Kein Ort gefunden.</string>
+    <string name="nav_towards">Nach %1$s</string>
+    <string name="nav_then">Dann</string>
+    <string name="nav_back_to_track">Zurück zum Track</string>
+    <string name="nav_stop">Führung stoppen</string>
+    <string name="nav_voice">Sprachführung</string>
+    <string name="nav_volume">Lautstärke</string>
+    <string name="nav_set_home">Als Zuhause festlegen</string>
+    <string name="nav_set_work">Als Arbeit festlegen</string>
+    <string name="nav_use_position_home">Meine Position als Zuhause</string>
+    <string name="nav_use_position_work">Meine Position als Arbeit</string>
+    <string name="nav_clear_favorite">Diese Lieblingsadresse entfernen</string>
+    <string name="nav_favorite_unset">Nicht festgelegt — Ergebnis lange drücken</string>
+    <string name="nav_favorites_hint">Zuhause oder Arbeit lange drücken, um es zu ändern. Während einer Führung pausieren Road Book und Track-Wiedereinstieg; der Track bleibt sichtbar.</string>
+    <string name="nav_goto_summary">Route ≈ %1$s · ~%2$d min</string>
+    <string name="nav_goto_direct">Keine Route möglich — direkte Führung.</string>
+    <string name="nav_cancel_goto">Diese Führung abbrechen</string>
+    <string name="nav_go_here">Hierhin</string>
+    <string name="nav_go_here_message">Wähle, wie du diesen Punkt erreichst.</string>
+    <string name="nav_map_point">Punkt auf der Karte</string>
+    <string name="nav_requesting">Route wird berechnet…</string>
+    <string name="nav_rich_needs_valhalla">Detaillierte Führung (Manöver, Sprache) mit in den Einstellungen konfiguriertem Valhalla; sonst einfache Führung.</string>
 </resources>

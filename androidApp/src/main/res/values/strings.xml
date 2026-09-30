@@ -287,4 +287,36 @@
     <string name="resume_road">%1$s par la route</string>
     <string name="resume_computing">Calcul de l\'itinéraire…</string>
     <string name="resume_network_error">Réseau requis pour l\'itinéraire — vol d\'oiseau affiché</string>
+    <!-- Aller à -->
+    <string name="tab_goto">Aller à</string>
+    <string name="nav_home">Domicile</string>
+    <string name="nav_work">Travail</string>
+    <string name="nav_recent">Recherches récentes</string>
+    <string name="nav_search_hint">Adresse ou lieu</string>
+    <string name="nav_profile_route">Itinéraire</string>
+    <string name="nav_profile_offroad">Piste</string>
+    <string name="nav_profile_mixed">Mixte</string>
+    <string name="nav_search_failed">Recherche impossible — vérifie ta connexion.</string>
+    <string name="nav_no_result">Aucun lieu trouvé.</string>
+    <string name="nav_towards">Vers %1$s</string>
+    <string name="nav_then">Puis</string>
+    <string name="nav_back_to_track">Revenir à la trace</string>
+    <string name="nav_stop">Arrêter le guidage</string>
+    <string name="nav_voice">Guidage vocal</string>
+    <string name="nav_volume">Volume</string>
+    <string name="nav_set_home">Définir comme Domicile</string>
+    <string name="nav_set_work">Définir comme Travail</string>
+    <string name="nav_use_position_home">Ma position comme Domicile</string>
+    <string name="nav_use_position_work">Ma position comme Travail</string>
+    <string name="nav_clear_favorite">Retirer cette adresse favorite</string>
+    <string name="nav_favorite_unset">Non défini — appui long sur un résultat</string>
+    <string name="nav_favorites_hint">Appui long sur Domicile ou Travail pour le changer. Pendant un guidage, le Road Book et la reprise de trace se mettent en pause ; la trace reste affichée.</string>
+    <string name="nav_goto_summary">Itinéraire ≈ %1$s · ~%2$d min</string>
+    <string name="nav_goto_direct">Itinéraire impossible — guidage direct.</string>
+    <string name="nav_cancel_goto">Annuler ce guidage</string>
+    <string name="nav_go_here">Aller ici</string>
+    <string name="nav_go_here_message">Choisis comment rejoindre ce point.</string>
+    <string name="nav_map_point">Point sur la carte</string>
+    <string name="nav_requesting">Calcul de l\'itinéraire…</string>
+    <string name="nav_rich_needs_valhalla">Guidage détaillé (manœuvres, voix) avec Valhalla configuré dans Réglages ; sinon guidage simple.</string>
 </resources>

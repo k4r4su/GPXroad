@@ -60,6 +60,14 @@ fun SettingsScreen(settings: AppSettings, servers: ServerSettings, overpass: Ove
         RideSettingsSection(settings)
 
         HorizontalDivider()
+        Section(stringResource(R.string.tab_goto))
+        SettingToggle(stringResource(R.string.nav_voice), settings.voiceEnabled) { settings.updateVoice(it, settings.voiceVolume) }
+        if (settings.voiceEnabled) {
+            Text(stringResource(R.string.nav_volume), style = MaterialTheme.typography.bodyLarge)
+            Slider(value = settings.voiceVolume.toFloat(), onValueChange = { settings.updateVoice(true, it.toDouble()) }, valueRange = 0f..1f)
+        }
+
+        HorizontalDivider()
         Section(stringResource(R.string.settings_roadbook))
         Setting(stringResource(R.string.settings_light, settings.lightThreshold.roundToInt()), settings.lightThreshold, 10f..60f) {
             settings.updateThresholds(it, settings.markedThreshold, settings.hardThreshold, settings.veryHardThreshold)

@@ -104,6 +104,18 @@ class AppSettings(context: Context) {
     var keepScreenAwake by mutableStateOf(preferences.getBoolean("keepScreenAwake", true))
         private set
 
+    /** « Aller à » : annonces vocales (activées par défaut, comme l'iPhone) et leur volume. */
+    var voiceEnabled by mutableStateOf(preferences.getBoolean("voiceEnabled", true))
+        private set
+    var voiceVolume by mutableDoubleStateOf(preferences.getDouble("voiceVolume", 1.0))
+        private set
+
+    fun updateVoice(enabled: Boolean, volume: Double) {
+        voiceEnabled = enabled
+        voiceVolume = volume
+        preferences.edit().putBoolean("voiceEnabled", enabled).putDouble("voiceVolume", volume).apply()
+    }
+
     fun updateTraceColor(value: TraceColor) {
         traceColor = value
         preferences.edit().putString("traceColor", value.name).apply()

@@ -128,7 +128,18 @@ Sessions suivantes :
         `shared/track/TrackMetrics`, actions). Vérifié sur l'émulateur.
   - Écart assumé : tué par le système pendant l'enregistrement, le service ne redémarre pas seul
     (`START_NOT_STICKY`) ; la sortie est retrouvée en pause au lancement, comme sur l'iPhone.
-- [ ] 5 — Aller à : recherche, guidage Valhalla, Domicile/Travail, signalements.
+- [x] 5 — Aller à (01/10) : onglet « Aller à » (recherche Nominatim biaisée autour de la position,
+      Domicile/Travail par appui long, 5 recherches récentes), Itinéraire / Piste / Mixte, appui long
+      sur la carte du Ride = « Aller ici ». Profil Itinéraire + Valhalla : guidage détaillé (bandeau
+      manœuvre + distance + rue, « Puis… », tracé parcouru gris / restant bleu, voix du téléphone à
+      500 m / 100 m / après la manœuvre, recalcul à 30 m pendant 8 s avec 12 s entre deux essais) —
+      règles partagées `shared/nav/NavGuidance` ; sinon guidage simple (pointillé cyan, distance
+      restante, durée estimée). Un seul guidage à la fois : le Road Book et la reprise se taisent,
+      taper la trace y revient. Vérifié : réponse Valhalla réelle (Hégenheim → Ferrette, 16
+      manœuvres) rejouée jusqu'à l'arrivée en test, et sur l'émulateur avec le Valhalla public.
+  - Écart assumé : au départ, une seule annonce vocale quand les deux seuils sont franchis d'un
+    coup (l'iPhone disait la même consigne deux fois).
+  - [ ] Reste : limitation de vitesse (Overpass), trafic, signalements partagés.
 - [ ] 6 — Cartes hors ligne, thèmes, PDF, tutoriel, finitions.
 - [ ] 7-8 — Retours terrain, stabilisation.
 
