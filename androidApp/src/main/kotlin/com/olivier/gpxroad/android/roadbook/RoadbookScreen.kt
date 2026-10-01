@@ -41,6 +41,7 @@ import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.produceState
 import androidx.compose.material.icons.Icons
+import androidx.compose.ui.draw.clip
 import androidx.compose.material.icons.rounded.PictureAsPdf
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -437,7 +438,11 @@ private fun GpsAssisted(
         // largeur le permet : tablette dans les deux sens, téléphone en paysage.
         val twoColumns = landscape || maxWidth >= 600.dp
         val hero: @Composable (Modifier) -> Unit = { modifier ->
-            Box(modifier, contentAlignment = Alignment.Center) {
+            // Grande carte posée sur une surface arrondie (refonte), contenu et tailles inchangés.
+            Box(
+                modifier.clip(MaterialTheme.shapes.extraLarge).background(MaterialTheme.colorScheme.surfaceContainerLow).padding(12.dp),
+                contentAlignment = Alignment.Center,
+            ) {
                 when {
                     offTrack.isOffTrack -> RejoinHero(offTrack, rejoinDisplay, unit)
                     progress != null -> when (val entry = entries[progress.heroIndex]) {
@@ -451,15 +456,13 @@ private fun GpsAssisted(
         }
         val list: @Composable (Modifier) -> Unit = { modifier -> UpcomingList(upcoming, unit, modifier) }
         when {
-            upcoming.isEmpty() -> hero(Modifier.fillMaxSize().padding(16.dp))
+            upcoming.isEmpty() -> hero(Modifier.padding(12.dp).fillMaxSize())
             twoColumns -> Row(Modifier.fillMaxSize()) {
-                hero(Modifier.weight(1.3f).fillMaxSize().padding(12.dp))
-                VerticalDivider()
+                hero(Modifier.weight(1.3f).padding(12.dp).fillMaxSize())
                 list(Modifier.weight(1f).fillMaxSize())
             }
             else -> Column(Modifier.fillMaxSize()) {
-                hero(Modifier.fillMaxWidth().weight(1.1f).padding(16.dp))
-                HorizontalDivider()
+                hero(Modifier.fillMaxWidth().weight(1.1f).padding(start = 12.dp, end = 12.dp, top = 12.dp, bottom = 4.dp))
                 list(Modifier.fillMaxWidth().weight(1f))
             }
         }

@@ -14,6 +14,11 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Block
+import androidx.compose.material.icons.rounded.AltRoute
+import androidx.compose.material.icons.rounded.SignalCellularOff
+import androidx.compose.material.icons.rounded.Terrain
+import com.olivier.gpxroad.android.ui.ChoiceSheet
+import com.olivier.gpxroad.android.ui.SheetOption
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Button
@@ -75,19 +80,14 @@ fun BlockedButton(onClick: () -> Unit) {
 /** « Chemin bloqué » : contourner par la route, par la piste, ou rejoindre sans réseau. */
 @Composable
 fun DetourDialog(onDismiss: () -> Unit, onChoose: (DetourMode) -> Unit) {
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        title = { Text(stringResource(R.string.detour_title)) },
-        text = {
-            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                Text(stringResource(R.string.detour_message))
-                OutlinedButton(onClick = { onChoose(DetourMode.ROAD) }, modifier = Modifier.fillMaxWidth()) { Text(stringResource(R.string.detour_road)) }
-                OutlinedButton(onClick = { onChoose(DetourMode.TRAIL) }, modifier = Modifier.fillMaxWidth()) { Text(stringResource(R.string.detour_trail)) }
-                OutlinedButton(onClick = { onChoose(DetourMode.DIRECT) }, modifier = Modifier.fillMaxWidth()) { Text(stringResource(R.string.detour_direct)) }
-            }
-        },
-        confirmButton = {},
-        dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.cancel)) } },
+    ChoiceSheet(
+        stringResource(R.string.detour_title), stringResource(R.string.detour_message),
+        listOf(
+            SheetOption(Icons.Rounded.AltRoute, Color(0xFFF46F16), stringResource(R.string.detour_road)) { onChoose(DetourMode.ROAD) },
+            SheetOption(Icons.Rounded.Terrain, Color(0xFF8E6E53), stringResource(R.string.detour_trail)) { onChoose(DetourMode.TRAIL) },
+            SheetOption(Icons.Rounded.SignalCellularOff, Color(0xFF8E8E93), stringResource(R.string.detour_direct)) { onChoose(DetourMode.DIRECT) },
+        ),
+        onDismiss,
     )
 }
 

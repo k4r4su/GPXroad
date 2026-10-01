@@ -10,6 +10,11 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Add
+import androidx.compose.material.icons.rounded.AltRoute
+import androidx.compose.material.icons.rounded.DirectionsCar
+import androidx.compose.material.icons.rounded.Terrain
+import com.olivier.gpxroad.android.ui.ChoiceSheet
+import com.olivier.gpxroad.android.ui.SheetOption
 import androidx.compose.material.icons.rounded.MyLocation
 import androidx.compose.material.icons.rounded.Navigation
 import androidx.compose.material.icons.rounded.North
@@ -457,19 +462,14 @@ private fun GuidanceToggle(stopped: Boolean, onPause: () -> Unit, onResume: () -
 /** Appui long sur la carte (`commitGoTo` iOS) : « Aller ici » en Itinéraire, Piste ou Mixte. */
 @Composable
 private fun GoHereDialog(onDismiss: () -> Unit, onGo: (GoToProfile) -> Unit) {
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        title = { Text(stringResource(R.string.nav_go_here)) },
-        text = {
-            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                Text(stringResource(R.string.nav_go_here_message))
-                GoToProfile.entries.forEach { profile ->
-                    OutlinedButton(onClick = { onGo(profile) }, modifier = Modifier.fillMaxWidth()) { Text(profileLabel(profile)) }
-                }
-            }
-        },
-        confirmButton = {},
-        dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.cancel)) } },
+    ChoiceSheet(
+        stringResource(R.string.nav_go_here), stringResource(R.string.nav_go_here_message),
+        listOf(
+            SheetOption(Icons.Rounded.DirectionsCar, Color(0xFF0A84FF), profileLabel(GoToProfile.ROUTE)) { onGo(GoToProfile.ROUTE) },
+            SheetOption(Icons.Rounded.Terrain, Color(0xFF8E6E53), profileLabel(GoToProfile.OFFROAD)) { onGo(GoToProfile.OFFROAD) },
+            SheetOption(Icons.Rounded.AltRoute, Color(0xFFF46F16), profileLabel(GoToProfile.MIXED)) { onGo(GoToProfile.MIXED) },
+        ),
+        onDismiss,
     )
 }
 

@@ -41,8 +41,11 @@ temps, la version iOS est vraiment correcte mais l'Android c'est une catastrophe
 - [x] Ride : boutons à icônes (recentrer, orientation, +, −, Pause, Bloqué) en panneaux arrondis à
       liseré, compteur rond, pastilles d'enregistrement, logo et attribution en bas au centre.
 - [x] Road Book et Aller à : titres, bouton PDF, champ de recherche et tuiles Domicile/Travail.
-- [ ] Reste : bottom sheets à la place des boîtes de dialogue en série (détour, Aller ici, export
-      PDF), cartes du Road Book assisté, panneau Mesures et bandeaux du Ride encore à affiner.
+- [x] Feuilles de choix à grandes lignes à icônes (`ui/ChoiceSheet`) pour « Chemin bloqué » et
+      « Aller ici » ; Road Book assisté : grande carte sur une surface arrondie (tailles et contenu
+      inchangés, lisibilité validée sur le terrain).
+- [ ] Reste : export PDF en feuille, panneau Mesures et bandeaux du Ride à affiner, captures côte à
+      côte iOS / Android sur la tablette.
 - [ ] Validation par captures côte à côte iOS / Android sur tablette et téléphone.
 
 ## 30/09 — virage prioritaire sur les repères de décor, textes non tronqués (iOS + Android)
