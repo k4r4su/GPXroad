@@ -4,7 +4,24 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.AlertDialog
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.Share
+import androidx.compose.material3.Button
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.rememberModalBottomSheetState
+import com.olivier.gpxroad.android.ui.GroupContent
+import com.olivier.gpxroad.android.ui.GroupDivider
+import com.olivier.gpxroad.android.ui.SettingsGroup
+import com.olivier.gpxroad.android.ui.ToggleRow
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -32,6 +49,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
 /** « Export PDF » (`RoadbookExportOptionsView` iOS) : mise en page, colonnes, puis génération et partage. */
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PdfExportDialog(trackName: String, entries: List<RoadbookEntry>, attached: Map<Int, LandmarkInfo>, settings: AppSettings, onDismiss: () -> Unit) {
     val context = LocalContext.current
@@ -44,37 +62,47 @@ fun PdfExportDialog(trackName: String, entries: List<RoadbookEntry>, attached: M
         settings.updatePdfOptionsJson(value.toJson())
     }
     val maneuverCount = entries.count { it is RoadbookEntry.Maneuver }
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        title = { Text(stringResource(R.string.pdf_export)) },
-        text = {
-            Column(Modifier.verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                Text(stringResource(R.string.pdf_count, maneuverCount, trackName), style = MaterialTheme.typography.bodySmall)
-                SettingChoice(stringResource(R.string.pdf_orientation), listOf(false, true), options.landscape, { stringResource(if (it) R.string.pdf_landscape else R.string.pdf_portrait) }) { update(options.copy(landscape = it)) }
-                SettingChoice(stringResource(R.string.pdf_density), listOf(true, false), options.compact, { stringResource(if (it) R.string.pdf_compact else R.string.pdf_comfortable) }) { update(options.copy(compact = it)) }
-                SettingChoice(stringResource(R.string.pdf_heading), listOf(false, true), options.degrees, { stringResource(if (it) R.string.pdf_degrees else R.string.pdf_pictogram) }) { update(options.copy(degrees = it)) }
-                SettingChoice(stringResource(R.string.pdf_unit), DistanceUnit.entries, options.unit, { if (it == DistanceUnit.KM) "km" else "mi" }) { update(options.copy(unit = it)) }
-                SettingChoice(
-                    stringResource(R.string.pdf_font_size), listOf(RoadbookPdfOptions.FONT_SMALL, RoadbookPdfOptions.FONT_MEDIUM, RoadbookPdfOptions.FONT_LARGE), options.fontSize,
-                    { stringResource(when (it) { RoadbookPdfOptions.FONT_SMALL -> R.string.pdf_small; RoadbookPdfOptions.FONT_LARGE -> R.string.pdf_large; else -> R.string.pdf_medium }) },
-                ) { update(options.copy(fontSize = it)) }
-                SettingToggle(stringResource(R.string.pdf_cumulative_column), options.showCumulative) { update(options.copy(showCumulative = it)) }
-                SettingToggle(stringResource(R.string.pdf_note_column), options.showNote) { update(options.copy(showNote = it)) }
-            }
-        },
-        confirmButton = {
-            TextButton(enabled = !generating, onClick = {
-                generating = true
-                scope.launch {
-                    val file = withContext(Dispatchers.Default) { RoadbookPdf.generate(context, trackName, entries, attached, options, measurer) }
-                    generating = false
-                    RoadbookPdf.share(context, file, trackName)
-                    onDismiss()
+    ModalBottomSheet(onDismissRequest = onDismiss, sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)) {
+        Column(Modifier.verticalScroll(rememberScrollState()).navigationBarsPadding().padding(bottom = 16.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+            Text(stringResource(R.string.pdf_export), style = MaterialTheme.typography.headlineSmall, modifier = Modifier.padding(horizontal = 24.dp))
+            Text(stringResource(R.string.pdf_count, maneuverCount, trackName), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(horizontal = 24.dp))
+            SettingsGroup {
+                GroupContent {
+                    SettingChoice(stringResource(R.string.pdf_orientation), listOf(false, true), options.landscape, { stringResource(if (it) R.string.pdf_landscape else R.string.pdf_portrait) }) { update(options.copy(landscape = it)) }
+                    SettingChoice(stringResource(R.string.pdf_density), listOf(true, false), options.compact, { stringResource(if (it) R.string.pdf_compact else R.string.pdf_comfortable) }) { update(options.copy(compact = it)) }
+                    SettingChoice(stringResource(R.string.pdf_heading), listOf(false, true), options.degrees, { stringResource(if (it) R.string.pdf_degrees else R.string.pdf_pictogram) }) { update(options.copy(degrees = it)) }
+                    SettingChoice(stringResource(R.string.pdf_unit), DistanceUnit.entries, options.unit, { if (it == DistanceUnit.KM) "km" else "mi" }) { update(options.copy(unit = it)) }
+                    SettingChoice(
+                        stringResource(R.string.pdf_font_size), listOf(RoadbookPdfOptions.FONT_SMALL, RoadbookPdfOptions.FONT_MEDIUM, RoadbookPdfOptions.FONT_LARGE), options.fontSize,
+                        { stringResource(when (it) { RoadbookPdfOptions.FONT_SMALL -> R.string.pdf_small; RoadbookPdfOptions.FONT_LARGE -> R.string.pdf_large; else -> R.string.pdf_medium }) },
+                    ) { update(options.copy(fontSize = it)) }
                 }
-            }) {
-                if (generating) CircularProgressIndicator(strokeWidth = 2.dp) else Text(stringResource(R.string.pdf_generate))
             }
-        },
-        dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.close)) } },
-    )
+            SettingsGroup {
+                ToggleRow(stringResource(R.string.pdf_cumulative_column), options.showCumulative) { update(options.copy(showCumulative = it)) }
+                GroupDivider(16.dp)
+                ToggleRow(stringResource(R.string.pdf_note_column), options.showNote) { update(options.copy(showNote = it)) }
+            }
+            Button(
+                enabled = !generating,
+                onClick = {
+                    generating = true
+                    scope.launch {
+                        val file = withContext(Dispatchers.Default) { RoadbookPdf.generate(context, trackName, entries, attached, options, measurer) }
+                        generating = false
+                        RoadbookPdf.share(context, file, trackName)
+                        onDismiss()
+                    }
+                },
+                modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp).height(52.dp),
+            ) {
+                if (generating) CircularProgressIndicator(Modifier.size(22.dp), strokeWidth = 2.dp, color = MaterialTheme.colorScheme.onPrimary)
+                else {
+                    Icon(Icons.Rounded.Share, null, Modifier.size(20.dp))
+                    Spacer(Modifier.width(8.dp))
+                    Text(stringResource(R.string.pdf_generate))
+                }
+            }
+        }
+    }
 }

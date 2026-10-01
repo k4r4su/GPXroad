@@ -44,8 +44,10 @@ temps, la version iOS est vraiment correcte mais l'Android c'est une catastrophe
 - [x] Feuilles de choix à grandes lignes à icônes (`ui/ChoiceSheet`) pour « Chemin bloqué » et
       « Aller ici » ; Road Book assisté : grande carte sur une surface arrondie (tailles et contenu
       inchangés, lisibilité validée sur le terrain).
-- [ ] Reste : export PDF en feuille, panneau Mesures et bandeaux du Ride à affiner, captures côte à
-      côte iOS / Android sur la tablette.
+- [x] Export PDF en feuille (groupes, bouton « Générer et partager »), panneau Mesures avec boutons à
+      icônes (enregistrement, Terminer).
+- [ ] Reste : avis du propriétaire sur la tablette (installée le 01/10), puis captures côte à côte
+      iOS / Android pour les derniers écarts.
 - [ ] Validation par captures côte à côte iOS / Android sur tablette et téléphone.
 
 ## 30/09 — virage prioritaire sur les repères de décor, textes non tronqués (iOS + Android)

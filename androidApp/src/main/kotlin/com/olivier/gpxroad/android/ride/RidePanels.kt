@@ -16,6 +16,12 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Button
+import androidx.compose.material3.FilledTonalButton
+import androidx.compose.material3.Icon
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.FiberManualRecord
+import androidx.compose.material.icons.rounded.Flag
+import androidx.compose.material.icons.rounded.Pause
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
@@ -85,12 +91,19 @@ fun RideStatsPanel(session: RideSession, progress: RideProgress?, recorder: Ride
             RideRecorder.State.RECORDING -> stringResource(R.string.stats_pause_recording) to Color(0xFFFF9500)
             RideRecorder.State.PAUSED -> stringResource(R.string.stats_resume_recording) to Color(0xFFFF3B30)
         }
-        OutlinedButton(onClick = { if (recorder.state == RideRecorder.State.RECORDING) recorder.pause() else start() }) {
-            Text(label, color = tint, fontWeight = FontWeight.Bold)
+        FilledTonalButton(
+            onClick = { if (recorder.state == RideRecorder.State.RECORDING) recorder.pause() else start() },
+            colors = ButtonDefaults.filledTonalButtonColors(containerColor = tint.copy(alpha = 0.22f), contentColor = Color.White),
+        ) {
+            Icon(if (recorder.state == RideRecorder.State.RECORDING) Icons.Rounded.Pause else Icons.Rounded.FiberManualRecord, null, tint = tint, modifier = Modifier.size(18.dp))
+            Spacer(Modifier.width(6.dp))
+            Text(label, fontWeight = FontWeight.Bold)
         }
         if (recorder.isInProgress) {
-            OutlinedButton(onClick = onFinish) {
-                Text(stringResource(R.string.recording_finish) + " · " + stringResource(R.string.recording_points_format, recorder.pointCount), color = Color.White, fontWeight = FontWeight.Bold)
+            FilledTonalButton(onClick = onFinish, colors = ButtonDefaults.filledTonalButtonColors(containerColor = Color.White.copy(alpha = 0.12f), contentColor = Color.White)) {
+                Icon(Icons.Rounded.Flag, null, modifier = Modifier.size(18.dp))
+                Spacer(Modifier.width(6.dp))
+                Text(stringResource(R.string.recording_finish) + " · " + recorder.pointCount, fontWeight = FontWeight.Bold, maxLines = 1)
             }
         }
     }
