@@ -2,7 +2,7 @@
 
 > « Le but de l'app c'est d'afficher une trace de façon simple, pouvoir la suivre, la reprendre plus loin si besoin. »
 
-GPXroad est une application iOS pour suivre une trace GPX en moto, à vélo ou à pied — sur route comme hors-piste. Pas de compte, pas de cloud, pas de fonctionnalités superflues : tu charges une trace, tu la suis, et si tu t'arrêtes en chemin tu la reprends là où tu en étais. Tout fonctionne hors-ligne une fois la carte téléchargée.
+GPXroad est une application iOS (et bientôt Android) pour suivre une trace GPX en moto, à vélo ou à pied — sur route comme hors-piste. Pas de compte, pas de cloud, pas de fonctionnalités superflues : tu charges une trace, tu la suis, et si tu t'arrêtes en chemin tu la reprends là où tu en étais. Tout fonctionne hors-ligne une fois la carte téléchargée.
 
 ## Fonctionnalités principales
 
@@ -70,13 +70,27 @@ Beaucoup de sorties moto ou rando se font là où le réseau mobile ne suit pas.
 
 - SwiftUI, iOS 16+
 - [MapLibre Native](https://maplibre.org/) pour la carte (tuiles OSM ou fond vectoriel, hors-ligne)
-- Logique partagée en [Kotlin Multiplatform](https://kotlinlang.org/docs/multiplatform.html),
-  en préparation d'une version Android : tout le calcul du Road Book (virages, repères,
-  reprise de la trace) est déjà commun aux deux (itérations 32-33)
+- Logique partagée en [Kotlin Multiplatform](https://kotlinlang.org/docs/multiplatform.html) :
+  Road Book (virages, ronds-points, repères, reprise de la trace), guidage « Aller à »,
+  enregistrement, statistiques, détours, palettes de carte et cartes hors ligne sont calculés par
+  le même code sur iPhone et Android
 - Aucune autre dépendance tierce que MapLibre et la bibliothèque standard Kotlin
 
 Le dépôt contient trois dossiers : `iosApp/` (l'app iPhone), `shared/` (le code commun) et
-`androidApp/` (l'app Android, pour l'instant un simple écran de test).
+`androidApp/` (l'app Android, Jetpack Compose).
+
+## Version Android (en cours, état au 01/10/2026)
+
+Disponible et vérifiée sur émulateur : Bibliothèque (import, trace active, dossiers, fiche avec
+statistiques, partage), Ride (carte, virages, hors trace, reprise automatique et « Reprendre la
+trace ici », chevrons, pentes, mesures, enregistrement de la sortie, « Chemin bloqué »,
+signalements partagés, thèmes de carte, réglages de caméra), « Aller à » (recherche, Domicile/
+Travail, guidage détaillé Valhalla avec voix ou guidage simple), Road Book (assisté GPS et liste,
+ronds-points, repères, palette jour/nuit, export PDF), cartes hors ligne, réglages, 5 langues.
+
+Encore à faire : flash des 100 derniers mètres, pause du guidage, saut du Road Book vers la carte,
+tutoriel et accueil, choix de la langue, limitation de vitesse et trafic, puis une refonte
+complète de l'interface (voir `TODO.md`).
 
 ---
 

@@ -153,8 +153,14 @@ Sessions suivantes :
       manœuvres) rejouée jusqu'à l'arrivée en test, et sur l'émulateur avec le Valhalla public.
   - Écart assumé : au départ, une seule annonce vocale quand les deux seuils sont franchis d'un
     coup (l'iPhone disait la même consigne deux fois).
-  - [ ] Reste : limitation de vitesse (Overpass), trafic, signalements partagés.
-- [ ] 6 — Cartes hors ligne, thèmes, PDF, tutoriel, finitions.
+  - [x] Signalements partagés (voir « Chemin bloqué »).
+  - [ ] Reste : limitation de vitesse (Overpass), trafic.
+- [ ] 6 — Finitions (état au 01/10 ; cartes hors ligne, thèmes et PDF faits, voir ci-dessous).
+  - [ ] Flash des 100 derniers mètres avant un virage (3 ou 5 flashs, réglable).
+  - [ ] Bouton Pause / Reprendre du guidage dans la colonne (appui long : arrêter).
+  - [ ] Road Book : un tap sur un élément le montre sur la carte du Ride (« Me recentrer » pour revenir).
+  - [ ] Tutoriel (5 pages, même contenu que l'iPhone), accueil au premier lancement, choix de la langue.
+  - [ ] Installer sur la tablette (`adb install -r`) pour le test complet du propriétaire.
   - [x] Road Book (01/10) : palette automatique papier le jour / sombre la nuit (lever et coucher
         du soleil à la position, `shared/roadbook/RoadbookPalette`, réévaluée toutes les 5 min),
         réglage Automatique / Papier / Sombre ; export PDF (A4 portrait/paysage, compact/confortable,
