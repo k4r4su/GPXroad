@@ -27,14 +27,22 @@ secret dans le dépôt ».
 Retour du propriétaire : « on dirait Android 1.6, il faut clairement une interface dans l'ère du
 temps, la version iOS est vraiment correcte mais l'Android c'est une catastrophe ».
 
-- [ ] Reprendre la hiérarchie visuelle de l'iPhone (cartes arrondies, fonds translucides sur la carte,
-      grandes valeurs lisibles, espacements généreux) plutôt que les écrans Material « bruts » actuels.
-- [ ] Material 3 moderne : couleurs dynamiques/thème GPXroad cohérent, typographie soignée, icônes
-      (Material Symbols) sur les actions, barre de navigation avec icônes, feuilles modales (bottom
-      sheets) au lieu des boîtes de dialogue en série.
-- [ ] Bibliothèque : cartes de trace avec aperçu, dossiers repliables, fiche trace en feuille.
-- [ ] Ride / Road Book : superpositions façon iOS (pastilles vitesse/REC, carte du prochain virage).
-- [ ] Réglages : sections groupées avec icônes, comme l'iPhone.
+- [x] Système visuel (01/10) : thème GPXroad (orange de l'iPhone, neutres chauds, vrai noir chaud
+      la nuit, coins de 16 à 28 dp, titres très gras, chiffres à chasse fixe), icônes Material
+      arrondies (`material-icons-extended` 1.7.8), composants communs `ui/Components.kt`
+      (en-têtes, groupes de réglages façon iOS, pastilles d'icônes, boutons et panneaux de carte).
+- [x] Barre d'onglets : icônes arrondies, indicateur orange.
+- [x] Réglages : liste groupée avec icônes colorées et une page par thème (Ride, Carte et caméra,
+      Cartes hors ligne, Enregistrement, Aller à, Road Book, Repères, Valhalla, Overpass,
+      Communauté), langue et unité en ligne, retour système vers la liste.
+- [x] Bibliothèque : cartes de trace avec aperçu dessiné (départ vert, arrivée), pastilles Active /
+      Sens inversé / Hors ligne, bouton rond pour suivre, dossiers repliables avec compteur,
+      sorties non enregistrées en cartes ambrées ; fiche trace avec actions en liste à icônes.
+- [x] Ride : boutons à icônes (recentrer, orientation, +, −, Pause, Bloqué) en panneaux arrondis à
+      liseré, compteur rond, pastilles d'enregistrement, logo et attribution en bas au centre.
+- [x] Road Book et Aller à : titres, bouton PDF, champ de recherche et tuiles Domicile/Travail.
+- [ ] Reste : bottom sheets à la place des boîtes de dialogue en série (détour, Aller ici, export
+      PDF), cartes du Road Book assisté, panneau Mesures et bandeaux du Ride encore à affiner.
 - [ ] Validation par captures côte à côte iOS / Android sur tablette et téléphone.
 
 ## 30/09 — virage prioritaire sur les repères de décor, textes non tronqués (iOS + Android)

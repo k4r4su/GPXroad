@@ -477,4 +477,18 @@
     <!-- Limitation de vitesse -->
     <string name="nav_speed_margin">Soglia di superamento velocità</string>
     <string name="tuto_goto_6">Durante la guida dettagliata, il cartello del limite della strada appare sopra la velocità; si ispessisce oltre il margine scelto nelle Impostazioni.</string>
+    <!-- Refonte : Réglages -->
+    <string name="back">Indietro</string>
+    <string name="settings_general">Generale</string>
+    <string name="settings_riding">Guida</string>
+    <string name="settings_trace">Traccia</string>
+    <string name="settings_screen">Schermo</string>
+    <string name="settings_alerts">Avvisi</string>
+    <string name="settings_camera">Fotocamera</string>
+    <string name="settings_turn_thresholds">Soglie delle curve</string>
+    <string name="settings_detection">Rilevamento</string>
+    <string name="settings_density">Densità di registrazione</string>
+    <!-- Refonte : Bibliothèque -->
+    <string name="track_active_short">Attiva</string>
+    <string name="track_offline_short">Offline</string>
 </resources>

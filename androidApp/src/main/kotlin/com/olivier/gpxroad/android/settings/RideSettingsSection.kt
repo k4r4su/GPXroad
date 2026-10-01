@@ -33,6 +33,10 @@ import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Slider
+import com.olivier.gpxroad.android.ui.GroupContent
+import com.olivier.gpxroad.android.ui.GroupDivider
+import com.olivier.gpxroad.android.ui.SettingsGroup
+import com.olivier.gpxroad.android.ui.ToggleRow
 import com.olivier.gpxroad.shared.map.MapTheme
 import com.olivier.gpxroad.shared.ride.DirectionChevrons
 import com.olivier.gpxroad.shared.ride.ZoomPreset
@@ -46,39 +50,51 @@ import kotlin.math.roundToInt
  */
 @Composable
 fun RideSettingsSection(settings: AppSettings) {
-    Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-        Text(stringResource(R.string.settings_trace_color), style = MaterialTheme.typography.bodyLarge)
-        Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-            TraceColor.entries.forEach { color ->
-                val selected = settings.traceColor == color
-                val label = stringResource(color.label)
-                Box(
-                    Modifier.size(40.dp)
-                        .background(Color(color.argb), CircleShape)
-                        .border(if (selected) 4.dp else 1.dp, if (selected) MaterialTheme.colorScheme.onSurface else Color.Black.copy(alpha = 0.3f), CircleShape)
-                        .clickable { settings.updateTraceColor(color) }
-                        .semantics { contentDescription = label },
+    SettingsGroup(stringResource(R.string.settings_trace)) {
+        GroupContent {
+            Text(stringResource(R.string.settings_trace_color), style = MaterialTheme.typography.bodyLarge)
+            Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                TraceColor.entries.forEach { color ->
+                    val selected = settings.traceColor == color
+                    val label = stringResource(color.label)
+                    Box(
+                        Modifier.size(40.dp)
+                            .background(Color(color.argb), CircleShape)
+                            .border(if (selected) 4.dp else 1.dp, if (selected) MaterialTheme.colorScheme.onSurface else Color.Black.copy(alpha = 0.2f), CircleShape)
+                            .clickable { settings.updateTraceColor(color) }
+                            .semantics { contentDescription = label },
+                    )
+                }
+            }
+            SettingChoice(stringResource(R.string.settings_trace_width), TraceWidth.entries, settings.traceWidth, { stringResource(it.label) }, settings::updateTraceWidth)
+            SettingChoice(
+                stringResource(R.string.settings_chevron_spacing), DirectionChevrons.SPACING_OPTIONS, settings.chevronSpacing,
+                { if (it >= 1000) "1 km" else "${it.roundToInt()} m" }, settings::updateChevronSpacing,
+            )
+        }
+    }
+    SettingsGroup(stringResource(R.string.settings_screen)) {
+        GroupContent {
+            SettingChoice(stringResource(R.string.settings_controls_side), ControlsSide.entries, settings.controlsSide, { stringResource(it.label) }, settings::updateControlsSide)
+        }
+        GroupDivider(16.dp)
+        ToggleRow(stringResource(R.string.settings_keep_awake), settings.keepScreenAwake, onChange = settings::updateKeepScreenAwake)
+    }
+    SettingsGroup(stringResource(R.string.settings_alerts)) {
+        ToggleRow(stringResource(R.string.settings_flash), settings.flashEnabled) { settings.updateFlash(it, settings.flashCount) }
+        if (settings.flashEnabled) {
+            GroupContent { SettingChoice(stringResource(R.string.settings_flash_count), listOf(3, 5), settings.flashCount, { "$it" }) { settings.updateFlash(true, it) } }
+        }
+        GroupDivider(16.dp)
+        ToggleRow(stringResource(R.string.settings_slope_warnings), settings.slopeWarningsEnabled) { settings.updateSlopeWarnings(it, settings.slopeThreshold) }
+        if (settings.slopeWarningsEnabled) {
+            GroupContent {
+                SettingChoice(
+                    stringResource(R.string.settings_slope_threshold), SlopeAnalyzer.THRESHOLD_OPTIONS, settings.slopeThreshold,
+                    { "${it.roundToInt()} %" }, { settings.updateSlopeWarnings(true, it) },
                 )
             }
         }
-        SettingChoice(stringResource(R.string.settings_trace_width), TraceWidth.entries, settings.traceWidth, { stringResource(it.label) }, settings::updateTraceWidth)
-        SettingChoice(
-            stringResource(R.string.settings_chevron_spacing), DirectionChevrons.SPACING_OPTIONS, settings.chevronSpacing,
-            { if (it >= 1000) "1 km" else "${it.roundToInt()} m" }, settings::updateChevronSpacing,
-        )
-        SettingChoice(stringResource(R.string.settings_controls_side), ControlsSide.entries, settings.controlsSide, { stringResource(it.label) }, settings::updateControlsSide)
-        SettingToggle(stringResource(R.string.settings_slope_warnings), settings.slopeWarningsEnabled) { settings.updateSlopeWarnings(it, settings.slopeThreshold) }
-        if (settings.slopeWarningsEnabled) {
-            SettingChoice(
-                stringResource(R.string.settings_slope_threshold), SlopeAnalyzer.THRESHOLD_OPTIONS, settings.slopeThreshold,
-                { "${it.roundToInt()} %" }, { settings.updateSlopeWarnings(true, it) },
-            )
-        }
-        SettingToggle(stringResource(R.string.settings_flash), settings.flashEnabled) { settings.updateFlash(it, settings.flashCount) }
-        if (settings.flashEnabled) {
-            SettingChoice(stringResource(R.string.settings_flash_count), listOf(3, 5), settings.flashCount, { "$it" }) { settings.updateFlash(true, it) }
-        }
-        SettingToggle(stringResource(R.string.settings_keep_awake), settings.keepScreenAwake, settings::updateKeepScreenAwake)
     }
 }
 
@@ -119,47 +135,59 @@ fun SettingToggle(title: String, checked: Boolean, onChange: (Boolean) -> Unit) 
 /** Carte et caméra (`MapThemePickerView`, `NavigationSettingsView` iOS) : thème, point, zooms. */
 @Composable
 fun MapCameraSection(settings: AppSettings) {
-    Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-        SettingChoice(
-            stringResource(R.string.map_theme), MapTheme.entries, settings.mapTheme,
-            {
-                stringResource(
-                    when (it) {
-                        MapTheme.STANDARD -> R.string.theme_standard
-                        MapTheme.HIGH_CONTRAST -> R.string.theme_high_contrast
-                        MapTheme.EARTHY -> R.string.theme_earthy
-                        MapTheme.RELIEF -> R.string.theme_relief
-                    },
-                )
-            },
-            settings::updateMapTheme,
-        )
-        Text(stringResource(R.string.camera_anchor, (settings.anchorY * 100).roundToInt()), style = MaterialTheme.typography.bodyLarge)
-        Slider(value = settings.anchorY.toFloat(), onValueChange = { settings.updateAnchorY((it * 100).roundToInt() / 100.0) }, valueRange = 0.55f..0.85f)
-        Footer(stringResource(R.string.camera_anchor_footer))
-        Text(stringResource(R.string.camera_default_zoom, meters(settings.defaultZoom)), style = MaterialTheme.typography.bodyLarge)
-        Slider(value = settings.defaultZoom.toFloat(), onValueChange = { settings.updateDefaultZoom((it / 50).roundToInt() * 50.0) }, valueRange = 300f..6000f)
-        Footer(stringResource(R.string.camera_default_zoom_footer))
-        SettingToggle(stringResource(R.string.camera_auto_zoom), settings.autoZoomEnabled) {
-            settings.updateAutoZoom(it, settings.zoomPreset, settings.autoZoomMin, settings.autoZoomMax)
-        }
-        if (settings.autoZoomEnabled) {
+    SettingsGroup(stringResource(R.string.map_theme), footer = stringResource(R.string.offline_footer)) {
+        GroupContent {
             SettingChoice(
-                "", ZoomPreset.entries, settings.zoomPreset,
+                "", MapTheme.entries, settings.mapTheme,
                 {
                     stringResource(
                         when (it) {
-                            ZoomPreset.PRUDENT -> R.string.zoom_prudent
-                            ZoomPreset.NORMAL -> R.string.zoom_normal
-                            ZoomPreset.RAPIDE -> R.string.zoom_fast
+                            MapTheme.STANDARD -> R.string.theme_standard
+                            MapTheme.HIGH_CONTRAST -> R.string.theme_high_contrast
+                            MapTheme.EARTHY -> R.string.theme_earthy
+                            MapTheme.RELIEF -> R.string.theme_relief
                         },
                     )
                 },
-            ) { settings.updateAutoZoom(true, it, settings.autoZoomMin, settings.autoZoomMax) }
-            Text(stringResource(R.string.zoom_min, meters(settings.autoZoomMin)), style = MaterialTheme.typography.bodyMedium)
-            Slider(value = settings.autoZoomMin.toFloat(), onValueChange = { settings.updateAutoZoom(true, settings.zoomPreset, (it / 50).roundToInt() * 50.0, settings.autoZoomMax) }, valueRange = 100f..3000f)
-            Text(stringResource(R.string.zoom_max, meters(settings.autoZoomMax)), style = MaterialTheme.typography.bodyMedium)
-            Slider(value = settings.autoZoomMax.toFloat(), onValueChange = { settings.updateAutoZoom(true, settings.zoomPreset, settings.autoZoomMin, (it / 50).roundToInt() * 50.0) }, valueRange = 100f..3000f)
+                settings::updateMapTheme,
+            )
+        }
+    }
+    SettingsGroup(stringResource(R.string.settings_camera), footer = stringResource(R.string.camera_anchor_footer)) {
+        GroupContent {
+            Text(stringResource(R.string.camera_anchor, (settings.anchorY * 100).roundToInt()), style = MaterialTheme.typography.bodyLarge)
+            Slider(value = settings.anchorY.toFloat(), onValueChange = { settings.updateAnchorY((it * 100).roundToInt() / 100.0) }, valueRange = 0.55f..0.85f)
+        }
+    }
+    SettingsGroup(footer = stringResource(R.string.camera_default_zoom_footer)) {
+        GroupContent {
+            Text(stringResource(R.string.camera_default_zoom, meters(settings.defaultZoom)), style = MaterialTheme.typography.bodyLarge)
+            Slider(value = settings.defaultZoom.toFloat(), onValueChange = { settings.updateDefaultZoom((it / 50).roundToInt() * 50.0) }, valueRange = 300f..6000f)
+        }
+    }
+    SettingsGroup {
+        ToggleRow(stringResource(R.string.camera_auto_zoom), settings.autoZoomEnabled) {
+            settings.updateAutoZoom(it, settings.zoomPreset, settings.autoZoomMin, settings.autoZoomMax)
+        }
+        if (settings.autoZoomEnabled) {
+            GroupContent {
+                SettingChoice(
+                    "", ZoomPreset.entries, settings.zoomPreset,
+                    {
+                        stringResource(
+                            when (it) {
+                                ZoomPreset.PRUDENT -> R.string.zoom_prudent
+                                ZoomPreset.NORMAL -> R.string.zoom_normal
+                                ZoomPreset.RAPIDE -> R.string.zoom_fast
+                            },
+                        )
+                    },
+                ) { settings.updateAutoZoom(true, it, settings.autoZoomMin, settings.autoZoomMax) }
+                Text(stringResource(R.string.zoom_min, meters(settings.autoZoomMin)), style = MaterialTheme.typography.bodyMedium)
+                Slider(value = settings.autoZoomMin.toFloat(), onValueChange = { settings.updateAutoZoom(true, settings.zoomPreset, (it / 50).roundToInt() * 50.0, settings.autoZoomMax) }, valueRange = 100f..3000f)
+                Text(stringResource(R.string.zoom_max, meters(settings.autoZoomMax)), style = MaterialTheme.typography.bodyMedium)
+                Slider(value = settings.autoZoomMax.toFloat(), onValueChange = { settings.updateAutoZoom(true, settings.zoomPreset, settings.autoZoomMin, (it / 50).roundToInt() * 50.0) }, valueRange = 100f..3000f)
+            }
         }
     }
 }

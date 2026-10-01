@@ -479,4 +479,18 @@
     <!-- Limitation de vitesse -->
     <string name="nav_speed_margin">Seuil dépassement vitesse</string>
     <string name="tuto_goto_6">Pendant le guidage détaillé, le panneau de limitation de la route s\'affiche au-dessus de la vitesse ; il s\'épaissit au-delà de la marge choisie dans Réglages.</string>
+    <!-- Refonte : Réglages -->
+    <string name="back">Retour</string>
+    <string name="settings_general">Général</string>
+    <string name="settings_riding">Conduite</string>
+    <string name="settings_trace">Trace</string>
+    <string name="settings_screen">Écran</string>
+    <string name="settings_alerts">Alertes</string>
+    <string name="settings_camera">Caméra</string>
+    <string name="settings_turn_thresholds">Seuils des virages</string>
+    <string name="settings_detection">Détection</string>
+    <string name="settings_density">Densité d\'enregistrement</string>
+    <!-- Refonte : Bibliothèque -->
+    <string name="track_active_short">Active</string>
+    <string name="track_offline_short">Hors ligne</string>
 </resources>

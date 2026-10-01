@@ -94,7 +94,8 @@ Aussi : tutoriel intégré, accueil au premier lancement avec trace d'exemple, c
 
 Aussi : limitation de vitesse pendant le guidage détaillé.
 
-Encore à faire : une refonte complète de l'interface (voir `TODO.md`).
+Interface en cours de refonte (thème, Réglages, Bibliothèque et Ride déjà refaits). Encore à faire :
+la fin de la refonte (voir `TODO.md`).
 
 ---
 

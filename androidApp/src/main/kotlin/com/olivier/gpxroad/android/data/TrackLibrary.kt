@@ -119,6 +119,17 @@ class TrackLibrary(private val context: Context) {
         return ImportResult.Success(entry)
     }
 
+    private val previews = HashMap<String, List<LatLon>>()
+
+    /** Aperçu de la trace (Bibliothèque) : ~80 points répartis, lu une fois puis gardé en mémoire. Bloquant. */
+    fun preview(entry: TrackEntry): List<LatLon> = synchronized(previews) { previews[entry.id] } ?: run {
+        val points = document(entry)?.points.orEmpty()
+        val step = maxOf(1, points.size / 80)
+        val sampled = points.filterIndexed { index, _ -> index % step == 0 || index == points.lastIndex }.map { LatLon(it.latitude, it.longitude) }
+        synchronized(previews) { previews[entry.id] = sampled }
+        sampled
+    }
+
     /** Contenu GPX d'une trace (fiche : statistiques). */
     fun document(entry: TrackEntry): GpxDocument? = runCatching { GpxParser.parse(file(entry).readText()) }.getOrNull()
 

@@ -4,6 +4,49 @@ import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.rounded.Add
+import androidx.compose.material.icons.rounded.CheckCircle
+import androidx.compose.material.icons.rounded.CreateNewFolder
+import androidx.compose.material.icons.rounded.Delete
+import androidx.compose.material.icons.rounded.DownloadDone
+import androidx.compose.material.icons.automirrored.rounded.DriveFileMove
+import androidx.compose.material.icons.rounded.Edit
+import androidx.compose.material.icons.rounded.ExpandLess
+import androidx.compose.material.icons.rounded.ExpandMore
+import androidx.compose.material.icons.rounded.Folder
+import androidx.compose.material.icons.rounded.Inbox
+import androidx.compose.material.icons.rounded.MoreHoriz
+import androidx.compose.material.icons.rounded.MoreVert
+import androidx.compose.material.icons.rounded.Navigation
+import androidx.compose.material.icons.rounded.RadioButtonUnchecked
+import androidx.compose.material.icons.rounded.Restore
+import androidx.compose.material.icons.rounded.Route
+import androidx.compose.material.icons.rounded.Share
+import androidx.compose.material.icons.rounded.SwapVert
+import androidx.compose.material3.FilledTonalButton
+import androidx.compose.material3.Surface
+import androidx.compose.runtime.produceState
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.graphics.StrokeJoin
+import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.text.style.TextOverflow
+import com.olivier.gpxroad.android.ui.Accent
+import com.olivier.gpxroad.android.ui.ScreenHeader
+import com.olivier.gpxroad.shared.LatLon
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -16,8 +59,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
@@ -115,33 +156,44 @@ fun LibraryScreen(library: TrackLibrary, settings: AppSettings, recorder: RideRe
     }
     val unsaved = recorder.unsavedRides.rides.sortedByDescending { it.startedMillis }
 
+    var collapsed by rememberSaveable { mutableStateOf(setOf<String>()) }
     Scaffold(
         snackbarHost = { SnackbarHost(snackbar) },
+        containerColor = MaterialTheme.colorScheme.background,
+        // Les marges système sont déjà appliquées par la barre d'onglets de l'app.
+        contentWindowInsets = WindowInsets(0, 0, 0, 0),
         floatingActionButton = {
             ExtendedFloatingActionButton(
                 onClick = { picker.launch(arrayOf("*/*")) },
-                icon = { Icon(Icons.Filled.Add, contentDescription = null) },
+                icon = { Icon(Icons.Rounded.Add, contentDescription = null) },
                 text = { Text(stringResource(R.string.library_import)) },
+                containerColor = MaterialTheme.colorScheme.primary,
+                contentColor = MaterialTheme.colorScheme.onPrimary,
             )
         },
     ) { padding ->
         Column(Modifier.fillMaxSize().padding(padding)) {
-            Row(Modifier.fillMaxWidth().padding(start = 16.dp, end = 8.dp, top = 8.dp), verticalAlignment = Alignment.CenterVertically) {
-                Text(stringResource(R.string.library_title), style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Bold, modifier = Modifier.weight(1f))
-                TextButton(onClick = { folderDialog = FolderDialog.Create }) { Text(stringResource(R.string.folder_new)) }
+            ScreenHeader(stringResource(R.string.library_title)) {
+                IconButton(onClick = { folderDialog = FolderDialog.Create }) {
+                    Icon(Icons.Rounded.CreateNewFolder, contentDescription = stringResource(R.string.folder_new), tint = MaterialTheme.colorScheme.primary)
+                }
             }
             if (library.tracks.isEmpty() && unsaved.isEmpty()) {
-                Box(Modifier.fillMaxSize().padding(32.dp), contentAlignment = Alignment.Center) {
-                    Text(stringResource(R.string.library_empty), style = MaterialTheme.typography.bodyLarge, textAlign = TextAlign.Center)
+                Column(Modifier.fillMaxSize().padding(32.dp), verticalArrangement = Arrangement.Center, horizontalAlignment = Alignment.CenterHorizontally) {
+                    Icon(Icons.Rounded.Route, contentDescription = null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(64.dp))
+                    Spacer(Modifier.height(16.dp))
+                    Text(stringResource(R.string.library_empty), style = MaterialTheme.typography.bodyLarge, textAlign = TextAlign.Center, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
             } else {
-                LazyColumn(Modifier.fillMaxSize()) {
+                LazyColumn(
+                    Modifier.fillMaxSize(),
+                    contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 4.dp, bottom = 96.dp),
+                    verticalArrangement = Arrangement.spacedBy(10.dp),
+                ) {
                     if (unsaved.isNotEmpty()) {
-                        item(key = "unsaved-header") {
-                            Text(stringResource(R.string.unsaved_title), style = MaterialTheme.typography.titleSmall, color = UnsavedAmber, fontWeight = FontWeight.Bold, modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp))
-                        }
+                        item(key = "unsaved-header") { GroupTitle(stringResource(R.string.unsaved_title), UnsavedAmber, Icons.Rounded.Restore) }
                         items(unsaved, key = { "unsaved-" + it.id }) { ride ->
-                            UnsavedRow(
+                            UnsavedCard(
                                 ride = ride,
                                 onRecover = {
                                     val text = runCatching { recorder.unsavedRides.file(ride).readText() }.getOrNull()
@@ -153,7 +205,6 @@ fun LibraryScreen(library: TrackLibrary, settings: AppSettings, recorder: RideRe
                                 },
                                 onDelete = { recorder.unsavedRides.delete(ride) },
                             )
-                            HorizontalDivider()
                         }
                     }
                     // « Non classé » (masqué s'il est vide alors que des dossiers existent), puis les dossiers par nom.
@@ -161,20 +212,29 @@ fun LibraryScreen(library: TrackLibrary, settings: AppSettings, recorder: RideRe
                     for (folder in sections) {
                         val content = library.tracksIn(folder?.id)
                         if (folder == null && content.isEmpty() && library.folders.isNotEmpty()) continue
+                        val key = folder?.id ?: "none"
+                        val isCollapsed = key in collapsed
                         if (folder != null || library.folders.isNotEmpty()) {
-                            item(key = "folder-" + (folder?.id ?: "none")) {
-                                FolderHeader(folder, onRename = { folderDialog = FolderDialog.Rename(it) }, onDelete = { folderDialog = FolderDialog.Delete(it) })
+                            item(key = "folder-$key") {
+                                FolderHeader(
+                                    folder, content.size, isCollapsed,
+                                    onToggle = { collapsed = if (isCollapsed) collapsed - key else collapsed + key },
+                                    onRename = { folderDialog = FolderDialog.Rename(it) }, onDelete = { folderDialog = FolderDialog.Delete(it) },
+                                )
                             }
                         }
+                        if (isCollapsed) continue
                         if (folder != null && content.isEmpty()) {
                             item(key = "empty-" + folder.id) {
-                                Text(stringResource(R.string.folder_empty), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(horizontal = 24.dp, vertical = 6.dp))
+                                Text(stringResource(R.string.folder_empty), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(horizontal = 16.dp, vertical = 6.dp))
                             }
                         }
                         items(content, key = { it.id }) { entry ->
-                            TrackRow(
+                            TrackCard(
                                 entry = entry,
+                                library = library,
                                 isActive = entry.id == library.activeTrackId,
+                                isOffline = offline.zoneForTrack(entry.id)?.isComplete == true,
                                 settings = settings,
                                 onActivate = { activate(entry) },
                                 onOpen = { opened = entry.id },
@@ -184,10 +244,8 @@ fun LibraryScreen(library: TrackLibrary, settings: AppSettings, recorder: RideRe
                                 onMove = { moving = entry },
                                 onDelete = { deleting = entry },
                             )
-                            HorizontalDivider()
                         }
                     }
-                    item(key = "bottom-space") { Spacer(Modifier.height(88.dp)) }
                 }
             }
         }
@@ -277,31 +335,53 @@ private sealed interface FolderDialog {
 }
 
 @Composable
-private fun FolderHeader(folder: TrackFolder?, onRename: (TrackFolder) -> Unit, onDelete: (TrackFolder) -> Unit) {
+private fun GroupTitle(title: String, color: Color, icon: ImageVector) {
+    Row(Modifier.padding(start = 4.dp, top = 6.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+        Icon(icon, contentDescription = null, tint = color, modifier = Modifier.size(18.dp))
+        Text(title.uppercase(), style = MaterialTheme.typography.labelMedium, color = color)
+    }
+}
+
+/** En-tête de dossier : repliable, nombre de traces, menu Renommer / Supprimer. */
+@Composable
+private fun FolderHeader(folder: TrackFolder?, count: Int, collapsed: Boolean, onToggle: () -> Unit, onRename: (TrackFolder) -> Unit, onDelete: (TrackFolder) -> Unit) {
     var menu by remember { mutableStateOf(false) }
-    Row(Modifier.fillMaxWidth().padding(start = 16.dp, end = 4.dp, top = 10.dp), verticalAlignment = Alignment.CenterVertically) {
-        Text(
-            folder?.name ?: stringResource(R.string.folder_unfiled),
-            style = MaterialTheme.typography.titleSmall, color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold,
-            modifier = Modifier.weight(1f).padding(vertical = 12.dp),
-        )
+    Row(
+        Modifier.fillMaxWidth().clip(MaterialTheme.shapes.medium).clickable(onClick = onToggle).padding(start = 4.dp, top = 8.dp, bottom = 2.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
+        Icon(if (folder == null) Icons.Rounded.Inbox else Icons.Rounded.Folder, contentDescription = null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(20.dp))
+        Text(folder?.name ?: stringResource(R.string.folder_unfiled), style = MaterialTheme.typography.titleMedium, modifier = Modifier.weight(1f, fill = false))
+        Text("$count", style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        Spacer(Modifier.weight(1f))
+        Icon(if (collapsed) Icons.Rounded.ExpandMore else Icons.Rounded.ExpandLess, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant)
         if (folder != null) {
             Box {
-                IconButton(onClick = { menu = true }) { Icon(Icons.Filled.MoreVert, contentDescription = stringResource(R.string.folder_actions, folder.name)) }
+                IconButton(onClick = { menu = true }) { Icon(Icons.Rounded.MoreVert, contentDescription = stringResource(R.string.folder_actions, folder.name)) }
                 DropdownMenu(expanded = menu, onDismissRequest = { menu = false }) {
-                    DropdownMenuItem(text = { Text(stringResource(R.string.folder_rename)) }, onClick = { menu = false; onRename(folder) })
-                    DropdownMenuItem(text = { Text(stringResource(R.string.folder_delete), color = MaterialTheme.colorScheme.error) }, onClick = { menu = false; onDelete(folder) })
+                    DropdownMenuItem(text = { Text(stringResource(R.string.folder_rename)) }, leadingIcon = { Icon(Icons.Rounded.Edit, null) }, onClick = { menu = false; onRename(folder) })
+                    DropdownMenuItem(
+                        text = { Text(stringResource(R.string.folder_delete), color = MaterialTheme.colorScheme.error) },
+                        leadingIcon = { Icon(Icons.Rounded.Delete, null, tint = MaterialTheme.colorScheme.error) },
+                        onClick = { menu = false; onDelete(folder) },
+                    )
                 }
             }
         }
     }
 }
 
-/** Ligne d'une trace : le rond l'active (seul point d'activation), le reste ouvre sa fiche. */
+/**
+ * Carte d'une trace : aperçu dessiné, nom, distance et date, pastilles (active, sens inversé, hors
+ * ligne). Le bouton rond la rend active (seul point d'activation) ; le reste ouvre sa fiche.
+ */
 @Composable
-private fun TrackRow(
+private fun TrackCard(
     entry: TrackEntry,
+    library: TrackLibrary,
     isActive: Boolean,
+    isOffline: Boolean,
     settings: AppSettings,
     onActivate: () -> Unit,
     onOpen: () -> Unit,
@@ -312,45 +392,111 @@ private fun TrackRow(
     onDelete: () -> Unit,
 ) {
     var menu by remember { mutableStateOf(false) }
+    val preview by produceState(emptyList<LatLon>(), entry.id) { value = withContext(Dispatchers.IO) { library.preview(entry) } }
+    Surface(
+        onClick = onOpen,
+        shape = MaterialTheme.shapes.large,
+        color = MaterialTheme.colorScheme.surfaceContainerLow,
+        border = if (isActive) BorderStroke(2.dp, MaterialTheme.colorScheme.primary) else null,
+    ) {
+        Row(Modifier.fillMaxWidth().padding(12.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(14.dp)) {
+            TrackThumbnail(preview, entry.reversed, Modifier.size(68.dp))
+            Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                Text(entry.name, style = MaterialTheme.typography.titleMedium, maxLines = 2, overflow = TextOverflow.Ellipsis)
+                val date = DateFormat.getDateInstance(DateFormat.MEDIUM).format(Date(entry.importDateMillis))
+                Text(RoadbookTexts.distance(entry.lengthMeters, settings.distanceUnit) + " · " + date, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                if (isActive || entry.reversed || isOffline) {
+                    Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                        if (isActive) Pill(stringResource(R.string.track_active_short), MaterialTheme.colorScheme.primary, Icons.Rounded.Navigation)
+                        if (entry.reversed) Pill(stringResource(R.string.library_reversed), MaterialTheme.colorScheme.secondary, Icons.Rounded.SwapVert)
+                        if (isOffline) Pill(stringResource(R.string.track_offline_short), Color(0xFF007AFF), Icons.Rounded.DownloadDone)
+                    }
+                }
+            }
+            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                IconButton(onClick = onActivate) {
+                    Icon(
+                        if (isActive) Icons.Rounded.CheckCircle else Icons.Rounded.RadioButtonUnchecked,
+                        contentDescription = stringResource(R.string.track_follow),
+                        tint = if (isActive) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outline,
+                        modifier = Modifier.size(28.dp),
+                    )
+                }
+                Box {
+                    IconButton(onClick = { menu = true }) { Icon(Icons.Rounded.MoreHoriz, contentDescription = stringResource(R.string.library_more)) }
+                    DropdownMenu(expanded = menu, onDismissRequest = { menu = false }) {
+                        DropdownMenuItem(text = { Text(stringResource(R.string.share_gpx)) }, leadingIcon = { Icon(Icons.Rounded.Share, null) }, onClick = { menu = false; onShare() })
+                        DropdownMenuItem(text = { Text(stringResource(R.string.library_reverse)) }, leadingIcon = { Icon(Icons.Rounded.SwapVert, null) }, onClick = { menu = false; onReverse() })
+                        DropdownMenuItem(text = { Text(stringResource(R.string.library_rename)) }, leadingIcon = { Icon(Icons.Rounded.Edit, null) }, onClick = { menu = false; onRename() })
+                        DropdownMenuItem(text = { Text(stringResource(R.string.folder_move)) }, leadingIcon = { Icon(Icons.AutoMirrored.Rounded.DriveFileMove, null) }, onClick = { menu = false; onMove() })
+                        DropdownMenuItem(
+                            text = { Text(stringResource(R.string.library_delete), color = MaterialTheme.colorScheme.error) },
+                            leadingIcon = { Icon(Icons.Rounded.Delete, null, tint = MaterialTheme.colorScheme.error) },
+                            onClick = { menu = false; onDelete() },
+                        )
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun Pill(text: String, color: Color, icon: ImageVector) {
     Row(
-        Modifier.fillMaxWidth().clickable(onClick = onOpen).padding(horizontal = 8.dp, vertical = 6.dp),
+        Modifier.background(color.copy(alpha = 0.14f), RoundedCornerShape(50)).padding(horizontal = 8.dp, vertical = 3.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(4.dp),
     ) {
-        RadioButton(selected = isActive, onClick = onActivate)
-        Column(Modifier.weight(1f)) {
-            Text(entry.name, style = MaterialTheme.typography.titleMedium, fontWeight = if (isActive) FontWeight.Bold else FontWeight.Normal)
-            val date = DateFormat.getDateInstance(DateFormat.MEDIUM).format(Date(entry.importDateMillis))
-            Text(
-                stringResource(R.string.library_summary, RoadbookTexts.distance(entry.lengthMeters, settings.distanceUnit), entry.pointCount) + " · " + date,
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-            if (entry.reversed) Text(stringResource(R.string.library_reversed), style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.primary)
-        }
-        Box {
-            IconButton(onClick = { menu = true }) { Icon(Icons.Filled.MoreVert, contentDescription = stringResource(R.string.library_more)) }
-            DropdownMenu(expanded = menu, onDismissRequest = { menu = false }) {
-                DropdownMenuItem(text = { Text(stringResource(R.string.share_gpx)) }, onClick = { menu = false; onShare() })
-                DropdownMenuItem(text = { Text(stringResource(R.string.library_reverse)) }, onClick = { menu = false; onReverse() })
-                DropdownMenuItem(text = { Text(stringResource(R.string.library_rename)) }, onClick = { menu = false; onRename() })
-                DropdownMenuItem(text = { Text(stringResource(R.string.folder_move)) }, onClick = { menu = false; onMove() })
-                DropdownMenuItem(text = { Text(stringResource(R.string.library_delete), color = MaterialTheme.colorScheme.error) }, onClick = { menu = false; onDelete() })
+        Icon(icon, contentDescription = null, tint = color, modifier = Modifier.size(12.dp))
+        Text(text, style = MaterialTheme.typography.labelSmall, color = color, maxLines = 1)
+    }
+}
+
+/** Aperçu de la trace (`TrackThumbnailView` iOS) : tracé orange, départ vert, arrivée en damier. */
+@Composable
+fun TrackThumbnail(points: List<LatLon>, reversed: Boolean, modifier: Modifier = Modifier) {
+    val background = MaterialTheme.colorScheme.surfaceContainerHigh
+    Box(modifier.clip(MaterialTheme.shapes.medium).background(background)) {
+        if (points.size < 2) return@Box
+        Canvas(Modifier.fillMaxSize().padding(8.dp)) {
+            val ordered = if (reversed) points.asReversed() else points
+            val minLat = ordered.minOf { it.latitude }
+            val maxLat = ordered.maxOf { it.latitude }
+            val minLon = ordered.minOf { it.longitude }
+            val maxLon = ordered.maxOf { it.longitude }
+            val cos = kotlin.math.cos(Math.toRadians((minLat + maxLat) / 2))
+            val spanX = ((maxLon - minLon) * cos).coerceAtLeast(1e-9)
+            val spanY = (maxLat - minLat).coerceAtLeast(1e-9)
+            val scale = minOf(size.width / spanX, size.height / spanY)
+            val offsetX = (size.width - spanX * scale) / 2
+            val offsetY = (size.height - spanY * scale) / 2
+            fun at(p: LatLon) = Offset((offsetX + (p.longitude - minLon) * cos * scale).toFloat(), (offsetY + (maxLat - p.latitude) * scale).toFloat())
+            val path = Path().apply {
+                moveTo(at(ordered.first()).x, at(ordered.first()).y)
+                ordered.drop(1).forEach { lineTo(at(it).x, at(it).y) }
             }
+            drawPath(path, Color.Black.copy(alpha = 0.35f), style = Stroke(width = 5.dp.toPx(), cap = StrokeCap.Round, join = StrokeJoin.Round))
+            drawPath(path, Accent, style = Stroke(width = 3.dp.toPx(), cap = StrokeCap.Round, join = StrokeJoin.Round))
+            drawCircle(Color(0xFF34C759), 4.dp.toPx(), at(ordered.first()))
+            drawCircle(Color.White, 4.dp.toPx(), at(ordered.last()))
+            drawCircle(Color.Black, 4.dp.toPx(), at(ordered.last()), style = Stroke(width = 1.5.dp.toPx()))
         }
     }
 }
 
 /** Sortie non enregistrée (copie de secours) : « Récupérer » l'ajoute à la Bibliothèque, ou la supprimer. */
 @Composable
-private fun UnsavedRow(ride: UnsavedRide, onRecover: () -> Unit, onDelete: () -> Unit) {
-    Row(Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp), verticalAlignment = Alignment.CenterVertically) {
-        Column(Modifier.weight(1f)) {
-            Text(RideRecorder.unsavedRideName(LocalContext.current, ride.startedMillis), style = MaterialTheme.typography.titleMedium)
-            Text(stringResource(R.string.unsaved_summary, ride.pointCount), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+private fun UnsavedCard(ride: UnsavedRide, onRecover: () -> Unit, onDelete: () -> Unit) {
+    Surface(shape = MaterialTheme.shapes.large, color = UnsavedAmber.copy(alpha = 0.10f), border = BorderStroke(1.dp, UnsavedAmber.copy(alpha = 0.4f))) {
+        Row(Modifier.fillMaxWidth().padding(start = 16.dp, end = 8.dp, top = 10.dp, bottom = 10.dp), verticalAlignment = Alignment.CenterVertically) {
+            Column(Modifier.weight(1f)) {
+                Text(RideRecorder.unsavedRideName(LocalContext.current, ride.startedMillis), style = MaterialTheme.typography.titleMedium)
+                Text(stringResource(R.string.unsaved_summary, ride.pointCount), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            }
+            FilledTonalButton(onClick = onRecover) { Text(stringResource(R.string.unsaved_recover), fontWeight = FontWeight.Bold) }
+            IconButton(onClick = onDelete) { Icon(Icons.Rounded.Delete, contentDescription = stringResource(R.string.library_delete), tint = MaterialTheme.colorScheme.error) }
         }
-        TextButton(onClick = onRecover) { Text(stringResource(R.string.unsaved_recover), color = UnsavedAmber, fontWeight = FontWeight.Bold) }
-        TextButton(onClick = onDelete) { Text(stringResource(R.string.library_delete), color = MaterialTheme.colorScheme.error) }
     }
 }
 

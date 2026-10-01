@@ -477,4 +477,18 @@
     <!-- Limitation de vitesse -->
     <string name="nav_speed_margin">Speed limit alert threshold</string>
     <string name="tuto_goto_6">During detailed guidance, the road\'s speed limit sign shows above your speed; it thickens beyond the margin set in Settings.</string>
+    <!-- Refonte : Réglages -->
+    <string name="back">Back</string>
+    <string name="settings_general">General</string>
+    <string name="settings_riding">Riding</string>
+    <string name="settings_trace">Track</string>
+    <string name="settings_screen">Screen</string>
+    <string name="settings_alerts">Alerts</string>
+    <string name="settings_camera">Camera</string>
+    <string name="settings_turn_thresholds">Turn thresholds</string>
+    <string name="settings_detection">Detection</string>
+    <string name="settings_density">Recording density</string>
+    <!-- Refonte : Bibliothèque -->
+    <string name="track_active_short">Active</string>
+    <string name="track_offline_short">Offline</string>
 </resources>

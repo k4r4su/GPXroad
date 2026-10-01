@@ -7,6 +7,7 @@ import android.os.Build
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -44,7 +45,7 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 
-private val ChipBackground = Color(0xD9202020)
+private val ChipBackground = com.olivier.gpxroad.android.ui.MapPanelColor
 
 /** Permissions nécessaires pour enregistrer : localisation (+ notifications à partir d'Android 13). */
 private fun recordingPermissions(): Array<String> = buildList {
@@ -104,7 +105,8 @@ fun RecordingControls(recorder: RideRecorder, onFinish: () -> Unit) {
 @Composable
 private fun Chip(label: String, dot: Color?, onClick: () -> Unit) {
     Row(
-        Modifier.background(ChipBackground, RoundedCornerShape(50)).clickable(onClick = onClick).padding(horizontal = 12.dp, vertical = 9.dp),
+        Modifier.background(ChipBackground, RoundedCornerShape(50)).border(1.dp, com.olivier.gpxroad.android.ui.MapPanelBorder, RoundedCornerShape(50))
+            .clickable(onClick = onClick).padding(horizontal = 14.dp, vertical = 10.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(7.dp),
     ) {

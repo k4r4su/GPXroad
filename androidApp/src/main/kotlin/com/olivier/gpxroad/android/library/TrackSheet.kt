@@ -8,6 +8,21 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
+import androidx.compose.material3.Icon
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.rounded.DriveFileMove
+import androidx.compose.material.icons.rounded.Delete
+import androidx.compose.material.icons.rounded.Edit
+import androidx.compose.material.icons.rounded.Navigation
+import androidx.compose.material.icons.rounded.Share
+import androidx.compose.material.icons.rounded.SwapVert
+import com.olivier.gpxroad.android.ui.GroupDivider
+import com.olivier.gpxroad.android.ui.SettingsGroup
+import com.olivier.gpxroad.android.ui.SettingsRow
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
@@ -107,12 +122,22 @@ fun TrackSheet(
                 TrackOfflineRow(entry.id, entry.name, latLons, offline)
             }
             Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                if (!isActive) Button(onClick = { onActivate(); onDismiss() }, Modifier.fillMaxWidth()) { Text(stringResource(R.string.track_follow)) }
-                OutlinedButton(onClick = onShare, Modifier.fillMaxWidth()) { Text(stringResource(R.string.share_gpx)) }
-                OutlinedButton(onClick = onReverse, Modifier.fillMaxWidth()) { Text(stringResource(R.string.library_reverse)) }
-                OutlinedButton(onClick = onRename, Modifier.fillMaxWidth()) { Text(stringResource(R.string.library_rename)) }
-                OutlinedButton(onClick = onMove, Modifier.fillMaxWidth()) { Text(stringResource(R.string.folder_move)) }
-                OutlinedButton(onClick = onDelete, Modifier.fillMaxWidth()) { Text(stringResource(R.string.library_delete), color = MaterialTheme.colorScheme.error) }
+                if (!isActive) {
+                    Button(onClick = { onActivate(); onDismiss() }, Modifier.fillMaxWidth().height(52.dp)) {
+                        Icon(Icons.Rounded.Navigation, null, Modifier.size(20.dp)); Spacer(Modifier.width(8.dp)); Text(stringResource(R.string.track_follow))
+                    }
+                }
+                SettingsGroup {
+                    SettingsRow(stringResource(R.string.share_gpx), Icons.Rounded.Share, Color(0xFF007AFF), onClick = onShare, trailing = {})
+                    GroupDivider()
+                    SettingsRow(stringResource(R.string.library_reverse), Icons.Rounded.SwapVert, Color(0xFF8E8E93), onClick = onReverse, trailing = {})
+                    GroupDivider()
+                    SettingsRow(stringResource(R.string.library_rename), Icons.Rounded.Edit, Color(0xFF8E8E93), onClick = onRename, trailing = {})
+                    GroupDivider()
+                    SettingsRow(stringResource(R.string.folder_move), Icons.AutoMirrored.Rounded.DriveFileMove, Color(0xFF8E8E93), onClick = onMove, trailing = {})
+                    GroupDivider()
+                    SettingsRow(stringResource(R.string.library_delete), Icons.Rounded.Delete, MaterialTheme.colorScheme.error, onClick = onDelete, trailing = {})
+                }
             }
         }
     }

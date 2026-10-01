@@ -40,6 +40,10 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.produceState
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.PictureAsPdf
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.runtime.remember
@@ -194,13 +198,17 @@ private fun Header(track: LoadedTrack, settings: AppSettings, entries: List<Road
         Row(verticalAlignment = Alignment.CenterVertically) {
             Text(
                 track.entry.name,
-                style = MaterialTheme.typography.titleLarge,
-                fontWeight = FontWeight.SemiBold,
+                style = MaterialTheme.typography.headlineSmall,
+                fontWeight = FontWeight.ExtraBold,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
                 modifier = Modifier.weight(1f).clickable(onClick = onOpenLibrary),
             )
-            if (entries != null) TextButton(onClick = { exporting = true }) { Text("PDF", fontWeight = FontWeight.Bold) }
+            if (entries != null) {
+                IconButton(onClick = { exporting = true }) {
+                    Icon(Icons.Rounded.PictureAsPdf, contentDescription = stringResource(R.string.pdf_export), tint = MaterialTheme.colorScheme.primary)
+                }
+            }
         }
         if (exporting && entries != null) {
             PdfExportDialog(track.entry.name, entries, attached, settings, onDismiss = { exporting = false })

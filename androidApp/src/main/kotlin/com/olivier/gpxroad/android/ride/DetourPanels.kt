@@ -11,7 +11,11 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.Block
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Icon
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -33,6 +37,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.olivier.gpxroad.android.R
+import com.olivier.gpxroad.android.ui.mapPanel
 
 private val DetourRed = Color(0xD9FF3B30)
 private val Warning = Color(0xFFFFCC00)
@@ -58,12 +63,12 @@ private fun WarningTriangle(color: Color, modifier: Modifier) {
 fun BlockedButton(onClick: () -> Unit) {
     val label = stringResource(R.string.detour_title)
     Column(
-        Modifier.size(64.dp).background(DetourRed, CircleShape).clickable(onClick = onClick).semantics { contentDescription = label },
+        Modifier.size(64.dp).background(DetourRed, RoundedCornerShape(20.dp)).clickable(onClick = onClick).semantics { contentDescription = label },
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center,
     ) {
-        WarningTriangle(Color.White, Modifier.size(22.dp))
-        Text(stringResource(R.string.detour_button), color = Color.White, fontSize = 10.sp, fontWeight = FontWeight.SemiBold, maxLines = 1)
+        Icon(Icons.Rounded.Block, contentDescription = null, tint = Color.White, modifier = Modifier.size(24.dp))
+        Text(stringResource(R.string.detour_button), color = Color.White, style = MaterialTheme.typography.labelSmall, maxLines = 1)
     }
 }
 
@@ -90,7 +95,7 @@ fun DetourDialog(onDismiss: () -> Unit, onChoose: (DetourMode) -> Unit) {
 @Composable
 fun BlockedBanner(onBypass: () -> Unit, onDismiss: () -> Unit) {
     Row(
-        Modifier.widthIn(max = 560.dp).fillMaxWidth().background(PanelBackground, PanelShape).padding(horizontal = 16.dp, vertical = 8.dp),
+        Modifier.widthIn(max = 560.dp).fillMaxWidth().mapPanel().padding(horizontal = 16.dp, vertical = 8.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(12.dp),
     ) {
@@ -105,7 +110,7 @@ fun BlockedBanner(onBypass: () -> Unit, onDismiss: () -> Unit) {
 @Composable
 fun DetourBanner(detour: Detour?, isRequesting: Boolean, onCancel: () -> Unit) {
     Row(
-        Modifier.widthIn(max = 560.dp).fillMaxWidth().background(DetourRed, PanelShape).padding(horizontal = 16.dp, vertical = 10.dp),
+        Modifier.widthIn(max = 560.dp).fillMaxWidth().mapPanel(DetourRed).padding(horizontal = 16.dp, vertical = 10.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(12.dp),
     ) {
@@ -129,7 +134,7 @@ fun DetourBanner(detour: Detour?, isRequesting: Boolean, onCancel: () -> Unit) {
 fun SharedBlockageAlert(note: String?, onHide: () -> Unit) {
     val hide = stringResource(R.string.shared_hide)
     Row(
-        Modifier.widthIn(max = 560.dp).fillMaxWidth().background(PanelBackground, PanelShape).padding(horizontal = 16.dp, vertical = 8.dp),
+        Modifier.widthIn(max = 560.dp).fillMaxWidth().mapPanel().padding(horizontal = 16.dp, vertical = 8.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(12.dp),
     ) {

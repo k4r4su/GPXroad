@@ -30,6 +30,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.olivier.gpxroad.android.R
+import com.olivier.gpxroad.android.ui.mapPanel
 import com.olivier.gpxroad.android.data.DistanceUnit
 import com.olivier.gpxroad.android.recording.RideRecorder
 import com.olivier.gpxroad.android.recording.rememberRecordingStarter
@@ -58,7 +59,7 @@ fun RideStatsPanel(session: RideSession, progress: RideProgress?, recorder: Ride
     val start = rememberRecordingStarter(recorder)
     val speedUnit = speedUnitLabel(unit)
     Column(
-        Modifier.widthIn(max = 272.dp).background(PanelBackground, PanelShape).padding(14.dp),
+        Modifier.widthIn(max = 272.dp).mapPanel().padding(14.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
@@ -118,7 +119,7 @@ private val ResumeTint = Color(0xE01E5BC6)
 fun ResumeCard(resume: ManualResume, fix: Location?, course: Double?, unit: DistanceUnit, onConfirm: () -> Unit, onCancel: () -> Unit, modifier: Modifier = Modifier) {
     val position = fix?.let { LatLon(it.latitude, it.longitude) }
     Column(
-        modifier.widthIn(max = 480.dp).fillMaxWidth().background(ResumeTint, PanelShape).padding(horizontal = 16.dp, vertical = 10.dp),
+        modifier.widthIn(max = 480.dp).fillMaxWidth().mapPanel(ResumeTint).padding(horizontal = 16.dp, vertical = 10.dp),
         verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {

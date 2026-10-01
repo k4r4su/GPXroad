@@ -168,6 +168,12 @@ fun RideMap(
         mapView.getMapAsync { loaded ->
             loaded.uiSettings.isTiltGesturesEnabled = false
             loaded.uiSettings.isCompassEnabled = false
+            // Logo et attribution (obligatoire) en bas au centre : jamais sous le compteur ni les boutons.
+            loaded.uiSettings.logoGravity = android.view.Gravity.BOTTOM or android.view.Gravity.CENTER_HORIZONTAL
+            loaded.uiSettings.attributionGravity = android.view.Gravity.BOTTOM or android.view.Gravity.CENTER_HORIZONTAL
+            val margin = (8 * context.resources.displayMetrics.density).toInt()
+            loaded.uiSettings.setLogoMargins(0, 0, (48 * context.resources.displayMetrics.density).toInt(), margin)
+            loaded.uiSettings.setAttributionMargins((48 * context.resources.displayMetrics.density).toInt(), 0, 0, margin)
             loaded.addOnCameraMoveStartedListener { reason ->
                 if (reason == MapLibreMap.OnCameraMoveStartedListener.REASON_API_GESTURE) camera.onUserGesture()
             }

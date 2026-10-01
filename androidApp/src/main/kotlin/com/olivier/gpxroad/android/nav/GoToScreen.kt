@@ -16,9 +16,12 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Home
-import androidx.compose.material.icons.filled.Place
-import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.rounded.Home
+import androidx.compose.material.icons.rounded.Place
+import androidx.compose.material.icons.rounded.Search
+import androidx.compose.material3.OutlinedTextFieldDefaults
+import androidx.compose.ui.graphics.Color
+import com.olivier.gpxroad.android.ui.IconBadge
 import androidx.compose.material3.AssistChip
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenu
@@ -44,7 +47,7 @@ import androidx.compose.ui.unit.dp
 import com.olivier.gpxroad.android.R
 import com.olivier.gpxroad.android.net.NominatimClient
 import com.olivier.gpxroad.android.net.Place
-import com.olivier.gpxroad.android.ui.WorkIcon
+import androidx.compose.material.icons.rounded.Work
 import com.olivier.gpxroad.shared.LatLon
 import com.olivier.gpxroad.shared.nav.GoToProfile
 import kotlinx.coroutines.Dispatchers
@@ -100,20 +103,25 @@ fun GoToScreen(places: NavPlaces, nominatim: NominatimClient, position: LatLon?,
 
     LazyColumn(Modifier.fillMaxSize(), contentPadding = androidx.compose.foundation.layout.PaddingValues(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
         item {
-            Text(stringResource(R.string.tab_goto), style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Bold)
+            Text(stringResource(R.string.tab_goto), style = MaterialTheme.typography.headlineLarge)
         }
         item {
             OutlinedTextField(
                 value = query, onValueChange = { query = it }, singleLine = true, modifier = Modifier.fillMaxWidth(),
                 placeholder = { Text(stringResource(R.string.nav_search_hint)) },
-                leadingIcon = { Icon(Icons.Filled.Search, contentDescription = null) },
+                leadingIcon = { Icon(Icons.Rounded.Search, contentDescription = null, tint = MaterialTheme.colorScheme.primary) },
                 shape = RoundedCornerShape(28.dp),
+                colors = OutlinedTextFieldDefaults.colors(
+                    unfocusedContainerColor = MaterialTheme.colorScheme.surfaceContainerLow,
+                    focusedContainerColor = MaterialTheme.colorScheme.surfaceContainerLow,
+                    unfocusedBorderColor = Color.Transparent,
+                ),
             )
         }
         item {
             Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                FavoriteTile(stringResource(R.string.nav_home), Icons.Filled.Home, places.home, position, Modifier.weight(1f), onGo = { go(it, GoToProfile.ROUTE) }, onSet = places::updateHome, setLabel = R.string.nav_use_position_home)
-                FavoriteTile(stringResource(R.string.nav_work), WorkIcon, places.work, position, Modifier.weight(1f), onGo = { go(it, GoToProfile.ROUTE) }, onSet = places::updateWork, setLabel = R.string.nav_use_position_work)
+                FavoriteTile(stringResource(R.string.nav_home), Icons.Rounded.Home, places.home, position, Modifier.weight(1f), onGo = { go(it, GoToProfile.ROUTE) }, onSet = places::updateHome, setLabel = R.string.nav_use_position_home)
+                FavoriteTile(stringResource(R.string.nav_work), Icons.Rounded.Work, places.work, position, Modifier.weight(1f), onGo = { go(it, GoToProfile.ROUTE) }, onSet = places::updateWork, setLabel = R.string.nav_use_position_work)
             }
         }
         if (query.isBlank() && places.history.isNotEmpty()) {
@@ -147,15 +155,15 @@ private fun FavoriteTile(title: String, icon: ImageVector, place: Place?, positi
         Column(
             Modifier.fillMaxWidth()
                 .background(
-                    if (place != null) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceVariant,
-                    RoundedCornerShape(16.dp),
+                    MaterialTheme.colorScheme.surfaceContainerLow,
+                    RoundedCornerShape(22.dp),
                 )
                 .combinedClickable(onClick = { place?.let(onGo) }, onLongClick = { menu = true })
                 .padding(vertical = 14.dp, horizontal = 10.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(4.dp),
         ) {
-            Icon(icon, contentDescription = null)
+            IconBadge(icon, if (place != null) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outline, 40.dp)
             Text(title, style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold)
             Text(
                 place?.label ?: stringResource(R.string.nav_favorite_unset),
@@ -178,7 +186,7 @@ private fun PlaceRow(place: Place, places: NavPlaces, onGo: (Place, GoToProfile)
     Box {
         Column(Modifier.fillMaxWidth().combinedClickable(onClick = { onGo(place, GoToProfile.ROUTE) }, onLongClick = { menu = true }).padding(vertical = 6.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                Icon(Icons.Filled.Place, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
+                Icon(Icons.Rounded.Place, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
                 Text(place.label, style = MaterialTheme.typography.bodyLarge, maxLines = 2, overflow = TextOverflow.Ellipsis)
             }
             Row(Modifier.padding(start = 32.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {

@@ -477,4 +477,18 @@
     <!-- Limitation de vitesse -->
     <string name="nav_speed_margin">Schwelle für Geschwindigkeitsüberschreitung</string>
     <string name="tuto_goto_6">Während der detaillierten Führung erscheint das Tempolimit über deiner Geschwindigkeit; es wird dicker über der in den Einstellungen gewählten Marge.</string>
+    <!-- Refonte : Réglages -->
+    <string name="back">Zurück</string>
+    <string name="settings_general">Allgemein</string>
+    <string name="settings_riding">Fahren</string>
+    <string name="settings_trace">Track</string>
+    <string name="settings_screen">Bildschirm</string>
+    <string name="settings_alerts">Hinweise</string>
+    <string name="settings_camera">Kamera</string>
+    <string name="settings_turn_thresholds">Kurvenschwellen</string>
+    <string name="settings_detection">Erkennung</string>
+    <string name="settings_density">Aufzeichnungsdichte</string>
+    <!-- Refonte : Bibliothèque -->
+    <string name="track_active_short">Aktiv</string>
+    <string name="track_offline_short">Offline</string>
 </resources>

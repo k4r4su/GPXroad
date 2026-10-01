@@ -7,6 +7,20 @@ import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.Add
+import androidx.compose.material.icons.rounded.MyLocation
+import androidx.compose.material.icons.rounded.Navigation
+import androidx.compose.material.icons.rounded.North
+import androidx.compose.material.icons.rounded.Pause
+import androidx.compose.material.icons.rounded.PlayArrow
+import androidx.compose.material.icons.rounded.Remove
+import androidx.compose.material3.Icon
+import com.olivier.gpxroad.android.ui.MapButton
+import com.olivier.gpxroad.android.ui.MapPanelBorder
+import com.olivier.gpxroad.android.ui.MapPanelColor
+import com.olivier.gpxroad.android.ui.RideNumberStyle
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -43,6 +57,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.olivier.gpxroad.android.R
+import com.olivier.gpxroad.android.ui.mapPanel
 import com.olivier.gpxroad.android.data.AppSettings
 import com.olivier.gpxroad.android.data.ControlsSide
 import com.olivier.gpxroad.android.data.DistanceUnit
@@ -87,8 +102,8 @@ import kotlinx.coroutines.delay
 import kotlin.math.roundToInt
 
 /** Fond des panneaux du Ride (équivalent de `ridePanelStyle` iOS) : sombre translucide, lisible au soleil. */
-internal val PanelBackground = Color(0xD9202020)
-internal val PanelShape = RoundedCornerShape(16.dp)
+internal val PanelBackground = MapPanelColor
+internal val PanelShape = RoundedCornerShape(20.dp)
 private val ColumnWidth: Dp = 92.dp
 
 /**
@@ -271,7 +286,7 @@ fun RideScreen(
             } else if (sharedAlert != null && manualResume == null) {
                 SharedBlockageAlert(sharedAlert.note, onHide = { hiddenBlockageId = sharedAlert.id })
             } else if (nav.isRequesting && destination != null) {
-                Box(Modifier.background(PanelBackground, PanelShape).padding(horizontal = 16.dp, vertical = 10.dp)) {
+                Box(Modifier.mapPanel().padding(horizontal = 16.dp, vertical = 10.dp)) {
                     Text(stringResource(R.string.nav_requesting) + " · " + destination.label, color = Color.White, maxLines = 1)
                 }
             }
@@ -291,7 +306,7 @@ fun RideScreen(
                     Text(stringResource(R.string.location_allow))
                 }
             }
-            track == null -> Box(Modifier.align(Alignment.TopCenter).padding(12.dp).background(PanelBackground, PanelShape).clickable(onClick = onOpenLibrary).padding(horizontal = 16.dp, vertical = 10.dp)) {
+            track == null -> Box(Modifier.align(Alignment.TopCenter).padding(12.dp).mapPanel().clickable(onClick = onOpenLibrary).padding(horizontal = 16.dp, vertical = 10.dp)) {
                 Text(stringResource(R.string.ride_no_track), color = Color.White, style = MaterialTheme.typography.bodyLarge)
             }
         }
@@ -311,7 +326,7 @@ fun RideScreen(
                 }
             }
             if (camera.isManualOverrideActive(now) || camera.manualDistanceMeters != null || camera.focus != null) {
-                ControlButton("◎", stringResource(R.string.ride_recenter)) {
+                MapButton(Icons.Rounded.MyLocation, stringResource(R.string.ride_recenter)) {
                     camera.recenter()
                     session.resumeGuidance()
                 }
@@ -336,12 +351,12 @@ fun RideScreen(
                     },
                 )
             }
-            ControlButton(if (settings.rideNorthUp) "N" else "▲", stringResource(if (settings.rideNorthUp) R.string.ride_north_up else R.string.ride_heading_up)) {
+            MapButton(if (settings.rideNorthUp) Icons.Rounded.North else Icons.Rounded.Navigation, stringResource(if (settings.rideNorthUp) R.string.ride_north_up else R.string.ride_heading_up)) {
                 settings.updateRideNorthUp(!settings.rideNorthUp)
                 camera.recenter()
             }
-            ControlButton("+", stringResource(R.string.ride_zoom_in)) { camera.zoomIn() }
-            ControlButton("−", stringResource(R.string.ride_zoom_out)) { camera.zoomOut() }
+            MapButton(Icons.Rounded.Add, stringResource(R.string.ride_zoom_in)) { camera.zoomIn() }
+            MapButton(Icons.Rounded.Remove, stringResource(R.string.ride_zoom_out)) { camera.zoomOut() }
             if (track != null && guidingTrace) BlockedButton { askDetour = true }
         }
 
@@ -364,17 +379,20 @@ fun RideScreen(
             } else {
                 RecordingControls(recorder) { finishing = true }
                 val expandLabel = stringResource(R.string.stats_expand)
+                // Compteur rond (`RideStatsBadge` iOS) : toucher ouvre les mesures.
                 Column(
-                    Modifier.background(PanelBackground, PanelShape).clickable(onClickLabel = expandLabel) { statsExpanded = true }.padding(horizontal = 14.dp, vertical = 8.dp),
+                    Modifier.size(84.dp).background(PanelBackground, CircleShape).border(1.dp, MapPanelBorder, CircleShape)
+                        .clickable(onClickLabel = expandLabel) { statsExpanded = true },
                     horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Center,
                 ) {
-                    Text(speedValue(camera.rawSpeedKmh, settings.distanceUnit), color = Color.White, fontSize = 34.sp, fontWeight = FontWeight.Black)
-                    Text(speedUnitLabel(settings.distanceUnit), color = Color.White.copy(alpha = 0.8f), style = MaterialTheme.typography.labelMedium)
+                    Text(speedValue(camera.rawSpeedKmh, settings.distanceUnit), color = Color.White, fontSize = 32.sp, style = RideNumberStyle)
+                    Text(speedUnitLabel(settings.distanceUnit), color = Color.White.copy(alpha = 0.75f), style = MaterialTheme.typography.labelSmall)
                 }
             }
         }
         if (recorder.wasRestoredAfterInterruption) {
-            Box(Modifier.align(Alignment.TopCenter).padding(12.dp).background(PanelBackground, PanelShape).padding(horizontal = 16.dp, vertical = 10.dp)) {
+            Box(Modifier.align(Alignment.TopCenter).padding(12.dp).mapPanel().padding(horizontal = 16.dp, vertical = 10.dp)) {
                 Text(stringResource(R.string.recording_restored), color = Color.White, style = MaterialTheme.typography.bodyMedium, textAlign = TextAlign.Center)
             }
         }
@@ -426,13 +444,13 @@ private fun GuidanceToggle(stopped: Boolean, onPause: () -> Unit, onResume: () -
     val label = stringResource(if (stopped) R.string.guidance_resume else R.string.guidance_pause)
     Column(
         Modifier.size(64.dp)
-            .background(if (stopped) Color(0xD934C759) else PanelBackground, PanelShape)
+            .mapPanel(if (stopped) Color(0xE634C759) else PanelBackground)
             .combinedClickable(onClickLabel = label, onClick = { if (stopped) onResume() else onPause() }, onLongClick = onStop),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center,
     ) {
-        Text(if (stopped) "▶" else "❚❚", color = Color.White, fontSize = 20.sp, fontWeight = FontWeight.Bold)
-        Text(label, color = Color.White, fontSize = 10.sp, fontWeight = FontWeight.SemiBold, maxLines = 1)
+        Icon(if (stopped) Icons.Rounded.PlayArrow else Icons.Rounded.Pause, contentDescription = null, tint = Color.White, modifier = Modifier.size(24.dp))
+        Text(label, color = Color.White, style = MaterialTheme.typography.labelSmall, maxLines = 1)
     }
 }
 
@@ -466,7 +484,7 @@ private val RejoinTint = Color(0xD93A3480)
 @Composable
 private fun RejoinBanner(display: RejoinDisplay, fix: android.location.Location, course: Double?) {
     Column(
-        Modifier.width(ColumnWidth).background(RejoinTint, PanelShape).padding(vertical = 12.dp, horizontal = 6.dp),
+        Modifier.width(ColumnWidth).mapPanel(RejoinTint).padding(vertical = 12.dp, horizontal = 6.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(6.dp),
     ) {
@@ -507,35 +525,25 @@ private fun RejoinBanner(display: RejoinDisplay, fix: android.location.Location,
 private fun CenterCard(content: @Composable () -> Unit) {
     Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
         Column(
-            Modifier.background(PanelBackground, PanelShape).padding(20.dp),
+            Modifier.mapPanel().padding(20.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) { content() }
     }
 }
 
-/** Bouton de la colonne (grande cible, utilisable avec des gants). */
-@Composable
-private fun ControlButton(symbol: String, label: String, onClick: () -> Unit) {
-    Box(
-        Modifier.size(64.dp).background(PanelBackground, PanelShape).clickable(onClickLabel = label, onClick = onClick),
-        contentAlignment = Alignment.Center,
-    ) {
-        Text(symbol, color = Color.White, fontSize = 30.sp, fontWeight = FontWeight.Bold)
-    }
-}
 
 /** Prochain virage à moins de 600 m (`LateralCapBannerView` iOS) : pictogramme, compte à rebours (km, comme l'iPhone), rang. */
 @Composable
 private fun LateralBanner(maneuver: RoadbookManeuver, distanceMeters: Double, rank: Int, total: Int, unit: DistanceUnit) {
     Column(
-        Modifier.width(ColumnWidth).background(PanelBackground, PanelShape).padding(vertical = 14.dp, horizontal = 6.dp),
+        Modifier.width(ColumnWidth).mapPanel().padding(vertical = 14.dp, horizontal = 6.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
         ManeuverPictogram(maneuver.checkpoint, Accent, Color.White, Modifier.size(52.dp))
         Text(
-            RoadbookTexts.countdown(distanceMeters, unit), color = Color.White, fontWeight = FontWeight.Black, maxLines = 1, softWrap = false,
+            RoadbookTexts.countdown(distanceMeters, unit), color = Color.White, style = RideNumberStyle, maxLines = 1, softWrap = false,
             autoSize = TextAutoSize.StepBased(minFontSize = 16.sp, maxFontSize = 30.sp),
         )
         Text("⚑ $rank/$total", color = Color.White.copy(alpha = 0.85f), style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Bold)
@@ -560,7 +568,7 @@ private fun OffTrackChip(offTrack: OffTrackState, fix: android.location.Location
         }
     }
     Column(
-        Modifier.width(ColumnWidth).background(PanelBackground, PanelShape).padding(vertical = 12.dp, horizontal = 6.dp),
+        Modifier.width(ColumnWidth).mapPanel().padding(vertical = 12.dp, horizontal = 6.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(6.dp),
     ) {

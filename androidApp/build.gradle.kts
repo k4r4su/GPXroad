@@ -58,6 +58,7 @@ dependencies {
     implementation(libs.compose.material3)
     implementation(libs.activity.compose)
     implementation(libs.compose.material.icons.core)
+    implementation(libs.compose.material.icons.extended)
     implementation(libs.maplibre.android)
     testImplementation(kotlin("test-junit"))
     // Implémentation réelle d'org.json pour les tests JVM (celle d'android.jar n'est qu'un bouchon).

@@ -477,4 +477,18 @@
     <!-- Limitation de vitesse -->
     <string name="nav_speed_margin">Umbral de exceso de velocidad</string>
     <string name="tuto_goto_6">Durante el guiado detallado, la señal de límite de la carretera aparece sobre tu velocidad; se engrosa por encima del margen elegido en Ajustes.</string>
+    <!-- Refonte : Réglages -->
+    <string name="back">Atrás</string>
+    <string name="settings_general">General</string>
+    <string name="settings_riding">Conducción</string>
+    <string name="settings_trace">Ruta</string>
+    <string name="settings_screen">Pantalla</string>
+    <string name="settings_alerts">Alertas</string>
+    <string name="settings_camera">Cámara</string>
+    <string name="settings_turn_thresholds">Umbrales de curvas</string>
+    <string name="settings_detection">Detección</string>
+    <string name="settings_density">Densidad de grabación</string>
+    <!-- Refonte : Bibliothèque -->
+    <string name="track_active_short">Activa</string>
+    <string name="track_offline_short">Sin conexión</string>
 </resources>

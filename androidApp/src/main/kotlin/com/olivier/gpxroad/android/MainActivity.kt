@@ -49,7 +49,14 @@ import com.olivier.gpxroad.android.net.NominatimClient
 import com.olivier.gpxroad.android.sync.SharedBlockageSync
 import com.olivier.gpxroad.android.offline.OfflineMaps
 import com.olivier.gpxroad.shared.LatLon
-import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.automirrored.rounded.FormatListBulleted
+import androidx.compose.material.icons.rounded.CollectionsBookmark
+import androidx.compose.material.icons.rounded.Navigation
+import androidx.compose.material.icons.rounded.Search
+import androidx.compose.material.icons.rounded.Settings
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.NavigationBarItemDefaults
+import androidx.compose.ui.unit.dp
 import com.olivier.gpxroad.android.ride.RideCameraState
 import com.olivier.gpxroad.android.ride.RideSession
 import com.olivier.gpxroad.android.ride.RideScreen
@@ -151,22 +158,28 @@ private fun GPXroadApp(services: AppServices, incomingGpx: Uri?, onLanguageChang
     if (incomingGpx != null) tab = AppTab.LIBRARY
     val items = remember {
         listOf(
-            Triple(AppTab.RIDE, R.string.tab_ride, Icons.Filled.LocationOn),
-            Triple(AppTab.GOTO, R.string.tab_goto, Icons.Filled.Search),
-            Triple(AppTab.ROADBOOK, R.string.tab_roadbook, Icons.AutoMirrored.Filled.List),
-            Triple(AppTab.LIBRARY, R.string.tab_library, LibraryIcon),
-            Triple(AppTab.SETTINGS, R.string.tab_settings, Icons.Filled.Settings),
+            Triple(AppTab.RIDE, R.string.tab_ride, Icons.Rounded.Navigation),
+            Triple(AppTab.GOTO, R.string.tab_goto, Icons.Rounded.Search),
+            Triple(AppTab.ROADBOOK, R.string.tab_roadbook, Icons.AutoMirrored.Rounded.FormatListBulleted),
+            Triple(AppTab.LIBRARY, R.string.tab_library, Icons.Rounded.CollectionsBookmark),
+            Triple(AppTab.SETTINGS, R.string.tab_settings, Icons.Rounded.Settings),
         )
     }
     Scaffold(
         bottomBar = {
-            NavigationBar {
+            // Barre d'onglets : surface claire, indicateur orange léger, libellés toujours visibles.
+            NavigationBar(containerColor = MaterialTheme.colorScheme.surfaceContainerLow, tonalElevation = 0.dp) {
                 items.forEach { (item, label, icon: ImageVector) ->
                     NavigationBarItem(
                         selected = tab == item,
                         onClick = { tab = item },
                         icon = { Icon(icon, contentDescription = null) },
-                        label = { Text(stringResource(label)) },
+                        label = { Text(stringResource(label), maxLines = 1) },
+                        colors = NavigationBarItemDefaults.colors(
+                            selectedIconColor = MaterialTheme.colorScheme.primary,
+                            selectedTextColor = MaterialTheme.colorScheme.primary,
+                            indicatorColor = MaterialTheme.colorScheme.primaryContainer,
+                        ),
                     )
                 }
             }
