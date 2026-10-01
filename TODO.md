@@ -46,6 +46,8 @@ temps, la version iOS est vraiment correcte mais l'Android c'est une catastrophe
       inchangés, lisibilité validée sur le terrain).
 - [x] Export PDF en feuille (groupes, bouton « Générer et partager »), panneau Mesures avec boutons à
       icônes (enregistrement, Terminer).
+- Contrôle du 01/10 : iPhone 519 tests 0 échec 0 ignoré (copie locale du serveur), Kotlin partagé
+  97 tests, Android 11 tests, module partagé compilé pour iOS (simulateur et appareil).
 - [ ] Reste : avis du propriétaire sur la tablette (installée le 01/10), puis captures côte à côte
       iOS / Android pour les derniers écarts.
 - [ ] Validation par captures côte à côte iOS / Android sur tablette et téléphone.
@@ -133,8 +135,9 @@ Sessions suivantes :
         automatique (activé, Conservateur/Équilibré/Agressif, bornes serré/large). Vérifié sur
         l'émulateur (Terreux, Relief).
   - Écart assumé : pas de mode nuit (l'iPhone n'assombrit que le fond raster OSM hors ligne).
-  - Écart assumé : réglages de trace globaux (l'iPhone permet aussi couleur/épaisseur/chevrons par
-    trace).
+  - [x] Apparence par trace (01/10, fiche > « Apparence (cette trace) ») : couleur, épaisseur,
+        chevrons, « Par défaut » = Réglages (`TrackEntry` dans `index.json`), comme
+        `TrackRideSettings` iOS. Vérifié sur l'émulateur (vosges-tour en rouge).
 - [x] 3 — Réseau (faite avant la 2, voir ci-dessus).
 - [x] 4 — Enregistrement de la sortie (30/09) : `RideRecorder` unique pour le processus (indépendant
       des écrans), GPS tenu par un service de premier plan de type localisation (notification avec

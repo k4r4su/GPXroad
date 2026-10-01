@@ -21,6 +21,11 @@ import androidx.compose.material.icons.rounded.Navigation
 import androidx.compose.material.icons.rounded.Share
 import androidx.compose.material.icons.rounded.SwapVert
 import com.olivier.gpxroad.android.ui.GroupDivider
+import com.olivier.gpxroad.android.ui.GroupContent
+import com.olivier.gpxroad.android.settings.SettingChoice
+import com.olivier.gpxroad.android.data.TraceColor
+import com.olivier.gpxroad.android.data.TraceWidth
+import com.olivier.gpxroad.shared.ride.DirectionChevrons
 import com.olivier.gpxroad.android.ui.SettingsGroup
 import com.olivier.gpxroad.android.ui.SettingsRow
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -127,6 +132,7 @@ fun TrackSheet(
                         Icon(Icons.Rounded.Navigation, null, Modifier.size(20.dp)); Spacer(Modifier.width(8.dp)); Text(stringResource(R.string.track_follow))
                     }
                 }
+                TrackAppearanceGroup(current = entry, settings = settings, onChange = { c, w, sp -> library.setAppearance(entry.id, c, w, sp) })
                 SettingsGroup {
                     SettingsRow(stringResource(R.string.share_gpx), Icons.Rounded.Share, Color(0xFF007AFF), onClick = onShare, trailing = {})
                     GroupDivider()
@@ -188,3 +194,23 @@ private fun speed(kmh: Double, unit: DistanceUnit): String =
 
 private fun elevation(meters: Double, unit: DistanceUnit): String =
     if (unit == DistanceUnit.KM) "${meters.roundToInt()} m" else "${(meters * 3.28084).roundToInt()} ft"
+
+/** Apparence de cette trace (`TrackSettingsView` iOS) : couleur, épaisseur, chevrons ; « Par défaut » = Réglages. */
+@Composable
+private fun TrackAppearanceGroup(current: TrackEntry, settings: AppSettings, onChange: (TraceColor?, TraceWidth?, Double?) -> Unit) {
+    val byDefault = stringResource(R.string.track_default)
+    SettingsGroup(stringResource(R.string.track_appearance), footer = stringResource(R.string.track_appearance_footer)) {
+        GroupContent {
+            SettingChoice(stringResource(R.string.settings_trace_color), listOf<TraceColor?>(null) + TraceColor.entries, current.colorOverride, { it?.let { c -> stringResource(c.label) } ?: byDefault }) {
+                onChange(it, current.widthOverride, current.chevronSpacingOverride)
+            }
+            SettingChoice(stringResource(R.string.settings_trace_width), listOf<TraceWidth?>(null) + TraceWidth.entries, current.widthOverride, { it?.let { w -> stringResource(w.label) } ?: byDefault }) {
+                onChange(current.colorOverride, it, current.chevronSpacingOverride)
+            }
+            SettingChoice(
+                stringResource(R.string.settings_chevron_spacing), listOf<Double?>(null) + DirectionChevrons.SPACING_OPTIONS, current.chevronSpacingOverride,
+                { it?.let { v -> if (v >= 1000) "1 km" else "${v.roundToInt()} m" } ?: byDefault },
+            ) { onChange(current.colorOverride, current.widthOverride, it) }
+        }
+    }
+}

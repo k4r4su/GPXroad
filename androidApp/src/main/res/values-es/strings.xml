@@ -491,4 +491,8 @@
     <!-- Refonte : Bibliothèque -->
     <string name="track_active_short">Activa</string>
     <string name="track_offline_short">Sin conexión</string>
+    <!-- Apparence par trace -->
+    <string name="track_appearance">Apariencia (esta ruta)</string>
+    <string name="track_appearance_footer">Los ajustes globales siguen siendo el valor por defecto mientras no elijas nada aquí.</string>
+    <string name="track_default">Por defecto</string>
 </resources>

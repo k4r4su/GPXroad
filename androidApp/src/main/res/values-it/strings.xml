@@ -491,4 +491,8 @@
     <!-- Refonte : Bibliothèque -->
     <string name="track_active_short">Attiva</string>
     <string name="track_offline_short">Offline</string>
+    <!-- Apparence par trace -->
+    <string name="track_appearance">Aspetto (questa traccia)</string>
+    <string name="track_appearance_footer">Le impostazioni globali restano predefinite finché qui non si sceglie nulla.</string>
+    <string name="track_default">Predefinito</string>
 </resources>

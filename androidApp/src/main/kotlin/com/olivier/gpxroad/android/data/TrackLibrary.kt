@@ -31,6 +31,10 @@ data class TrackEntry(
     val pointCount: Int,
     val lengthMeters: Double,
     val reversed: Boolean = false,
+    /** Apparence propre à cette trace (`TrackRideSettings` iOS) ; `null` = réglage global. */
+    val colorOverride: TraceColor? = null,
+    val widthOverride: TraceWidth? = null,
+    val chevronSpacingOverride: Double? = null,
 )
 
 data class TrackFolder(val id: String, val name: String)
@@ -72,7 +76,11 @@ class TrackLibrary(private val context: Context) {
     val activeTrack: LoadedTrack?
         get() {
             val entry = tracks.firstOrNull { it.id == activeTrackId } ?: return null
-            cache?.let { if (it.entry == entry) return it }
+            cache?.let {
+                if (it.entry == entry) return it
+                // Nom ou apparence changés : même fichier, même sens — pas besoin de relire le GPX.
+                if (it.entry.id == entry.id && it.entry.reversed == entry.reversed) return LoadedTrack(entry, it.document).also { loaded -> cache = loaded }
+            }
             val document = runCatching { GpxParser.parse(File(directory, entry.fileName).readText()) }.getOrNull() ?: return null
             return LoadedTrack(entry, document).also { cache = it }
         }
@@ -144,6 +152,10 @@ class TrackLibrary(private val context: Context) {
     fun rename(id: String, name: String) = update(id) { it.copy(name = name.trim().ifEmpty { it.name }) }
 
     fun setReversed(id: String, reversed: Boolean) = update(id) { it.copy(reversed = reversed) }
+
+    /** Apparence de cette trace (`null` = revenir au réglage global). */
+    fun setAppearance(id: String, color: TraceColor?, width: TraceWidth?, chevronSpacing: Double?) =
+        update(id) { it.copy(colorOverride = color, widthOverride = width, chevronSpacingOverride = chevronSpacing) }
 
     fun delete(id: String) {
         val entry = tracks.firstOrNull { it.id == id } ?: return
@@ -244,6 +256,9 @@ class TrackLibrary(private val context: Context) {
                 pointCount = o.getInt("pointCount"),
                 lengthMeters = o.getDouble("lengthMeters"),
                 reversed = o.optBoolean("reversed", false),
+                colorOverride = o.optString("color").let { name -> TraceColor.entries.firstOrNull { it.name == name } },
+                widthOverride = o.optString("width").let { name -> TraceWidth.entries.firstOrNull { it.name == name } },
+                chevronSpacingOverride = if (o.has("chevronSpacing")) o.getDouble("chevronSpacing") else null,
             )
         }.filter { File(directory, it.fileName).exists() }
     }.getOrDefault(emptyList())
@@ -255,7 +270,12 @@ class TrackLibrary(private val context: Context) {
                 JSONObject()
                     .put("id", t.id).put("name", t.name).put("fileName", t.fileName)
                     .put("importDate", t.importDateMillis).put("contentTime", t.contentTimeIso ?: "")
-                    .put("pointCount", t.pointCount).put("lengthMeters", t.lengthMeters).put("reversed", t.reversed),
+                    .put("pointCount", t.pointCount).put("lengthMeters", t.lengthMeters).put("reversed", t.reversed)
+                    .apply {
+                        t.colorOverride?.let { put("color", it.name) }
+                        t.widthOverride?.let { put("width", it.name) }
+                        t.chevronSpacingOverride?.let { put("chevronSpacing", it) }
+                    },
             )
         }
         indexFile.writeText(array.toString())

@@ -493,4 +493,8 @@
     <!-- Refonte : Bibliothèque -->
     <string name="track_active_short">Active</string>
     <string name="track_offline_short">Hors ligne</string>
+    <!-- Apparence par trace -->
+    <string name="track_appearance">Apparence (cette trace)</string>
+    <string name="track_appearance_footer">Les réglages globaux (Réglages) restent le défaut tant qu\'aucun choix n\'est fait ici.</string>
+    <string name="track_default">Par défaut</string>
 </resources>

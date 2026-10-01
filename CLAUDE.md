@@ -366,6 +366,27 @@ gradle/, settings.gradle.kts, build.gradle.kts, gradlew   build Gradle (racine)
   reprise EN PAUSE après un arrêt, secours tous les 10 points ; densité et écriture GPX partagées
   (`shared/.../recording/`, `GpxWriter` = format de `GPXExporter` iOS). Partage : copie dans
   `cache/exports` via `FileProvider` (`${applicationId}.files`).
+  Parité fonctionnelle atteinte le 01/10 (voir `TODO.md`, sessions 4 à 6). Nouvelle logique PURE
+  partagée, toutes testées en `commonTest` : `shared/track/TrackMetrics` (statistiques de fiche),
+  `shared/ride/TrackDecorations` (chevrons adaptatifs, panneaux de pente), `ride/RideStats` (mesures,
+  arrivée à la moyenne des 5 dernières minutes), `ride/Detour` (chemin bloqué : candidats 500-2 000 m,
+  `DetourTracker` qui attend d'avoir QUITTÉ la trace avant de conclure au retour — l'iPhone l'efface
+  au fix suivant, défaut noté au TODO), `nav/NavGuidance` (« Aller à » : progression des manœuvres,
+  annonces 500/100 m une seule fois par seuil franchi, recalcul 30 m × 8 s avec 12 s d'intervalle),
+  `map/MapColorFlavor` (palettes du style, mêmes cas que `ColorFlavorPatcherTests`),
+  `roadbook/RoadbookPalette` (papier/sombre au lever et coucher du soleil), `offline/OfflineArea`
+  (couloir ±1 km, cercle, compte de tuiles SANS énumération). `commonMain` ne doit rien utiliser de
+  Java (`Math.floorDiv`…) : vérifier par `:shared:compileKotlinIosSimulatorArm64`.
+  Côté Android : `nav/` (NavSession : guidage riche Valhalla ou simple, voix `TextToSpeech`, limitation
+  de vitesse Overpass), `sync/` (signalements partagés, adresse vide = aucune requête), `offline/`
+  (stockage hors ligne MapLibre ; le téléchargeur REFUSE un style `file://` : la zone utilise le style
+  Liberty publié par OpenFreeMap, aux adresses de tuiles/glyphes/icônes identiques au style embarqué),
+  `ride/RideSession` (mesures, reprise manuelle, détour, pause du guidage), `onboarding/`,
+  `tutorial/`, `data/AppLanguage` (langue forcée par `attachBaseContext`, l'activité est recréée).
+  Interface (refonte du 01/10) : thème `ui/Theme.kt`, composants `ui/Components.kt` (`ScreenHeader`,
+  `SettingsGroup`/`SettingsRow`/`ToggleRow`, `MapButton`, `Modifier.mapPanel`) et `ui/ChoiceSheet` ;
+  icônes `material-icons-extended` 1.7.8 (version fixée, hors BOM). Un écran dans un `Scaffold`
+  interne met `contentWindowInsets = WindowInsets(0)` (la barre d'onglets applique déjà les marges).
   Vérification : émulateur `gpxroad_test` (GPS simulé par `adb emu geo fix <lon> <lat>`, format
   tablette par `wm size 1200x2000` + `wm density 240`, à remettre à zéro ensuite) et tablette réelle
   Lenovo YT-J706X en débogage Wi-Fi (le port change à chaque réactivation ; le serveur adb doit

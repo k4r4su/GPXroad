@@ -491,4 +491,8 @@
     <!-- Refonte : Bibliothèque -->
     <string name="track_active_short">Aktiv</string>
     <string name="track_offline_short">Offline</string>
+    <!-- Apparence par trace -->
+    <string name="track_appearance">Darstellung (dieser Track)</string>
+    <string name="track_appearance_footer">Die globalen Einstellungen bleiben Standard, solange hier nichts gewählt ist.</string>
+    <string name="track_default">Standard</string>
 </resources>
