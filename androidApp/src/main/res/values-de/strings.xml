@@ -401,4 +401,10 @@
     <string name="offline_no_position">GPS-Position unbekannt — öffne Ride, um sie zu finden.</string>
     <string name="offline_circle_name">Um %1$s · %2$d km</string>
     <string name="offline_footer">Die Vektorkacheln dienen den Paletten Standard, Hoher Kontrast und Erdig. Relief wird nicht offline gespeichert: ohne Netz wechselt die Karte zu Standard.</string>
+    <!-- Pause du guidage et flash -->
+    <string name="guidance_pause">Pause</string>
+    <string name="guidance_resume">Fortsetzen</string>
+    <string name="guidance_stopped">Führung gestoppt</string>
+    <string name="settings_flash">Blinken (letzte 100 Meter)</string>
+    <string name="settings_flash_count">Anzahl der Blinksignale</string>
 </resources>

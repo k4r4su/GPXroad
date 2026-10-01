@@ -331,17 +331,29 @@ fun RideMap(
     }
 
     // Position et caméra, à chaque fix (et à chaque commande +/- / recentrage / orientation).
-    LaunchedEffect(style, location, northUp, camera.commandToken, camera.effectiveDistanceMeters, anchorY) {
+    LaunchedEffect(style, location, northUp, camera.commandToken, camera.effectiveDistanceMeters, anchorY, camera.focus) {
         val loadedMap = map ?: return@LaunchedEffect
         val loadedStyle = style ?: return@LaunchedEffect
-        val position = location ?: return@LaunchedEffect
-        loadedStyle.getSourceAs<GeoJsonSource>(POSITION_SOURCE)?.setGeoJson(Point.fromLngLat(position.longitude, position.latitude))
-        // Pendant les 5 s qui suivent un geste, seule une commande (+/-, recentrer) bouge la caméra.
+        val position = location ?: camera.focus?.let { f -> android.location.Location("focus").apply { latitude = f.latitude; longitude = f.longitude } } ?: return@LaunchedEffect
+        location?.let { loadedStyle.getSourceAs<GeoJsonSource>(POSITION_SOURCE)?.setGeoJson(Point.fromLngLat(it.longitude, it.latitude)) }
+        // Pendant les 5 s qui suivent un geste, seule une commande (+/-, recentrer) bouge la caméra ;
+        // un élément du Road Book montré sur la carte suspend le suivi jusqu'à « Me recentrer ».
         val command = camera.commandToken
-        if (camera.isManualOverrideActive() && command == appliedCommand) return@LaunchedEffect
+        val focus = camera.focus
+        if ((camera.isManualOverrideActive() || focus != null) && command == appliedCommand) return@LaunchedEffect
         appliedCommand = command
         val heightDp = mapView.height / density.density
         if (heightDp <= 0) return@LaunchedEffect
+        if (focus != null) {
+            val focusZoom = RideCameraMath.zoomLevel(camera.effectiveDistanceMeters, focus.latitude, heightDp.toDouble())
+            loadedMap.easeCamera(
+                CameraUpdateFactory.newCameraPosition(
+                    CameraPosition.Builder().target(LatLng(focus.latitude, focus.longitude)).zoom(focusZoom).tilt(0.0).padding(0.0, 0.0, 0.0, 0.0).build(),
+                ),
+                CAMERA_ANIMATION_MILLIS,
+            )
+            return@LaunchedEffect
+        }
         val zoom = RideCameraMath.zoomLevel(camera.effectiveDistanceMeters, position.latitude, heightDp.toDouble())
         // Cap en haut : le point à 3/4 de la hauteur (marge haute = (2f - 1) × hauteur).
         val topPadding = if (northUp) 0.0 else (2 * anchorY - 1) * mapView.height

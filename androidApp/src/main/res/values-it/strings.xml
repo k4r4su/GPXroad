@@ -401,4 +401,10 @@
     <string name="offline_no_position">Posizione GPS sconosciuta — apri Ride per trovarla.</string>
     <string name="offline_circle_name">Intorno a %1$s · %2$d km</string>
     <string name="offline_footer">I tasselli vettoriali servono per le tavolozze Standard, Contrasto elevato e Terroso. Rilievo non viene salvato offline: senza rete la mappa passa a Standard.</string>
+    <!-- Pause du guidage et flash -->
+    <string name="guidance_pause">Pausa</string>
+    <string name="guidance_resume">Riprendi</string>
+    <string name="guidance_stopped">Guida fermata</string>
+    <string name="settings_flash">Lampeggio (ultimi 100 metri)</string>
+    <string name="settings_flash_count">Numero di lampeggi</string>
 </resources>

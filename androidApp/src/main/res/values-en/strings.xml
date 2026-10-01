@@ -401,4 +401,10 @@
     <string name="offline_no_position">GPS position unknown — open Ride to find it.</string>
     <string name="offline_circle_name">Around %1$s · %2$d km</string>
     <string name="offline_footer">Vector tiles serve the Standard, High contrast and Earthy palettes. Relief is not kept offline: without network, the map switches to Standard.</string>
+    <!-- Pause du guidage et flash -->
+    <string name="guidance_pause">Pause</string>
+    <string name="guidance_resume">Resume</string>
+    <string name="guidance_stopped">Guidance stopped</string>
+    <string name="settings_flash">Flash (last 100 meters)</string>
+    <string name="settings_flash_count">Number of flashes</string>
 </resources>

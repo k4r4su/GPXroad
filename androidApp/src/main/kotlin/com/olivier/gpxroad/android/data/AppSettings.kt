@@ -134,6 +134,18 @@ class AppSettings(context: Context) {
         preferences.edit().putString("pdfOptions", value).apply()
     }
 
+    /** Flash de l'écran dans les 100 derniers mètres avant un virage (3 ou 5 flashs), comme l'iPhone. */
+    var flashEnabled by mutableStateOf(preferences.getBoolean("flash", true))
+        private set
+    var flashCount by mutableStateOf(preferences.getInt("flashCount", 3).takeIf { it == 3 || it == 5 } ?: 3)
+        private set
+
+    fun updateFlash(enabled: Boolean, count: Int) {
+        flashEnabled = enabled
+        flashCount = count
+        preferences.edit().putBoolean("flash", enabled).putInt("flashCount", count).apply()
+    }
+
     /** Palette du Road Book : automatique (soleil), papier ou sombre. */
     var roadbookPalette by mutableStateOf(enumValueOrNull<RoadbookPaletteSetting>(preferences.getString("roadbookPalette", null)) ?: RoadbookPaletteSetting.AUTOMATIC)
         private set

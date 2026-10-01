@@ -88,8 +88,22 @@ class RideCameraState(private val settings: AppSettings) {
         lastGestureMillis = System.currentTimeMillis()
     }
 
+    /**
+     * Élément du Road Book montré sur la carte (`roadBookFocusRequest` iOS) : le suivi GPS est
+     * suspendu SANS minuteur ; +/− zooment autour de l'élément ; seul « Me recentrer » en sort.
+     */
+    var focus by mutableStateOf<com.olivier.gpxroad.shared.LatLon?>(null)
+        private set
+
+    fun focusOn(point: com.olivier.gpxroad.shared.LatLon) {
+        focus = point
+        manualDistanceMeters = FOCUS_DISTANCE_METERS
+        commandToken++
+    }
+
     /** Recentre et reprend le suivi immédiatement. */
     fun recenter() {
+        focus = null
         manualDistanceMeters = null
         lastGestureMillis = null
         commandToken++
@@ -97,6 +111,8 @@ class RideCameraState(private val settings: AppSettings) {
 
     private companion object {
         const val MIN_SPEED_FOR_COURSE_KMH = 5.0
+        /** Cadrage d'un élément du Road Book montré sur la carte. */
+        const val FOCUS_DISTANCE_METERS = 450.0
         const val MAX_BEARING_ACCURACY_DEGREES = 30f
         const val MIN_DISTANCE_FOR_COURSE_METERS = 5f
     }

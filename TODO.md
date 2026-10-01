@@ -156,9 +156,11 @@ Sessions suivantes :
   - [x] Signalements partagés (voir « Chemin bloqué »).
   - [ ] Reste : limitation de vitesse (Overpass), trafic.
 - [ ] 6 — Finitions (état au 01/10 ; cartes hors ligne, thèmes et PDF faits, voir ci-dessous).
-  - [ ] Flash des 100 derniers mètres avant un virage (3 ou 5 flashs, réglable).
-  - [ ] Bouton Pause / Reprendre du guidage dans la colonne (appui long : arrêter).
-  - [ ] Road Book : un tap sur un élément le montre sur la carte du Ride (« Me recentrer » pour revenir).
+  - [x] Flash des 100 derniers mètres avant un virage (3 ou 5 flashs, réglable dans Réglages > Ride).
+  - [x] Bouton Pause / Reprendre du guidage dans la colonne (appui long : arrêter) ; reprend aussi
+        au recentrage ou en touchant la trace. Vérifié sur l'émulateur.
+  - [x] Road Book : un tap sur un élément le montre sur la carte du Ride (suivi GPS suspendu sans
+        minuteur, « Me recentrer » pour revenir). Vérifié sur l'émulateur.
   - [ ] Tutoriel (5 pages, même contenu que l'iPhone), accueil au premier lancement, choix de la langue.
   - [ ] Installer sur la tablette (`adb install -r`) pour le test complet du propriétaire.
   - [x] Road Book (01/10) : palette automatique papier le jour / sombre la nuit (lever et coucher

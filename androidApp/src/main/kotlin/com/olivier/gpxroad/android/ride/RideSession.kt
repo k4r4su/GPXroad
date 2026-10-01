@@ -168,6 +168,24 @@ class RideSession(private val routing: RoutingClient) {
         else if (distanceToTrackMeters <= DetourConstants.OFF_TRACK_METERS) isBlockedBannerVisible = false
     }
 
+    /**
+     * Guidage arrêté (`isGuidanceStopped` iOS) : plus de virage, de reprise ni de détour ; la trace,
+     * la vitesse et l'enregistrement continuent. Reprend au bouton, au recentrage ou en touchant la trace.
+     */
+    var guidanceStopped by mutableStateOf(false)
+        private set
+
+    fun stopGuidance() {
+        cancelResume()
+        cancelDetour()
+        dismissBlockedBanner()
+        guidanceStopped = true
+    }
+
+    fun resumeGuidance() {
+        guidanceStopped = false
+    }
+
     fun confirmResume() {
         manualResume = manualResume?.copy(isActive = true)
     }

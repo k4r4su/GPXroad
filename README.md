@@ -88,8 +88,9 @@ signalements partagés, thèmes de carte, réglages de caméra), « Aller à » 
 Travail, guidage détaillé Valhalla avec voix ou guidage simple), Road Book (assisté GPS et liste,
 ronds-points, repères, palette jour/nuit, export PDF), cartes hors ligne, réglages, 5 langues.
 
-Encore à faire : flash des 100 derniers mètres, pause du guidage, saut du Road Book vers la carte,
-tutoriel et accueil, choix de la langue, limitation de vitesse et trafic, puis une refonte
+Aussi : flash des 100 derniers mètres, pause du guidage, élément du Road Book montré sur la carte.
+
+Encore à faire : tutoriel et accueil, choix de la langue, limitation de vitesse et trafic, puis une refonte
 complète de l'interface (voir `TODO.md`).
 
 ---

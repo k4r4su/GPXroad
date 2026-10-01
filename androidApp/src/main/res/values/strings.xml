@@ -403,4 +403,10 @@
     <string name="offline_no_position">Position GPS inconnue — ouvre le Ride pour la trouver.</string>
     <string name="offline_circle_name">Autour de %1$s · %2$d km</string>
     <string name="offline_footer">Les tuiles vectorielles servent aux palettes Standard, Contraste élevé et Terreux. Relief n\'est pas gardé hors ligne : sans réseau, la carte passe en Standard.</string>
+    <!-- Pause du guidage et flash -->
+    <string name="guidance_pause">Pause</string>
+    <string name="guidance_resume">Reprendre</string>
+    <string name="guidance_stopped">Guidage arrêté</string>
+    <string name="settings_flash">Flash (100 derniers mètres)</string>
+    <string name="settings_flash_count">Nombre de flashs</string>
 </resources>

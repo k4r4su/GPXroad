@@ -159,7 +159,10 @@ private fun GPXroadApp(services: AppServices, incomingGpx: Uri?, onImportHandled
                     services.nav.start(NavDestination(place.label, place.coordinate, profile), services.location.location, services.servers.valhalla)
                     tab = AppTab.RIDE
                 }
-                AppTab.ROADBOOK -> RoadbookScreen(library, settings, services.servers, services.roadbook, services.rejoin, services.location) { tab = AppTab.LIBRARY }
+                AppTab.ROADBOOK -> RoadbookScreen(library, settings, services.servers, services.roadbook, services.rejoin, services.location, onOpenLibrary = { tab = AppTab.LIBRARY }) { point ->
+                    services.rideCamera.focusOn(point)
+                    tab = AppTab.RIDE
+                }
                 AppTab.LIBRARY -> LibraryScreen(library, settings, services.recorder, services.offline, incomingGpx, onImportHandled)
                 AppTab.SETTINGS -> SettingsScreen(settings, services.servers, services.overpass, services.routing, services.blockageSync, services.offline, services.location.location?.let { LatLon(it.latitude, it.longitude) })
             }

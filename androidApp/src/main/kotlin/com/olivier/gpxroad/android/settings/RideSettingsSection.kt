@@ -74,6 +74,10 @@ fun RideSettingsSection(settings: AppSettings) {
                 { "${it.roundToInt()} %" }, { settings.updateSlopeWarnings(true, it) },
             )
         }
+        SettingToggle(stringResource(R.string.settings_flash), settings.flashEnabled) { settings.updateFlash(it, settings.flashCount) }
+        if (settings.flashEnabled) {
+            SettingChoice(stringResource(R.string.settings_flash_count), listOf(3, 5), settings.flashCount, { "$it" }) { settings.updateFlash(true, it) }
+        }
         SettingToggle(stringResource(R.string.settings_keep_awake), settings.keepScreenAwake, settings::updateKeepScreenAwake)
     }
 }

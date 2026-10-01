@@ -401,4 +401,10 @@
     <string name="offline_no_position">Posición GPS desconocida: abre Ride para encontrarla.</string>
     <string name="offline_circle_name">Alrededor de %1$s · %2$d km</string>
     <string name="offline_footer">Las teselas vectoriales sirven para las paletas Estándar, Alto contraste y Terroso. Relieve no se guarda sin conexión: sin red, el mapa pasa a Estándar.</string>
+    <!-- Pause du guidage et flash -->
+    <string name="guidance_pause">Pausa</string>
+    <string name="guidance_resume">Reanudar</string>
+    <string name="guidance_stopped">Guiado detenido</string>
+    <string name="settings_flash">Destello (últimos 100 metros)</string>
+    <string name="settings_flash_count">Número de destellos</string>
 </resources>

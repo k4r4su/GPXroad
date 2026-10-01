@@ -40,6 +40,8 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.produceState
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -101,6 +103,7 @@ fun RoadbookScreen(
     rejoin: RejoinController,
     location: LocationTracker,
     onOpenLibrary: () -> Unit,
+    onShowOnMap: (LatLon) -> Unit = {},
 ) {
     val view = LocalView.current
     DisposableEffect(Unit) {
@@ -123,9 +126,14 @@ fun RoadbookScreen(
         )
     }
     RoadbookPaletteTheme(night = palette == RoadbookPalette.NIGHT) {
-        RoadbookContent(library, settings, servers, data, rejoin, location, onOpenLibrary)
+        CompositionLocalProvider(LocalShowOnMap provides onShowOnMap) {
+            RoadbookContent(library, settings, servers, data, rejoin, location, onOpenLibrary)
+        }
     }
 }
+
+/** Un tap sur un élément le montre sur la carte du Ride (`roadBookFocusRequest` iOS). */
+private val LocalShowOnMap = staticCompositionLocalOf<(LatLon) -> Unit> { {} }
 
 @Composable
 private fun RoadbookContent(
@@ -248,8 +256,9 @@ private fun EntryList(entries: List<RoadbookEntry>, attached: Map<Int, LandmarkI
                 is RoadbookEntry.Maneuver -> {
                     val maneuver = entry.maneuver
                     val landmark = attached[entry.index]
+                    val showOnMap = LocalShowOnMap.current
                     Row(
-                        Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 10.dp),
+                        Modifier.fillMaxWidth().clickable { showOnMap(maneuver.checkpoint.coordinate) }.padding(horizontal = 16.dp, vertical = 10.dp),
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.spacedBy(14.dp),
                     ) {
@@ -294,8 +303,9 @@ private fun PictogramWithLandmark(maneuver: RoadbookManeuver, landmark: Landmark
 @Composable
 private fun LandmarkRow(landmark: LandmarkCheckpoint, distance: String) {
     val resources = LocalContext.current.resources
+    val showOnMap = LocalShowOnMap.current
     Row(
-        Modifier.fillMaxWidth().background(Accent.copy(alpha = 0.06f)).padding(horizontal = 16.dp, vertical = 8.dp),
+        Modifier.fillMaxWidth().clickable { showOnMap(landmark.coordinate) }.background(Accent.copy(alpha = 0.06f)).padding(horizontal = 16.dp, vertical = 8.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(14.dp),
     ) {
@@ -635,8 +645,9 @@ private fun UpcomingList(steps: List<UpcomingStep>, unit: DistanceUnit, modifier
 @Composable
 private fun UpcomingManeuverRow(maneuver: RoadbookManeuver, rank: Int, landmark: LandmarkInfo?, distance: Double, unit: DistanceUnit, tint: Color?) {
     val resources = LocalContext.current.resources
+    val showOnMap = LocalShowOnMap.current
     Row(
-        Modifier.fillMaxWidth().then(if (tint != null) Modifier.background(tint) else Modifier).padding(horizontal = 16.dp, vertical = 8.dp),
+        Modifier.fillMaxWidth().clickable { showOnMap(maneuver.checkpoint.coordinate) }.then(if (tint != null) Modifier.background(tint) else Modifier).padding(horizontal = 16.dp, vertical = 8.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(12.dp),
     ) {

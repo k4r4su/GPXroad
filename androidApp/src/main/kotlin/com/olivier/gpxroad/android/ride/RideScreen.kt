@@ -6,6 +6,7 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -162,7 +163,7 @@ fun RideScreen(
         session.updateDetour(fix, projection?.distanceToTrackMeters, guidingTrace = !nav.isActive && session.manualResume == null)
         // Une reprise manuelle en cours prime : pas de reprise automatique en parallèle (comme l'iPhone) ;
         // un guidage « Aller à » suspend toute la reprise de trace (un seul guidage à la fois).
-        divergent = session.manualResume == null && !nav.isActive && session.detour == null &&
+        divergent = session.manualResume == null && !nav.isActive && session.detour == null && !session.guidanceStopped &&
             if (divergent) offTrack.isOffTrack else (projection?.distanceToTrackMeters ?: 0.0) > REJOIN_DIVERGENCE_METERS
         rejoin.update(fix, track.latLons, track.cumulative, divergent, projection?.cumulativeDistanceMeters?.takeIf { !offTrack.isOffTrack }, roadbookSettings, valhalla)
     }
@@ -185,7 +186,10 @@ fun RideScreen(
     val navTick = nav.tick
     val navTracker = nav.tracker
     val goTo = nav.goTo
-    val guidingTrace = !nav.isActive
+    val guidingTrace = !nav.isActive && !session.guidanceStopped
+    // Flash des 100 derniers mètres : une fois par virage.
+    var flashToken by remember { mutableIntStateOf(0) }
+    val flashed = remember(track?.traversalKey) { mutableSetOf<Int>() }
     var goHere by remember { mutableStateOf<LatLon?>(null) }
     var askDetour by remember { mutableStateOf(false) }
     val detour = session.detour
@@ -200,6 +204,9 @@ fun RideScreen(
 
     val nextIndex = projection?.let { p -> maneuvers.indexOfFirst { it.cumulativeDistanceMeters > p.cumulativeDistanceMeters }.takeIf { it >= 0 } }
     val nextDistance = nextIndex?.let { maneuvers[it].cumulativeDistanceMeters - projection.cumulativeDistanceMeters }
+    LaunchedEffect(nextIndex, nextDistance != null && nextDistance <= FLASH_METERS) {
+        if (guidingTrace && settings.flashEnabled && nextIndex != null && nextDistance != null && nextDistance <= FLASH_METERS && flashed.add(nextIndex)) flashToken++
+    }
 
     Box(Modifier.fillMaxSize()) {
         RideMap(
@@ -227,6 +234,7 @@ fun RideScreen(
                     // Taper sur la trace pendant un « Aller à » y revient (arrête ce guidage), comme l'iPhone.
                     val onTrack = TrackGeometry.project(tap, track.latLons, track.cumulative)?.let { it.distanceToTrackMeters <= tolerance } == true
                     if (onTrack && nav.isActive) nav.stop()
+                    if (onTrack) session.resumeGuidance()
                     session.requestResume(tap, track.latLons, track.cumulative, tolerance, fix, valhalla)
                 }
             },
@@ -301,8 +309,11 @@ fun RideScreen(
                     delay(500)
                 }
             }
-            if (camera.isManualOverrideActive(now) || camera.manualDistanceMeters != null) {
-                ControlButton("◎", stringResource(R.string.ride_recenter)) { camera.recenter() }
+            if (camera.isManualOverrideActive(now) || camera.manualDistanceMeters != null || camera.focus != null) {
+                ControlButton("◎", stringResource(R.string.ride_recenter)) {
+                    camera.recenter()
+                    session.resumeGuidance()
+                }
             }
             if (track != null && fix != null && guidingTrace) {
                 when {
@@ -311,6 +322,18 @@ fun RideScreen(
                     nextIndex != null && nextDistance != null && nextDistance <= RideCameraConstants.BANNER_ALERT_START_METERS ->
                         LateralBanner(maneuvers[nextIndex], nextDistance, nextIndex + 1, maneuvers.size, DistanceUnit.KM)
                 }
+            }
+            if (track != null) {
+                GuidanceToggle(
+                    stopped = session.guidanceStopped,
+                    onPause = { nav.stop(); session.stopGuidance() },
+                    onResume = session::resumeGuidance,
+                    onStop = {
+                        nav.stop()
+                        session.stopGuidance()
+                        android.widget.Toast.makeText(context, context.getString(R.string.guidance_stopped), android.widget.Toast.LENGTH_SHORT).show()
+                    },
+                )
             }
             ControlButton(if (settings.rideNorthUp) "N" else "▲", stringResource(if (settings.rideNorthUp) R.string.ride_north_up else R.string.ride_heading_up)) {
                 settings.updateRideNorthUp(!settings.rideNorthUp)
@@ -353,9 +376,45 @@ fun RideScreen(
                 Text(stringResource(R.string.recording_restored), color = Color.White, style = MaterialTheme.typography.bodyMedium, textAlign = TextAlign.Center)
             }
         }
+        FlashOverlay(flashToken, settings.flashCount)
         if (finishing) EndRideDialog(recorder, library, track?.entry?.name) { finishing = false }
         // Premier suivi d'une trace : « Enregistrer cette sortie ? » (une fois par trace et par lancement).
         if (granted && track != null) RecordingPrompt(recorder, track.entry.id)
+    }
+}
+
+private const val FLASH_METERS = 100.0
+
+/** Flash blanc plein écran (`FlashOverlayView` iOS) : [count] éclairs de 0,12 s. */
+@Composable
+private fun FlashOverlay(token: Int, count: Int) {
+    var visible by remember { mutableStateOf(false) }
+    LaunchedEffect(token) {
+        if (token == 0) return@LaunchedEffect
+        repeat(count) {
+            visible = true
+            delay(120)
+            visible = false
+            delay(120)
+        }
+    }
+    if (visible) Box(Modifier.fillMaxSize().background(Color.White))
+}
+
+/** Pause / Reprendre le guidage (`RideGuidanceToggleButton` iOS) ; appui long : l'arrêter. */
+@OptIn(androidx.compose.foundation.ExperimentalFoundationApi::class)
+@Composable
+private fun GuidanceToggle(stopped: Boolean, onPause: () -> Unit, onResume: () -> Unit, onStop: () -> Unit) {
+    val label = stringResource(if (stopped) R.string.guidance_resume else R.string.guidance_pause)
+    Column(
+        Modifier.size(64.dp)
+            .background(if (stopped) Color(0xD934C759) else PanelBackground, PanelShape)
+            .combinedClickable(onClickLabel = label, onClick = { if (stopped) onResume() else onPause() }, onLongClick = onStop),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center,
+    ) {
+        Text(if (stopped) "▶" else "❚❚", color = Color.White, fontSize = 20.sp, fontWeight = FontWeight.Bold)
+        Text(label, color = Color.White, fontSize = 10.sp, fontWeight = FontWeight.SemiBold, maxLines = 1)
     }
 }
 
