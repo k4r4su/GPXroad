@@ -49,7 +49,7 @@ private val pages = listOf(
         R.string.tab_goto, R.string.tuto_goto_summary,
         listOf(
             Topic(R.string.tuto_goto_search, listOf(R.string.tuto_goto_1, R.string.tuto_goto_2, R.string.tuto_goto_3)),
-            Topic(R.string.tuto_goto_during, listOf(R.string.tuto_goto_4, R.string.tuto_goto_5)),
+            Topic(R.string.tuto_goto_during, listOf(R.string.tuto_goto_4, R.string.tuto_goto_5, R.string.tuto_goto_6)),
         ),
     ),
     Page(

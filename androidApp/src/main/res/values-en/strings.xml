@@ -474,4 +474,7 @@
     <string name="tuto_set_3">Map and camera: theme, dot position, default and automatic zoom; offline maps.</string>
     <string name="tuto_set_4">Road Book: palette, turn sensitivity, landmark categories; recording: density and backups.</string>
     <string name="tuto_set_5">Advanced: Valhalla routing and Overpass server (optional), blocked points server.</string>
+    <!-- Limitation de vitesse -->
+    <string name="nav_speed_margin">Speed limit alert threshold</string>
+    <string name="tuto_goto_6">During detailed guidance, the road\'s speed limit sign shows above your speed; it thickens beyond the margin set in Settings.</string>
 </resources>

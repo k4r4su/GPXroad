@@ -474,4 +474,7 @@
     <string name="tuto_set_3">Mappa e fotocamera: tema, posizione del punto, zoom predefinito e automatico; mappe offline.</string>
     <string name="tuto_set_4">Road Book: tavolozza, sensibilità delle curve, categorie di riferimenti; registrazione: densità e backup.</string>
     <string name="tuto_set_5">Avanzate: instradamento Valhalla e server Overpass (facoltativi), server dei punti bloccati.</string>
+    <!-- Limitation de vitesse -->
+    <string name="nav_speed_margin">Soglia di superamento velocità</string>
+    <string name="tuto_goto_6">Durante la guida dettagliata, il cartello del limite della strada appare sopra la velocità; si ispessisce oltre il margine scelto nelle Impostazioni.</string>
 </resources>

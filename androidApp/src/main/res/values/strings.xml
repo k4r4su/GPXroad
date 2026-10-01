@@ -476,4 +476,7 @@
     <string name="tuto_set_3">Carte et caméra : thème, position du point, zoom par défaut et automatique ; cartes hors ligne.</string>
     <string name="tuto_set_4">Road Book : palette, sensibilité des virages, catégories de repères ; enregistrement : densité et sauvegardes.</string>
     <string name="tuto_set_5">Avancé : routage Valhalla et serveur Overpass (optionnels), serveur des points bloqués.</string>
+    <!-- Limitation de vitesse -->
+    <string name="nav_speed_margin">Seuil dépassement vitesse</string>
+    <string name="tuto_goto_6">Pendant le guidage détaillé, le panneau de limitation de la route s\'affiche au-dessus de la vitesse ; il s\'épaissit au-delà de la marge choisie dans Réglages.</string>
 </resources>

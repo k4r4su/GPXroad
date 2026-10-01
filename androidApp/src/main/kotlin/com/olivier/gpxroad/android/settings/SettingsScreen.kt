@@ -91,6 +91,7 @@ fun SettingsScreen(settings: AppSettings, servers: ServerSettings, overpass: Ove
 
         HorizontalDivider()
         Section(stringResource(R.string.tab_goto))
+        SettingChoice(stringResource(R.string.nav_speed_margin), listOf(5, 10, 15), settings.speedMarginKmh, { "+$it km/h" }, settings::updateSpeedMargin)
         SettingToggle(stringResource(R.string.nav_voice), settings.voiceEnabled) { settings.updateVoice(it, settings.voiceVolume) }
         if (settings.voiceEnabled) {
             Text(stringResource(R.string.nav_volume), style = MaterialTheme.typography.bodyLarge)

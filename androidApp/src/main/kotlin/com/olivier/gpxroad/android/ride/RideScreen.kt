@@ -5,6 +5,7 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
@@ -157,7 +158,7 @@ fun RideScreen(
     LaunchedEffect(fix, track?.traversalKey) {
         if (fix == null) return@LaunchedEffect
         session.onLocation(fix, track?.traversalKey, track?.cumulative?.lastOrNull(), projection?.cumulativeDistanceMeters)
-        nav.onLocation(fix, settings.voiceEnabled, settings.voiceVolume.toFloat(), valhalla)
+        nav.onLocation(fix, settings.voiceEnabled, settings.voiceVolume.toFloat(), valhalla, settings.speedMarginKmh)
         if (track == null) return@LaunchedEffect
         session.updateResume(fix, projection?.distanceToTrackMeters)
         session.updateDetour(fix, projection?.distanceToTrackMeters, guidingTrace = !nav.isActive && session.manualResume == null)
@@ -353,6 +354,7 @@ fun RideScreen(
             verticalArrangement = Arrangement.spacedBy(10.dp),
             horizontalAlignment = if (controlsOnRight) Alignment.Start else Alignment.End,
         ) {
+            nav.speedLimitKmh?.let { SpeedLimitBadge(it, nav.isOverSpeedLimit, settings.distanceUnit) }
             if (statsExpanded) {
                 // Pendant un « Aller à », restant/arrivée le long de son itinéraire (comme l'iPhone).
                 val progress = navTracker?.let { session.progressAlong(it.route.totalDistanceMeters, it.route.totalDistanceMeters - it.remainingMeters) }
@@ -384,6 +386,22 @@ fun RideScreen(
 }
 
 private const val FLASH_METERS = 100.0
+
+/** Panneau de limitation (`SpeedLimitBadgeView` iOS) : cercle rouge, plus épais et lumineux en cas de dépassement. */
+@Composable
+private fun SpeedLimitBadge(limitKmh: Int, over: Boolean, unit: DistanceUnit) {
+    val value = if (unit == DistanceUnit.MI) (limitKmh / 1.609344).roundToInt() else limitKmh
+    Box(
+        Modifier.size(58.dp)
+            .background(if (over) Color(0x66FF3B30) else Color.Transparent, androidx.compose.foundation.shape.CircleShape)
+            .padding(2.dp)
+            .background(Color.White, androidx.compose.foundation.shape.CircleShape)
+            .border(if (over) 6.dp else 5.dp, Color(0xFFFF3B30), androidx.compose.foundation.shape.CircleShape),
+        contentAlignment = Alignment.Center,
+    ) {
+        Text("$value", color = Color.Black, fontSize = 22.sp, fontWeight = FontWeight.Black)
+    }
+}
 
 /** Flash blanc plein écran (`FlashOverlayView` iOS) : [count] éclairs de 0,12 s. */
 @Composable

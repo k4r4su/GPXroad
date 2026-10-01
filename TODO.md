@@ -154,7 +154,12 @@ Sessions suivantes :
   - Écart assumé : au départ, une seule annonce vocale quand les deux seuils sont franchis d'un
     coup (l'iPhone disait la même consigne deux fois).
   - [x] Signalements partagés (voir « Chemin bloqué »).
-  - [ ] Reste : limitation de vitesse (Overpass), trafic.
+  - [x] Limitation de vitesse (01/10) pendant le guidage détaillé : Overpass `maxspeed` à 25 m, au plus
+        toutes les 20 s (même requête que l'iPhone, serveurs Overpass de l'app), panneau au-dessus de
+        la vitesse, plus épais au-delà de la marge (Réglages > Aller à : +5/+10/+15 km/h, vitesse
+        lissée sur 10 s). Lecture de la réponse testée ; non vu à l'écran (serveurs Overpass publics
+        saturés le 01/10, émulateur sans Valhalla) : à vérifier sur la tablette.
+  - Trafic : rien à porter, inactif sur l'iPhone aussi (`TrafficService.apiKey` vide).
 - [ ] 6 — Finitions (état au 01/10 ; cartes hors ligne, thèmes et PDF faits, voir ci-dessous).
   - [x] Flash des 100 derniers mètres avant un virage (3 ou 5 flashs, réglable dans Réglages > Ride).
   - [x] Bouton Pause / Reprendre du guidage dans la colonne (appui long : arrêter) ; reprend aussi

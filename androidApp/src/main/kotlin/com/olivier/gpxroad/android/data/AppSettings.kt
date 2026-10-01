@@ -195,6 +195,15 @@ class AppSettings(context: Context) {
     var voiceVolume by mutableDoubleStateOf(preferences.getDouble("voiceVolume", 1.0))
         private set
 
+    /** Alerte de dépassement : vitesse au-delà de la limite + cette marge (5, 10 ou 15 km/h). */
+    var speedMarginKmh by mutableStateOf(preferences.getInt("speedMargin", 10).takeIf { it in listOf(5, 10, 15) } ?: 10)
+        private set
+
+    fun updateSpeedMargin(value: Int) {
+        speedMarginKmh = value
+        preferences.edit().putInt("speedMargin", value).apply()
+    }
+
     fun updateVoice(enabled: Boolean, volume: Double) {
         voiceEnabled = enabled
         voiceVolume = volume

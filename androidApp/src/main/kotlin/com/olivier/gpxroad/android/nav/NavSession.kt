@@ -6,7 +6,10 @@ import android.speech.tts.TextToSpeech
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import com.olivier.gpxroad.android.net.OverpassClient
 import com.olivier.gpxroad.android.net.RoutingClient
+import com.olivier.gpxroad.shared.ride.SpeedSmoother
+import org.json.JSONObject
 import com.olivier.gpxroad.android.net.ValhallaConfiguration
 import com.olivier.gpxroad.shared.LatLon
 import com.olivier.gpxroad.shared.geodesicDistanceMeters
@@ -30,7 +33,7 @@ data class NavDestination(val label: String, val coordinate: LatLon, val profile
  * - simple (Piste, Mixte, ou sans Valhalla) : un chemin, la distance restante, une durée estimée.
  * Pendant un guidage, le Road Book et la reprise de trace se taisent ; la trace reste affichée.
  */
-class NavSession(context: Context, private val routing: RoutingClient) {
+class NavSession(context: Context, private val routing: RoutingClient, private val overpass: OverpassClient) {
     private val scope = MainScope()
     private var job: Job? = null
     private val voice = VoiceAnnouncer(context)
@@ -54,6 +57,17 @@ class NavSession(context: Context, private val routing: RoutingClient) {
     var failed by mutableStateOf(false)
         private set
 
+    /**
+     * Limitation de vitesse de la route (`SpeedLimitService` iOS) : Overpass `maxspeed` à 25 m,
+     * au plus toutes les 20 s, seulement pendant un guidage détaillé ; `null` = inconnue.
+     */
+    var speedLimitKmh by mutableStateOf<Int?>(null)
+        private set
+    var isOverSpeedLimit by mutableStateOf(false)
+        private set
+    private var lastSpeedLimitLookup = 0L
+    private val smoother = SpeedSmoother()
+
     val isActive: Boolean get() = destination != null
 
     fun start(target: NavDestination, origin: Location?, valhalla: ValhallaConfiguration?) {
@@ -68,6 +82,9 @@ class NavSession(context: Context, private val routing: RoutingClient) {
     }
 
     fun stop() {
+        speedLimitKmh = null
+        isOverSpeedLimit = false
+        lastSpeedLimitLookup = 0
         job?.cancel()
         job = null
         destination = null
@@ -80,10 +97,13 @@ class NavSession(context: Context, private val routing: RoutingClient) {
         voice.stop()
     }
 
-    fun onLocation(fix: Location, voiceEnabled: Boolean, voiceVolume: Float, valhalla: ValhallaConfiguration?) {
+    fun onLocation(fix: Location, voiceEnabled: Boolean, voiceVolume: Float, valhalla: ValhallaConfiguration?, overSpeedMarginKmh: Int = SPEED_MARGIN_DEFAULT_KMH) {
         val target = destination ?: return
         val position = LatLon(fix.latitude, fix.longitude)
+        val smoothed = smoother.add(if (fix.hasSpeed()) fix.speed * 3.6 else 0.0, fix.time / 1000.0)
         tracker?.let { t ->
+            updateSpeedLimit(position)
+            isOverSpeedLimit = speedLimitKmh?.let { smoothed > it + overSpeedMarginKmh } ?: false
             val update = t.update(position, fix.time / 1000.0, voiceEnabled, isRecomputing || isRequesting)
             update.announcements.forEach { voice.say(it, voiceVolume) }
             if (update.shouldRecompute) request(position, target, valhalla, recompute = true)
@@ -142,8 +162,35 @@ class NavSession(context: Context, private val routing: RoutingClient) {
         }
     }
 
-    private companion object {
-        const val MIXED_TAIL_METERS = 20.0
+    private fun updateSpeedLimit(position: LatLon) {
+        val now = System.currentTimeMillis()
+        if (now - lastSpeedLimitLookup < SPEED_LIMIT_INTERVAL_MILLIS) return
+        lastSpeedLimitLookup = now
+        val query = "[out:json][timeout:8];way(around:25,${position.latitude},${position.longitude})[highway][maxspeed];out tags 1;"
+        scope.launch {
+            val limit = withContext(Dispatchers.IO) {
+                overpass.fetchOnce(query, 10_000) { data -> runCatching { Optional(parseMaxSpeed(data)) }.getOrNull() }
+            }
+            if (destination != null && limit != null) speedLimitKmh = limit.value
+        }
+    }
+
+    /** Réponse lue (limite éventuellement inconnue), distincte d'un échec réseau (`null`). */
+    private class Optional<T>(val value: T?)
+
+    companion object {
+        /**
+         * `maxspeed` de la première route de la réponse Overpass, en km/h ; `null` si absente ou non
+         * numérique (« FR:urban », « signals »…), comme l'iPhone. Lève une exception si ce n'est pas du JSON.
+         */
+        fun parseMaxSpeed(data: ByteArray): Int? =
+            JSONObject(data.toString(Charsets.UTF_8)).getJSONArray("elements").optJSONObject(0)
+                ?.optJSONObject("tags")?.optString("maxspeed")?.trim()?.toIntOrNull()
+
+        const val SPEED_MARGIN_DEFAULT_KMH = 10
+        val SPEED_MARGIN_OPTIONS = listOf(5, 10, 15)
+        private const val MIXED_TAIL_METERS = 20.0
+        private const val SPEED_LIMIT_INTERVAL_MILLIS = 20_000L
     }
 }
 

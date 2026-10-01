@@ -79,7 +79,7 @@ class MainActivity : ComponentActivity() {
         val servers = ServerSettings(applicationContext)
         val overpass = OverpassClient(applicationContext, servers)
         val routing = RoutingClient()
-        val nav = NavSession(applicationContext, routing)
+        val nav = NavSession(applicationContext, routing, overpass)
         val services = AppServices(library, settings, location, servers, overpass, routing, RoadbookData(applicationContext, servers, overpass, routing), RejoinController(routing), RejoinController(routing), RideSession(routing), nav, NavPlaces(applicationContext), NominatimClient(), SharedBlockageSync(applicationContext), OfflineMaps(applicationContext), RideCameraState(settings), RideRecorder.get(applicationContext))
         setContent {
             GPXroadTheme {

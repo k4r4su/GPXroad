@@ -474,4 +474,7 @@
     <string name="tuto_set_3">Mapa y cámara: tema, posición del punto, zoom por defecto y automático; mapas sin conexión.</string>
     <string name="tuto_set_4">Road Book: paleta, sensibilidad de curvas, categorías de referencias; grabación: densidad y copias.</string>
     <string name="tuto_set_5">Avanzado: enrutamiento Valhalla y servidor Overpass (opcionales), servidor de puntos bloqueados.</string>
+    <!-- Limitation de vitesse -->
+    <string name="nav_speed_margin">Umbral de exceso de velocidad</string>
+    <string name="tuto_goto_6">Durante el guiado detallado, la señal de límite de la carretera aparece sobre tu velocidad; se engrosa por encima del margen elegido en Ajustes.</string>
 </resources>

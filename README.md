@@ -92,8 +92,9 @@ Aussi : flash des 100 derniers mètres, pause du guidage, élément du Road Book
 
 Aussi : tutoriel intégré, accueil au premier lancement avec trace d'exemple, choix de la langue.
 
-Encore à faire : limitation de vitesse et trafic dans « Aller à », puis une refonte complète de
-l'interface (voir `TODO.md`).
+Aussi : limitation de vitesse pendant le guidage détaillé.
+
+Encore à faire : une refonte complète de l'interface (voir `TODO.md`).
 
 ---
 
