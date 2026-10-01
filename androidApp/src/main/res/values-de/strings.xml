@@ -495,4 +495,7 @@
     <string name="track_appearance">Darstellung (dieser Track)</string>
     <string name="track_appearance_footer">Die globalen Einstellungen bleiben Standard, solange hier nichts gewählt ist.</string>
     <string name="track_default">Standard</string>
+    <!-- Zone hors ligne sur la carte -->
+    <string name="offline_pick_title">Gebiet herunterladen</string>
+    <string name="offline_pick_hint">Verschiebe die Karte: Der Kreis bleibt in der Mitte. Radius und Detail einstellen; die geschätzte Größe erscheint vor dem Download.</string>
 </resources>

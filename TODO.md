@@ -207,8 +207,9 @@ Sessions suivantes :
         réseau, la carte du Ride garde le vectoriel. Géométrie partagée `shared/offline/OfflineArea`.
         Vérifié sur l'émulateur : vosges-tour 13 Mo (estimé 9,4), mode avion, carte lisible au
         milieu des Vosges (zone jamais affichée avant).
-  - Écarts assumés : zone circulaire autour de la position (pas de carte à déplacer comme
-    l'iPhone) ; Relief (raster) non gardé hors ligne — hors réseau la carte passe en Standard.
+  - [x] « Télécharger une zone » sur une carte (01/10, `RegionPicker`) : on déplace la carte, le cercle
+        reste au centre (départ sur la position), rayon 1-200 km, détail 10-14, estimation.
+  - Écart assumé : Relief (raster) non gardé hors ligne — hors réseau la carte passe en Standard.
 - [ ] 7-8 — Retours terrain, stabilisation.
 
 ## Itération 34 — ronds-points sans ambiguïté, distances par paliers — v0.0.34

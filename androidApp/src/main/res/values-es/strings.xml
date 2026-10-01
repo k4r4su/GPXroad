@@ -495,4 +495,7 @@
     <string name="track_appearance">Apariencia (esta ruta)</string>
     <string name="track_appearance_footer">Los ajustes globales siguen siendo el valor por defecto mientras no elijas nada aquí.</string>
     <string name="track_default">Por defecto</string>
+    <!-- Zone hors ligne sur la carte -->
+    <string name="offline_pick_title">Descargar una zona</string>
+    <string name="offline_pick_hint">Mueve el mapa: el círculo queda en el centro. Ajusta el radio y el detalle; el tamaño estimado aparece antes de descargar.</string>
 </resources>

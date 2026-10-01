@@ -497,4 +497,7 @@
     <string name="track_appearance">Apparence (cette trace)</string>
     <string name="track_appearance_footer">Les réglages globaux (Réglages) restent le défaut tant qu\'aucun choix n\'est fait ici.</string>
     <string name="track_default">Par défaut</string>
+    <!-- Zone hors ligne sur la carte -->
+    <string name="offline_pick_title">Télécharger une zone</string>
+    <string name="offline_pick_hint">Déplace la carte : le cercle reste au centre. Règle le rayon et le détail, la taille estimée s\'affiche avant le téléchargement.</string>
 </resources>

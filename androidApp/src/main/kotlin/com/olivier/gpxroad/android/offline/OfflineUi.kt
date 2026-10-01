@@ -78,14 +78,11 @@ private fun ZoneStatus(zone: OfflineZone, onDelete: () -> Unit) {
 }
 
 /**
- * Réglages > Cartes hors ligne (`RegionDownloadView`/`CircleRegionPickerView` iOS) : zones
- * téléchargées (taille, suppression) et zone circulaire autour de la position (rayon, détail,
- * estimation avant téléchargement).
+ * Réglages > Cartes hors ligne (`RegionDownloadView` iOS) : zones téléchargées (taille, suppression)
+ * et « Télécharger une zone » choisie sur la carte ([RegionPicker], centrée sur la position).
  */
 @Composable
 fun OfflineSection(offline: OfflineMaps, position: LatLon?) {
-    var radiusKm by remember { mutableStateOf(OfflineConstants.CIRCLE_DEFAULT_RADIUS_KM) }
-    var maxZoom by remember { mutableStateOf(OfflineConstants.VECTOR_MAX_ZOOM) }
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
         Text(stringResource(R.string.offline_zones), style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.SemiBold)
         if (offline.zones.isEmpty()) Text(stringResource(R.string.offline_none), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
@@ -98,23 +95,14 @@ fun OfflineSection(offline: OfflineMaps, position: LatLon?) {
                 ZoneStatus(zone) { offline.delete(zone.id) }
             }
         }
-        Text(stringResource(R.string.offline_around_me), style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.SemiBold)
-        Text(stringResource(R.string.offline_radius, radiusKm.roundToInt()), style = MaterialTheme.typography.bodyMedium)
-        Slider(value = radiusKm.toFloat(), onValueChange = { radiusKm = OfflineArea.clampRadiusKm(it.roundToInt().toDouble()) }, valueRange = 1f..200f)
-        Text(stringResource(R.string.offline_max_zoom, maxZoom), style = MaterialTheme.typography.bodyMedium)
-        Slider(value = maxZoom.toFloat(), onValueChange = { maxZoom = it.roundToInt() }, valueRange = 10f..14f, steps = 3)
-        if (position == null) {
-            Text(stringResource(R.string.offline_no_position), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.error)
-        } else {
-            val tiles = remember(position, radiusKm, maxZoom) { OfflineArea.circleTileCount(position, radiusKm * 1000, OfflineConstants.REGION_MIN_ZOOM, maxZoom) }
-            Text(
-                tiles?.let { stringResource(R.string.offline_estimate, it.toInt(), size(OfflineArea.estimatedBytes(it))) } ?: stringResource(R.string.offline_too_large),
-                style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-            val name = stringResource(R.string.offline_circle_name, "%.3f, %.3f".format(position.latitude, position.longitude), radiusKm.roundToInt())
-            Button(onClick = { offline.downloadCircle(name, position, radiusKm * 1000, maxZoom) }, enabled = tiles != null) {
-                Text(stringResource(R.string.offline_download))
-            }
+        var picking by remember { mutableStateOf(false) }
+        Button(onClick = { picking = true }) { Text(stringResource(R.string.offline_pick_title)) }
+        Text(stringResource(R.string.offline_pick_hint), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        if (picking) {
+            androidx.compose.ui.window.Dialog(
+                onDismissRequest = { picking = false },
+                properties = androidx.compose.ui.window.DialogProperties(usePlatformDefaultWidth = false, decorFitsSystemWindows = false),
+            ) { RegionPicker(offline, position) { picking = false } }
         }
         Text(stringResource(R.string.offline_footer), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
     }

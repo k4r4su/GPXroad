@@ -495,4 +495,7 @@
     <string name="track_appearance">Aspetto (questa traccia)</string>
     <string name="track_appearance_footer">Le impostazioni globali restano predefinite finché qui non si sceglie nulla.</string>
     <string name="track_default">Predefinito</string>
+    <!-- Zone hors ligne sur la carte -->
+    <string name="offline_pick_title">Scarica una zona</string>
+    <string name="offline_pick_hint">Sposta la mappa: il cerchio resta al centro. Regola raggio e dettaglio; la dimensione stimata appare prima del download.</string>
 </resources>
