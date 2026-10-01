@@ -24,6 +24,8 @@ abstract class CopyMapStyles : DefaultTask() {
 
 val copyMapStyles = tasks.register<CopyMapStyles>("copyMapStyles") {
     styles.from(rootProject.file("iosApp/GPXroad/Resources/vector-style-liberty.json"))
+    // Trace d'exemple de l'accueil (même fichier que l'iPhone).
+    styles.from(rootProject.file("iosApp/GPXroad/Resources/sample-trail.gpx"))
 }
 
 androidComponents {

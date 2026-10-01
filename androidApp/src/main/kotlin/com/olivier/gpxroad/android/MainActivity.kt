@@ -37,6 +37,10 @@ import com.olivier.gpxroad.android.net.ServerSettings
 import com.olivier.gpxroad.android.recording.RideRecorder
 import com.olivier.gpxroad.android.roadbook.data.RejoinController
 import com.olivier.gpxroad.android.roadbook.data.RoadbookData
+import android.content.Context
+import com.olivier.gpxroad.android.data.AppLanguage
+import com.olivier.gpxroad.android.onboarding.OnboardingScreen
+import com.olivier.gpxroad.android.tutorial.TutorialScreen
 import com.olivier.gpxroad.android.nav.GoToScreen
 import com.olivier.gpxroad.android.nav.NavDestination
 import com.olivier.gpxroad.android.nav.NavPlaces
@@ -79,9 +83,21 @@ class MainActivity : ComponentActivity() {
         val services = AppServices(library, settings, location, servers, overpass, routing, RoadbookData(applicationContext, servers, overpass, routing), RejoinController(routing), RejoinController(routing), RideSession(routing), nav, NavPlaces(applicationContext), NominatimClient(), SharedBlockageSync(applicationContext), OfflineMaps(applicationContext), RideCameraState(settings), RideRecorder.get(applicationContext))
         setContent {
             GPXroadTheme {
-                GPXroadApp(services, incomingGpx) { incomingGpx = null }
+                var showOnboarding by remember { mutableStateOf(!settings.hasSeenOnboarding && library.tracks.isEmpty() && incomingGpx == null) }
+                if (showOnboarding) {
+                    OnboardingScreen(library) {
+                        settings.markOnboardingSeen()
+                        showOnboarding = false
+                    }
+                } else {
+                    GPXroadApp(services, incomingGpx, onLanguageChanged = { recreate() }) { incomingGpx = null }
+                }
             }
         }
+    }
+
+    override fun attachBaseContext(newBase: Context) {
+        super.attachBaseContext(AppLanguage.wrap(newBase))
     }
 
     override fun onNewIntent(intent: Intent) {
@@ -123,7 +139,12 @@ private class AppServices(
 )
 
 @Composable
-private fun GPXroadApp(services: AppServices, incomingGpx: Uri?, onImportHandled: () -> Unit) {
+private fun GPXroadApp(services: AppServices, incomingGpx: Uri?, onLanguageChanged: () -> Unit, onImportHandled: () -> Unit) {
+    var tutorial by rememberSaveable { mutableStateOf(false) }
+    if (tutorial) {
+        TutorialScreen { tutorial = false }
+        return
+    }
     val library = services.library
     val settings = services.settings
     var tab by rememberSaveable { mutableStateOf(if (library.activeTrackId == null) AppTab.LIBRARY else AppTab.RIDE) }
@@ -164,7 +185,7 @@ private fun GPXroadApp(services: AppServices, incomingGpx: Uri?, onImportHandled
                     tab = AppTab.RIDE
                 }
                 AppTab.LIBRARY -> LibraryScreen(library, settings, services.recorder, services.offline, incomingGpx, onImportHandled)
-                AppTab.SETTINGS -> SettingsScreen(settings, services.servers, services.overpass, services.routing, services.blockageSync, services.offline, services.location.location?.let { LatLon(it.latitude, it.longitude) })
+                AppTab.SETTINGS -> SettingsScreen(settings, services.servers, services.overpass, services.routing, services.blockageSync, services.offline, services.location.location?.let { LatLon(it.latitude, it.longitude) }, onOpenTutorial = { tutorial = true }, onLanguageChanged = onLanguageChanged)
             }
         }
     }

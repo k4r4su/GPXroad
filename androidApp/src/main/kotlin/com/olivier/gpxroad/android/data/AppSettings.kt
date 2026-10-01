@@ -134,6 +134,15 @@ class AppSettings(context: Context) {
         preferences.edit().putString("pdfOptions", value).apply()
     }
 
+    /** Accueil du premier lancement déjà vu (ou passé). */
+    var hasSeenOnboarding by mutableStateOf(preferences.getBoolean("hasSeenOnboarding", false))
+        private set
+
+    fun markOnboardingSeen() {
+        hasSeenOnboarding = true
+        preferences.edit().putBoolean("hasSeenOnboarding", true).apply()
+    }
+
     /** Flash de l'écran dans les 100 derniers mètres avant un virage (3 ou 5 flashs), comme l'iPhone. */
     var flashEnabled by mutableStateOf(preferences.getBoolean("flash", true))
         private set

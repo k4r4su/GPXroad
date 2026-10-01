@@ -31,6 +31,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.olivier.gpxroad.android.R
+import com.olivier.gpxroad.android.data.AppLanguage
 import com.olivier.gpxroad.android.data.AppSettings
 import com.olivier.gpxroad.android.data.DistanceUnit
 import com.olivier.gpxroad.android.net.OverpassClient
@@ -47,11 +48,22 @@ import kotlin.math.roundToInt
 
 /** Réglages (équivalent partiel de `SettingsView` iOS) : ceux dont le Road Book a besoin aujourd'hui. */
 @Composable
-fun SettingsScreen(settings: AppSettings, servers: ServerSettings, overpass: OverpassClient, routing: RoutingClient, blockageSync: SharedBlockageSync, offline: OfflineMaps, position: LatLon?) {
+fun SettingsScreen(settings: AppSettings, servers: ServerSettings, overpass: OverpassClient, routing: RoutingClient, blockageSync: SharedBlockageSync, offline: OfflineMaps, position: LatLon?, onOpenTutorial: () -> Unit = {}, onLanguageChanged: () -> Unit = {}) {
     val context = LocalContext.current
     val version = runCatching { context.packageManager.getPackageInfo(context.packageName, 0).versionName }.getOrNull() ?: "?"
     Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
         Text(stringResource(R.string.settings_title), style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Bold)
+
+        Section(stringResource(R.string.settings_language))
+        val currentLanguage = remember { AppLanguage.current(context) }
+        SettingChoice("", AppLanguage.entries, currentLanguage, { if (it == AppLanguage.AUTOMATIC) stringResource(R.string.language_auto) else it.nativeName }) {
+            if (it != currentLanguage) {
+                AppLanguage.save(context, it)
+                onLanguageChanged()
+            }
+        }
+        OutlinedButton(onClick = onOpenTutorial) { Text(stringResource(R.string.tutorial_open)) }
+        HorizontalDivider()
 
         Section(stringResource(R.string.settings_unit))
         val units = listOf(DistanceUnit.KM to R.string.unit_km, DistanceUnit.MI to R.string.unit_mi)

@@ -90,8 +90,10 @@ ronds-points, repères, palette jour/nuit, export PDF), cartes hors ligne, régl
 
 Aussi : flash des 100 derniers mètres, pause du guidage, élément du Road Book montré sur la carte.
 
-Encore à faire : tutoriel et accueil, choix de la langue, limitation de vitesse et trafic, puis une refonte
-complète de l'interface (voir `TODO.md`).
+Aussi : tutoriel intégré, accueil au premier lancement avec trace d'exemple, choix de la langue.
+
+Encore à faire : limitation de vitesse et trafic dans « Aller à », puis une refonte complète de
+l'interface (voir `TODO.md`).
 
 ---
 

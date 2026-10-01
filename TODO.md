@@ -161,7 +161,15 @@ Sessions suivantes :
         au recentrage ou en touchant la trace. Vérifié sur l'émulateur.
   - [x] Road Book : un tap sur un élément le montre sur la carte du Ride (suivi GPS suspendu sans
         minuteur, « Me recentrer » pour revenir). Vérifié sur l'émulateur.
-  - [ ] Tutoriel (5 pages, même contenu que l'iPhone), accueil au premier lancement, choix de la langue.
+  - [x] Tutoriel (Réglages > Ouvrir le tutoriel, 5 onglets, contenu adapté à Android, 5 langues),
+        accueil au premier lancement (importer, trace d'exemple « Col de la Croix » — même fichier
+        que l'iPhone —, rappel de sécurité ; seulement si la Bibliothèque est vide), choix de la
+        langue (Automatique, Français, English, Deutsch, Español, Italiano ; l'activité est recréée).
+        Vérifié sur l'émulateur.
+  - Écart assumé : la notification d'enregistrement garde la langue du téléphone si une autre
+    langue est forcée dans l'app.
+  - [ ] iOS à corriger : l'accueil annonce « L'alerte checkpoint flashe 200 m avant les virages »
+        alors que le flash se déclenche à 100 m (`NavigationConstants.roadbookFlashMeters`).
   - [ ] Installer sur la tablette (`adb install -r`) pour le test complet du propriétaire.
   - [x] Road Book (01/10) : palette automatique papier le jour / sombre la nuit (lever et coucher
         du soleil à la position, `shared/roadbook/RoadbookPalette`, réévaluée toutes les 5 min),
