@@ -79,23 +79,20 @@ Beaucoup de sorties moto ou rando se font là où le réseau mobile ne suit pas.
 Le dépôt contient trois dossiers : `iosApp/` (l'app iPhone), `shared/` (le code commun) et
 `androidApp/` (l'app Android, Jetpack Compose).
 
-## Version Android (en cours, état au 01/10/2026)
+## Version Android (état au 01/10/2026)
 
-Disponible et vérifiée sur émulateur : Bibliothèque (import, trace active, dossiers, fiche avec
-statistiques, partage), Ride (carte, virages, hors trace, reprise automatique et « Reprendre la
-trace ici », chevrons, pentes, mesures, enregistrement de la sortie, « Chemin bloqué »,
-signalements partagés, thèmes de carte, réglages de caméra), « Aller à » (recherche, Domicile/
-Travail, guidage détaillé Valhalla avec voix ou guidage simple), Road Book (assisté GPS et liste,
-ronds-points, repères, palette jour/nuit, export PDF), cartes hors ligne, réglages, 5 langues.
+Toutes les fonctionnalités de l'iPhone sont portées et vérifiées sur émulateur : Bibliothèque
+(import, trace active, dossiers, fiche avec statistiques, apparence par trace, partage, carte hors
+ligne), Ride (carte, virages, flash des 100 derniers mètres, hors trace, reprise automatique et
+« Reprendre la trace ici », chevrons, pentes, mesures, enregistrement de la sortie, pause du guidage,
+« Chemin bloqué », signalements partagés, thèmes de carte, réglages de caméra), « Aller à » (recherche,
+Domicile/Travail, guidage détaillé Valhalla avec voix et limitation de vitesse, ou guidage simple),
+Road Book (assisté GPS et liste, ronds-points, repères, palette jour/nuit, export PDF, élément montré
+sur la carte), cartes hors ligne (couloir d'une trace ou zone choisie sur la carte), tutoriel, accueil
+avec trace d'exemple, 5 langues au choix. L'interface a été entièrement refaite (thème, Réglages
+groupés, Bibliothèque en cartes, boutons de carte à icônes).
 
-Aussi : flash des 100 derniers mètres, pause du guidage, élément du Road Book montré sur la carte.
-
-Aussi : tutoriel intégré, accueil au premier lancement avec trace d'exemple, choix de la langue.
-
-Aussi : limitation de vitesse pendant le guidage détaillé.
-
-Interface en cours de refonte (thème, Réglages, Bibliothèque et Ride déjà refaits). Encore à faire :
-la fin de la refonte (voir `TODO.md`).
+Reste : le test terrain sur la tablette (version installée), puis les retouches qui en sortiront.
 
 ---
 
