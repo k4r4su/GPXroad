@@ -59,7 +59,11 @@ temps, la version iOS est vraiment correcte mais l'Android c'est une catastrophe
 - [x] Correctif du 04/10 : le premier APK « serveurs intégrés » n'en contenait pas (le cache de
       configuration de Gradle figeait `System.getenv`) ; la variable est maintenant lue par
       `providers.environmentVariable` (testé avec une valeur fictive : intégrée / vide). Version
-      Android 0.0.35, fichier `gpxroad-v0.0.35 TEST android.apk`. À refaire passer par le script.
+      Android 0.0.35, fichier `gpxroad-v0.0.35 TEST android.apk`. Deuxième bug, dans le script : les
+      identifiants saisis n'étaient pas exportés (KeyError) et le script affichait « OK » quand même.
+      Corrigé : saisie via le terminal, variables exportées, build annulé si la valeur est vide,
+      vérification de la valeur dans l'APK avant de le copier (longueur seulement, jamais le contenu).
+      Testé avec des valeurs fictives (bash et zsh).
 - [ ] Reste : avis du propriétaire sur la tablette (installée le 01/10), puis captures côte à côte
       iOS / Android pour les derniers écarts.
 - [ ] Validation par captures côte à côte iOS / Android sur tablette et téléphone.
