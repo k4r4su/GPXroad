@@ -56,6 +56,10 @@ temps, la version iOS est vraiment correcte mais l'Android c'est une catastrophe
       au clavier, passés au build par l'environnement, jamais dans un fichier ni dans git) ;
       `BundledServers` ne sert que si l'utilisateur n'a rien réglé lui-même. Vide dans les builds
       normaux. À remplacer par la passerelle à jetons (voir « À venir ») avant tout partage plus large.
+- [x] Correctif du 04/10 : le premier APK « serveurs intégrés » n'en contenait pas (le cache de
+      configuration de Gradle figeait `System.getenv`) ; la variable est maintenant lue par
+      `providers.environmentVariable` (testé avec une valeur fictive : intégrée / vide). Version
+      Android 0.0.35, fichier `gpxroad-v0.0.35 TEST android.apk`. À refaire passer par le script.
 - [ ] Reste : avis du propriétaire sur la tablette (installée le 01/10), puis captures côte à côte
       iOS / Android pour les derniers écarts.
 - [ ] Validation par captures côte à côte iOS / Android sur tablette et téléphone.

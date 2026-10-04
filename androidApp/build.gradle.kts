@@ -1,3 +1,4 @@
+import com.android.build.api.variant.BuildConfigField
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.compose)
@@ -31,6 +32,14 @@ val copyMapStyles = tasks.register<CopyMapStyles>("copyMapStyles") {
 androidComponents {
     onVariants { variant ->
         variant.sources.assets?.addGeneratedSourceDirectory(copyMapStyles, CopyMapStyles::outputDir)
+        // Serveurs intégrés (APK de test PRIVÉ seulement) : JSON en base64 lu dans l'environnement du
+        // build (jamais dans un fichier du dépôt) ; vide dans tous les autres builds. Lu par
+        // `providers` pour que Gradle le suive : avec le cache de configuration, un simple
+        // System.getenv() resterait figé sur la valeur du premier build (APK sans serveurs).
+        variant.buildConfigFields?.put(
+            "BUNDLED_SERVERS",
+            providers.environmentVariable("GPXROAD_BUNDLED_SERVERS").orElse("").map { BuildConfigField("String", "\"$it\"", "serveurs intégrés (APK privé)") },
+        )
     }
 }
 
@@ -41,13 +50,10 @@ android {
         applicationId = "com.olivier.gpxroad"
         minSdk = 26
         targetSdk = 36
-        versionCode = 34
-        versionName = "0.0.34"
+        versionCode = 35
+        versionName = "0.0.35"
         // Tablette et émulateur de test : arm64 seulement (MapLibre embarque sinon 4 bibliothèques natives).
         ndk { abiFilters += "arm64-v8a" }
-        // Serveurs intégrés (APK de test PRIVÉ seulement) : JSON en base64 lu dans l'environnement du
-        // build (jamais dans un fichier du dépôt) ; vide dans tous les autres builds.
-        buildConfigField("String", "BUNDLED_SERVERS", "\"${System.getenv("GPXROAD_BUNDLED_SERVERS").orEmpty()}\"")
     }
     buildFeatures {
         compose = true
