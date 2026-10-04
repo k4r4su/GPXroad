@@ -49,6 +49,15 @@ android {
     buildFeatures {
         compose = true
     }
+    buildTypes {
+        release {
+            // APK à donner aux testeurs : non « debuggable », signé avec la clé de débogage (la même que
+            // la tablette de test, donc installable par-dessus sans désinstaller). À remplacer par une clé
+            // de publication avant un Play Store : changer de clé oblige chacun à réinstaller l'app.
+            signingConfig = signingConfigs.getByName("debug")
+            isMinifyEnabled = false
+        }
+    }
 }
 
 dependencies {

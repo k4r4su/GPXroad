@@ -48,6 +48,10 @@ temps, la version iOS est vraiment correcte mais l'Android c'est une catastrophe
       icônes (enregistrement, Terminer).
 - Contrôle du 01/10 : iPhone 519 tests 0 échec 0 ignoré (copie locale du serveur), Kotlin partagé
   97 tests, Android 11 tests, module partagé compilé pour iOS (simulateur et appareil).
+- [x] APK de test à distribuer (04/10) : type de construction `release` (non débogable, non minifié,
+      signé avec la clé de débogage pour s'installer par-dessus la tablette sans effacer ses
+      réglages), `GPXroad-android-0.0.34.apk` (27 Mo, ignoré par git). Avant un Play Store : clé de
+      publication, réduction du code, et tout le monde devra réinstaller.
 - [ ] Reste : avis du propriétaire sur la tablette (installée le 01/10), puis captures côte à côte
       iOS / Android pour les derniers écarts.
 - [ ] Validation par captures côte à côte iOS / Android sur tablette et téléphone.

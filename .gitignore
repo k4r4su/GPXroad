@@ -19,3 +19,5 @@ local.properties
 .env
 .env.*
 *.secrets
+# APK à partager (jamais versionnés)
+*.apk

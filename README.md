@@ -94,6 +94,12 @@ groupés, Bibliothèque en cartes, boutons de carte à icônes).
 
 Reste : le test terrain sur la tablette (version installée), puis les retouches qui en sortiront.
 
+**Donner l'app à des testeurs Android** : `./gradlew :androidApp:assembleRelease` produit
+`androidApp/build/outputs/apk/release/androidApp-release.apk` (arm64, Android 8 ou plus). Le
+testeur l'ouvre, autorise « installer des apps inconnues » pour son navigateur ou son gestionnaire
+de fichiers, et installe. Les mises à jour s'installent par-dessus tant que l'APK est signé avec la
+même clé (aujourd'hui la clé de débogage ; changer de clé oblige à réinstaller).
+
 ---
 
 *Ce README suit les fonctionnalités clés de l'app au fil des itérations — voir `CLAUDE.md` pour le détail technique et `TODO.md` pour l'historique des itérations.*
