@@ -100,6 +100,12 @@ testeur l'ouvre, autorise « installer des apps inconnues » pour son navigateur
 de fichiers, et installe. Les mises à jour s'installent par-dessus tant que l'APK est signé avec la
 même clé (aujourd'hui la clé de débogage ; changer de clé oblige à réinstaller).
 
+**APK de test avec tes serveurs intégrés (privé)** : `./scripts/build-tester-apk.sh` demande les
+identifiants Valhalla et Overpass (saisie masquée, jamais écrits dans un fichier ni dans le dépôt)
+et produit `GPXroad-android-serveurs-integres.apk`, ignoré par git. Les testeurs n'ont alors rien à
+régler ; leurs propres réglages, s'ils en font, restent prioritaires. ⚠ Tout ce qui est dans un APK
+s'extrait : à ne donner qu'à des proches de confiance, puis renouveler les mots de passe.
+
 ---
 
 *Ce README suit les fonctionnalités clés de l'app au fil des itérations — voir `CLAUDE.md` pour le détail technique et `TODO.md` pour l'historique des itérations.*

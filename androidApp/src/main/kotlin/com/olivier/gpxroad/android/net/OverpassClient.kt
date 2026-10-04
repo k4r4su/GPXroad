@@ -33,10 +33,9 @@ class OverpassClient(private val context: Context, private val servers: ServerSe
             if (lan.isNotBlank() && now >= lanUnavailableUntil && Http.isOnLocalNetwork(context)) {
                 attempts += Attempt(OverpassKind.LAN, lan, null, minOf(timeoutMillis, LAN_TIMEOUT_MILLIS))
             }
-            val own = servers.overpassEndpoint
-            if (own.startsWith("https://")) {
-                attempts += Attempt(OverpassKind.OWN, own, Http.basicAuthorization(servers.overpassUsername, servers.overpassPassword), timeoutMillis)
-            }
+        }
+        servers.overpassOwn?.let { own ->
+            attempts += Attempt(OverpassKind.OWN, own.url, Http.basicAuthorization(own.username, own.password), timeoutMillis)
         }
         attempts += Attempt(OverpassKind.PUBLIC_FALLBACK, PUBLIC_FALLBACK_ENDPOINT, null, timeoutMillis)
         return attempts

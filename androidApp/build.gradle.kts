@@ -45,9 +45,13 @@ android {
         versionName = "0.0.34"
         // Tablette et émulateur de test : arm64 seulement (MapLibre embarque sinon 4 bibliothèques natives).
         ndk { abiFilters += "arm64-v8a" }
+        // Serveurs intégrés (APK de test PRIVÉ seulement) : JSON en base64 lu dans l'environnement du
+        // build (jamais dans un fichier du dépôt) ; vide dans tous les autres builds.
+        buildConfigField("String", "BUNDLED_SERVERS", "\"${System.getenv("GPXROAD_BUNDLED_SERVERS").orEmpty()}\"")
     }
     buildFeatures {
         compose = true
+        buildConfig = true
     }
     buildTypes {
         release {

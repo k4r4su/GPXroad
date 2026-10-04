@@ -37,9 +37,20 @@ class ServerSettings(context: Context) {
     var overpassPassword by mutableStateOf(secure.get(OVERPASS_PASSWORD))
         private set
 
-    /** `null` tant que Valhalla est désactivé ou sans adresse : le Road Book reste géométrique. */
+    /**
+     * Le serveur choisi dans les Réglages, sinon celui intégré à l'APK de test (s'il y en a un) ;
+     * `null` sinon : le Road Book reste géométrique.
+     */
     val valhalla: ValhallaConfiguration?
-        get() = if (valhallaEnabled && valhallaEndpoint.isNotBlank()) ValhallaConfiguration(valhallaEndpoint.trim(), valhallaUsername, valhallaPassword) else null
+        get() = if (valhallaEnabled && valhallaEndpoint.isNotBlank()) {
+            ValhallaConfiguration(valhallaEndpoint.trim(), valhallaUsername, valhallaPassword)
+        } else {
+            BundledServers.current.valhalla?.let { ValhallaConfiguration(it.url, it.username, it.password) }
+        }
+
+    /** Overpass « à moi » : Réglages d'abord, sinon le serveur intégré à l'APK de test. */
+    val overpassOwn: BundledServer?
+        get() = if (overpassEnabled && overpassEndpoint.startsWith("https://")) BundledServer(overpassEndpoint, overpassUsername, overpassPassword) else BundledServers.current.overpass
 
     fun updateValhalla(enabled: Boolean, endpoint: String, username: String, password: String) {
         valhallaEnabled = enabled

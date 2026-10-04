@@ -52,6 +52,10 @@ temps, la version iOS est vraiment correcte mais l'Android c'est une catastrophe
       signé avec la clé de débogage pour s'installer par-dessus la tablette sans effacer ses
       réglages), `GPXroad-android-0.0.34.apk` (27 Mo, ignoré par git). Avant un Play Store : clé de
       publication, réduction du code, et tout le monde devra réinstaller.
+- [x] APK de test avec serveurs intégrés (04/10) : `scripts/build-tester-apk.sh` (identifiants saisis
+      au clavier, passés au build par l'environnement, jamais dans un fichier ni dans git) ;
+      `BundledServers` ne sert que si l'utilisateur n'a rien réglé lui-même. Vide dans les builds
+      normaux. À remplacer par la passerelle à jetons (voir « À venir ») avant tout partage plus large.
 - [ ] Reste : avis du propriétaire sur la tablette (installée le 01/10), puis captures côte à côte
       iOS / Android pour les derniers écarts.
 - [ ] Validation par captures côte à côte iOS / Android sur tablette et téléphone.
