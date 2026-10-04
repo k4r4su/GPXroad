@@ -97,6 +97,7 @@ import com.olivier.gpxroad.android.roadbook.data.RoadbookData
 import com.olivier.gpxroad.android.ui.Accent
 import com.olivier.gpxroad.shared.LatLon
 import com.olivier.gpxroad.shared.geodesicDistanceMeters
+import com.olivier.gpxroad.shared.offline.AutoPrefetch
 import com.olivier.gpxroad.shared.ride.SlopeAnalyzer
 import com.olivier.gpxroad.shared.ride.RideCameraConstants
 import com.olivier.gpxroad.shared.roadbook.RejoinPlanner
@@ -179,6 +180,11 @@ fun RideScreen(
         if (fix == null) return@LaunchedEffect
         session.onLocation(fix, track?.traversalKey, track?.cumulative?.lastOrNull(), projection?.cumulativeDistanceMeters)
         nav.onLocation(fix, settings.voiceEnabled, settings.voiceVolume.toFloat(), valhalla, settings.speedMarginKmh)
+        // Carte automatique : tuiles d'avance autour de soi (+ trace devant) quand le réseau est bon.
+        if (settings.autoMapEnabled) {
+            val ahead = if (track != null && projection != null) AutoPrefetch.trackAhead(track.latLons, track.cumulative, projection.cumulativeDistanceMeters) else emptyList()
+            offline.autoPrefetch(LatLon(fix.latitude, fix.longitude), ahead, settings.autoMapRadiusKm, settings.autoMapCellular)
+        }
         if (track == null) return@LaunchedEffect
         session.updateResume(fix, projection?.distanceToTrackMeters)
         session.updateDetour(fix, projection?.distanceToTrackMeters, guidingTrace = !nav.isActive && session.manualResume == null)

@@ -471,7 +471,6 @@
     <string name="tuto_set_main">Ajustes principales</string>
     <string name="tuto_set_1">Idioma: automático (idioma del teléfono) o forzado.</string>
     <string name="tuto_set_2">Ride: color y grosor de la ruta, chevrones, lado de los controles, pendientes, destello, pantalla encendida.</string>
-    <string name="tuto_set_3">Mapa y cámara: tema, posición del punto, zoom por defecto y automático; mapas sin conexión.</string>
     <string name="tuto_set_4">Road Book: paleta, sensibilidad de curvas, categorías de referencias; grabación: densidad y copias.</string>
     <string name="tuto_set_5">Avanzado: enrutamiento Valhalla y servidor Overpass (opcionales), servidor de puntos bloqueados.</string>
     <!-- Limitation de vitesse -->
@@ -498,4 +497,14 @@
     <!-- Zone hors ligne sur la carte -->
     <string name="offline_pick_title">Descargar una zona</string>
     <string name="offline_pick_hint">Mueve el mapa: el círculo queda en el centro. Ajusta el radio y el detalle; el tamaño estimado aparece antes de descargar.</string>
+    <!-- Carte automatique autour de soi -->
+    <string name="offline_auto_title">Mapa automático</string>
+    <string name="offline_auto_enable">Guardar el mapa a mi alrededor</string>
+    <string name="offline_auto_radius">Radio a mi alrededor</string>
+    <string name="offline_auto_cellular">También con 4G / 5G</string>
+    <string name="offline_auto_cellular_hint">Usa datos móviles rápidos (sin roaming), unos 15 a 30 MB por actualización.</string>
+    <string name="offline_auto_footer">En cuanto la red es buena (Wi-Fi, o 4G/5G si está marcado), la app descarga de antemano el mapa a tu alrededor y los próximos 30 km de tu ruta, y lo renueva mientras conduces. Conservas un mapa legible incluso sin red. Se guardan las tres últimas zonas.</string>
+    <string name="offline_auto_name">Automático · %1$s</string>
+    <!-- Tutoriel : carte automatique -->
+    <string name="tuto_set_3">Mapa y cámara: tema, posición del punto, zoom por defecto y automático. Mapas sin conexión: un mapa «automático» se prepara solo a tu alrededor (y de tu ruta) en cuanto la red es buena.</string>
 </resources>

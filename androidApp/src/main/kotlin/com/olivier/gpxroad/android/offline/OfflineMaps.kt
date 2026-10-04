@@ -4,7 +4,10 @@ import android.content.Context
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import com.olivier.gpxroad.android.R
+import com.olivier.gpxroad.android.net.Http
 import com.olivier.gpxroad.shared.LatLon
+import com.olivier.gpxroad.shared.offline.AutoPrefetch
 import com.olivier.gpxroad.shared.offline.OfflineArea
 import com.olivier.gpxroad.shared.offline.OfflineConstants
 import org.json.JSONObject
@@ -28,6 +31,9 @@ data class OfflineZone(
     val progress: Float,
     val isComplete: Boolean,
     val failed: Boolean,
+    /** Zone automatique (autour de soi) : renouvelée et nettoyée toute seule. */
+    val auto: Boolean = false,
+    val center: LatLon? = null,
 )
 
 /**
@@ -49,7 +55,45 @@ class OfflineMaps(private val context: Context) {
     init {
         MapLibre.getInstance(context)
         manager = OfflineManager.getInstance(context)
+        // Cache « ambiant » (tuiles vues en roulant) à 200 Mo au lieu de 50 : la carte déjà parcourue reste lisible.
+        manager.setMaximumAmbientCacheSize(AMBIENT_CACHE_BYTES, object : OfflineManager.FileSourceCallback {
+            override fun onSuccess() = Unit
+            override fun onError(message: String) = Unit
+        })
         refresh()
+    }
+
+    private var lastAutoAttemptMillis: Long? = null
+
+    /** Centre de la zone automatique la plus récente (démarrage compris : relu des métadonnées). */
+    private val lastAutoCenter: LatLon? get() = zones.filter { it.auto && !it.failed }.maxByOrNull { it.createdMillis }?.center
+
+    /**
+     * Carte automatique (retour terrain du 04/10) : à appeler régulièrement avec la position. Quand le réseau est
+     * bon et qu'on s'est assez éloigné de la dernière zone, télécharge le disque autour de soi + les 30 prochains km
+     * de la trace suivie, puis supprime les zones automatiques les plus anciennes.
+     */
+    fun autoPrefetch(position: LatLon, trackAhead: List<LatLon>, radiusKm: Int, allowCellular: Boolean) {
+        val radius = radiusKm * 1000.0
+        val now = System.currentTimeMillis()
+        val busy = zones.any { !it.isComplete && !it.failed }
+        val good = Http.isGoodForDownloads(context, allowCellular, AutoPrefetch.MIN_CELLULAR_KBPS)
+        if (!AutoPrefetch.shouldRefresh(position, lastAutoCenter, radius, now, lastAutoAttemptMillis, good, busy)) return
+        lastAutoAttemptMillis = now
+        zones.filter { it.auto && it.failed }.forEach { delete(it.id) }
+        val polygons = AutoPrefetch.rings(position, radius, trackAhead).map { ring ->
+            Polygon.fromLngLats(listOf(ring.map { Point.fromLngLat(it.longitude, it.latitude) }))
+        }
+        create(
+            MultiPolygon.fromPolygons(polygons), OfflineConstants.REGION_MIN_ZOOM,
+            context.getString(R.string.offline_auto_name, "%.3f, %.3f".format(position.latitude, position.longitude)),
+            trackId = null, auto = true, center = position,
+        )
+    }
+
+    /** Garde les [AutoPrefetch.MAX_AUTO_ZONES] zones automatiques les plus récentes, supprime le reste. */
+    private fun pruneAutoZones() {
+        zones.filter { it.auto && it.isComplete }.sortedByDescending { it.createdMillis }.drop(AutoPrefetch.MAX_AUTO_ZONES).forEach { delete(it.id) }
     }
 
     fun zoneForTrack(trackId: String): OfflineZone? = zones.firstOrNull { it.trackId == trackId }
@@ -88,9 +132,13 @@ class OfflineMaps(private val context: Context) {
         })
     }
 
-    private fun create(geometry: org.maplibre.geojson.Geometry, minZoom: Int, name: String, trackId: String?, maxZoom: Int = OfflineConstants.VECTOR_MAX_ZOOM) {
+    private fun create(
+        geometry: org.maplibre.geojson.Geometry, minZoom: Int, name: String, trackId: String?, maxZoom: Int = OfflineConstants.VECTOR_MAX_ZOOM,
+        auto: Boolean = false, center: LatLon? = null,
+    ) {
         val definition = OfflineGeometryRegionDefinition(styleUrl(), geometry, minZoom.toDouble(), maxZoom.toDouble(), context.resources.displayMetrics.density, false)
-        val metadata = JSONObject().put("name", name).put("trackId", trackId ?: JSONObject.NULL).put("created", System.currentTimeMillis()).toString().toByteArray()
+        val metadata = JSONObject().put("name", name).put("trackId", trackId ?: JSONObject.NULL).put("created", System.currentTimeMillis())
+            .put("auto", auto).apply { center?.let { put("lat", it.latitude).put("lon", it.longitude) } }.toString().toByteArray()
         manager.createOfflineRegion(definition, metadata, object : OfflineManager.CreateOfflineRegionCallback {
             override fun onCreate(offlineRegion: OfflineRegion) {
                 regions[offlineRegion.id] = offlineRegion
@@ -107,7 +155,10 @@ class OfflineMaps(private val context: Context) {
         region.setObserver(object : OfflineRegion.OfflineRegionObserver {
             override fun onStatusChanged(status: OfflineRegionStatus) {
                 upsert(zoneOf(region, status))
-                if (status.isComplete) region.setDownloadState(OfflineRegion.STATE_INACTIVE)
+                if (status.isComplete) {
+                    region.setDownloadState(OfflineRegion.STATE_INACTIVE)
+                    pruneAutoZones()
+                }
             }
 
             override fun onError(error: OfflineRegionError) {
@@ -154,6 +205,8 @@ class OfflineMaps(private val context: Context) {
             progress = if (required > 0) (status!!.completedResourceCount.toFloat() / required).coerceIn(0f, 1f) else 0f,
             isComplete = status?.isComplete == true,
             failed = false,
+            auto = meta?.optBoolean("auto") == true,
+            center = meta?.takeIf { it.has("lat") && it.has("lon") }?.let { LatLon(it.getDouble("lat"), it.getDouble("lon")) },
         )
     }
 
@@ -170,5 +223,6 @@ class OfflineMaps(private val context: Context) {
 
     private companion object {
         const val REFERENCE_STYLE_URL = "https://tiles.openfreemap.org/styles/liberty"
+        const val AMBIENT_CACHE_BYTES = 200L * 1024 * 1024
     }
 }

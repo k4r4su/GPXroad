@@ -471,7 +471,6 @@
     <string name="tuto_set_main">Main settings</string>
     <string name="tuto_set_1">Language: automatic (phone language) or forced.</string>
     <string name="tuto_set_2">Ride: track color and thickness, chevrons, controls side, slopes, flash, screen on.</string>
-    <string name="tuto_set_3">Map and camera: theme, dot position, default and automatic zoom; offline maps.</string>
     <string name="tuto_set_4">Road Book: palette, turn sensitivity, landmark categories; recording: density and backups.</string>
     <string name="tuto_set_5">Advanced: Valhalla routing and Overpass server (optional), blocked points server.</string>
     <!-- Limitation de vitesse -->
@@ -498,4 +497,14 @@
     <!-- Zone hors ligne sur la carte -->
     <string name="offline_pick_title">Download an area</string>
     <string name="offline_pick_hint">Move the map: the circle stays in the center. Set the radius and detail; the estimated size shows before downloading.</string>
+    <!-- Carte automatique autour de soi -->
+    <string name="offline_auto_title">Automatic map</string>
+    <string name="offline_auto_enable">Keep the map around me</string>
+    <string name="offline_auto_radius">Radius around me</string>
+    <string name="offline_auto_cellular">Also on 4G / 5G</string>
+    <string name="offline_auto_cellular_hint">Uses fast mobile data (not roaming), about 15 to 30 MB per refresh.</string>
+    <string name="offline_auto_footer">As soon as the network is good (Wi-Fi, or 4G/5G if ticked), the app downloads the map around you and the next 30 km of your track ahead of time, then renews it as you ride. You keep a readable map even without network. The last three areas are kept.</string>
+    <string name="offline_auto_name">Automatic · %1$s</string>
+    <!-- Tutoriel : carte automatique -->
+    <string name="tuto_set_3">Map and camera: theme, dot position, default and automatic zoom. Offline maps: an “automatic” map prepares itself around you (and your track) as soon as the network is good.</string>
 </resources>

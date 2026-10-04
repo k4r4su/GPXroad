@@ -88,7 +88,7 @@ ligne), Ride (carte, virages, flash des 100 derniers mètres, hors trace, repris
 « Chemin bloqué », signalements partagés, thèmes de carte, réglages de caméra), « Aller à » (recherche,
 Domicile/Travail, guidage détaillé Valhalla avec voix et limitation de vitesse, ou guidage simple),
 Road Book (assisté GPS et liste, ronds-points, repères, palette jour/nuit, export PDF, élément montré
-sur la carte), cartes hors ligne (couloir d'une trace ou zone choisie sur la carte), tutoriel, accueil
+sur la carte), cartes hors ligne (couloir d'une trace, zone choisie sur la carte, et une carte « automatique » qui se prépare toute seule autour de toi quand le réseau est bon), tutoriel, accueil
 avec trace d'exemple, 5 langues au choix. L'interface a été entièrement refaite (thème, Réglages
 groupés, Bibliothèque en cartes, boutons de carte à icônes).
 

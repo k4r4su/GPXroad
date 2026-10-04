@@ -84,6 +84,19 @@ object Http {
         return capabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
     }
 
+    /**
+     * Réseau assez bon pour télécharger des cartes d'avance : validé par Android, et soit Wi-Fi/Ethernet, soit
+     * (si [allowCellular]) données mobiles rapides — débit estimé d'au moins [minCellularKbps], hors itinérance.
+     */
+    fun isGoodForDownloads(context: Context, allowCellular: Boolean, minCellularKbps: Int): Boolean {
+        val manager = context.getSystemService(ConnectivityManager::class.java) ?: return false
+        val capabilities = manager.getNetworkCapabilities(manager.activeNetwork) ?: return false
+        if (!capabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET) || !capabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_VALIDATED)) return false
+        if (capabilities.hasTransport(NetworkCapabilities.TRANSPORT_WIFI) || capabilities.hasTransport(NetworkCapabilities.TRANSPORT_ETHERNET)) return true
+        if (!allowCellular || !capabilities.hasTransport(NetworkCapabilities.TRANSPORT_CELLULAR)) return false
+        return capabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_NOT_ROAMING) && capabilities.linkDownstreamBandwidthKbps >= minCellularKbps
+    }
+
     /** Wi-Fi (ou Ethernet) : seule condition pour essayer le serveur de la maison. */
     fun isOnLocalNetwork(context: Context): Boolean {
         val manager = context.getSystemService(ConnectivityManager::class.java) ?: return false

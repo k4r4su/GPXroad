@@ -473,7 +473,6 @@
     <string name="tuto_set_main">Principaux réglages</string>
     <string name="tuto_set_1">Langue : automatique (langue du téléphone) ou forcée.</string>
     <string name="tuto_set_2">Ride : couleur et épaisseur de la trace, chevrons, côté des contrôles, pentes, flash, écran allumé.</string>
-    <string name="tuto_set_3">Carte et caméra : thème, position du point, zoom par défaut et automatique ; cartes hors ligne.</string>
     <string name="tuto_set_4">Road Book : palette, sensibilité des virages, catégories de repères ; enregistrement : densité et sauvegardes.</string>
     <string name="tuto_set_5">Avancé : routage Valhalla et serveur Overpass (optionnels), serveur des points bloqués.</string>
     <!-- Limitation de vitesse -->
@@ -500,4 +499,14 @@
     <!-- Zone hors ligne sur la carte -->
     <string name="offline_pick_title">Télécharger une zone</string>
     <string name="offline_pick_hint">Déplace la carte : le cercle reste au centre. Règle le rayon et le détail, la taille estimée s\'affiche avant le téléchargement.</string>
+    <!-- Carte automatique autour de soi -->
+    <string name="offline_auto_title">Carte automatique</string>
+    <string name="offline_auto_enable">Garder la carte autour de moi</string>
+    <string name="offline_auto_radius">Rayon autour de moi</string>
+    <string name="offline_auto_cellular">Aussi en 4G / 5G</string>
+    <string name="offline_auto_cellular_hint">Utilise des données mobiles rapides (hors itinérance), environ 15 à 30 Mo par renouvellement.</string>
+    <string name="offline_auto_footer">Dès que le réseau est bon (Wi-Fi, ou 4G/5G si coché), l\'app télécharge d\'avance la carte autour de toi et des 30 prochains km de ta trace, puis se renouvelle en roulant. Tu gardes une carte lisible même sans réseau. Les trois dernières zones sont conservées.</string>
+    <string name="offline_auto_name">Automatique · %1$s</string>
+    <!-- Tutoriel : carte automatique -->
+    <string name="tuto_set_3">Carte et caméra : thème, position du point, zoom par défaut et automatique. Cartes hors ligne : une carte « automatique » se prépare toute seule autour de toi (et de ta trace) dès que le réseau est bon.</string>
 </resources>

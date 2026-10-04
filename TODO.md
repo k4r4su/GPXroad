@@ -64,6 +64,16 @@ temps, la version iOS est vraiment correcte mais l'Android c'est une catastrophe
       Corrigé : saisie via le terminal, variables exportées, build annulé si la valeur est vide,
       vérification de la valeur dans l'APK avant de le copier (longueur seulement, jamais le contenu).
       Testé avec des valeurs fictives (bash et zsh).
+- [x] Carte automatique autour de soi (04/10, retour terrain : zone sans réseau, carte illisible parce que
+      rien n'avait été téléchargé) : dès que le réseau est bon (Wi-Fi, ou 4G/5G hors itinérance avec un
+      débit estimé ≥ 5 Mbit/s, réglable), l'app télécharge le disque de 10/15/20 km autour de la position
+      + les 30 prochains km de la trace suivie (niveaux 5 à 14), se renouvelle quand on s'éloigne du tiers
+      du rayon (au plus toutes les 10 min), garde les 3 dernières zones automatiques, et monte le cache
+      ambiant à 200 Mo. Réglages > Cartes hors ligne > Carte automatique (activée par défaut).
+      Règle partagée `shared/offline/AutoPrefetch` (testée). Vérifié sur l'émulateur : zone créée au
+      lancement (22 Mo). Non testé : renouvellement après déplacement (délai de 10 min) et passage
+      réel de la 4G à une zone sans réseau — à valider en roulant. Android 0.0.36.
+  - [ ] iOS : même fonction à porter (cache de tuiles iOS, `Offline/`) — pas demandé pour l'instant.
 - [ ] Reste : avis du propriétaire sur la tablette (installée le 01/10), puis captures côte à côte
       iOS / Android pour les derniers écarts.
 - [ ] Validation par captures côte à côte iOS / Android sur tablette et téléphone.

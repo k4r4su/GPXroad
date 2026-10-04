@@ -6,6 +6,7 @@ import androidx.compose.runtime.mutableDoubleStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import com.olivier.gpxroad.shared.map.MapTheme
+import com.olivier.gpxroad.shared.offline.AutoPrefetch
 import com.olivier.gpxroad.shared.ride.DirectionChevrons
 import com.olivier.gpxroad.shared.ride.RideCameraConstants
 import com.olivier.gpxroad.shared.ride.ZoomPreset
@@ -141,6 +142,21 @@ class AppSettings(context: Context) {
     fun markOnboardingSeen() {
         hasSeenOnboarding = true
         preferences.edit().putBoolean("hasSeenOnboarding", true).apply()
+    }
+
+    /** Carte automatique autour de soi (téléchargée d'avance quand le réseau est bon). */
+    var autoMapEnabled by mutableStateOf(preferences.getBoolean("autoMap", true))
+        private set
+    var autoMapRadiusKm by mutableStateOf(preferences.getInt("autoMapRadius", AutoPrefetch.DEFAULT_RADIUS_KM).takeIf { it in AutoPrefetch.RADIUS_OPTIONS_KM } ?: AutoPrefetch.DEFAULT_RADIUS_KM)
+        private set
+    var autoMapCellular by mutableStateOf(preferences.getBoolean("autoMapCellular", true))
+        private set
+
+    fun updateAutoMap(enabled: Boolean, radiusKm: Int, cellular: Boolean) {
+        autoMapEnabled = enabled
+        autoMapRadiusKm = radiusKm
+        autoMapCellular = cellular
+        preferences.edit().putBoolean("autoMap", enabled).putInt("autoMapRadius", radiusKm).putBoolean("autoMapCellular", cellular).apply()
     }
 
     /** Flash de l'écran dans les 100 derniers mètres avant un virage (3 ou 5 flashs), comme l'iPhone. */

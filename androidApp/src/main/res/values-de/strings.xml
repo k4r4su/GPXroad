@@ -471,7 +471,6 @@
     <string name="tuto_set_main">Wichtigste Einstellungen</string>
     <string name="tuto_set_1">Sprache: automatisch (Telefonsprache) oder festgelegt.</string>
     <string name="tuto_set_2">Ride: Trackfarbe und -stärke, Pfeile, Seite der Bedienelemente, Steigungen, Blinken, Bildschirm an.</string>
-    <string name="tuto_set_3">Karte und Kamera: Thema, Punktposition, Standard- und automatischer Zoom; Offline-Karten.</string>
     <string name="tuto_set_4">Road Book: Palette, Kurvenempfindlichkeit, Kategorien; Aufzeichnung: Dichte und Sicherungen.</string>
     <string name="tuto_set_5">Erweitert: Valhalla-Routing und Overpass-Server (optional), Server für Sperrungen.</string>
     <!-- Limitation de vitesse -->
@@ -498,4 +497,14 @@
     <!-- Zone hors ligne sur la carte -->
     <string name="offline_pick_title">Gebiet herunterladen</string>
     <string name="offline_pick_hint">Verschiebe die Karte: Der Kreis bleibt in der Mitte. Radius und Detail einstellen; die geschätzte Größe erscheint vor dem Download.</string>
+    <!-- Carte automatique autour de soi -->
+    <string name="offline_auto_title">Automatische Karte</string>
+    <string name="offline_auto_enable">Karte um mich speichern</string>
+    <string name="offline_auto_radius">Radius um mich</string>
+    <string name="offline_auto_cellular">Auch über 4G / 5G</string>
+    <string name="offline_auto_cellular_hint">Nutzt schnelle mobile Daten (kein Roaming), etwa 15 bis 30 MB pro Aktualisierung.</string>
+    <string name="offline_auto_footer">Sobald das Netz gut ist (WLAN oder 4G/5G, wenn aktiviert), lädt die App die Karte um dich und die nächsten 30 km deines Tracks im Voraus und erneuert sie unterwegs. So bleibt die Karte auch ohne Netz lesbar. Die letzten drei Gebiete bleiben erhalten.</string>
+    <string name="offline_auto_name">Automatisch · %1$s</string>
+    <!-- Tutoriel : carte automatique -->
+    <string name="tuto_set_3">Karte und Kamera: Thema, Punktposition, Standard- und automatischer Zoom. Offline-Karten: Eine „automatische“ Karte bereitet sich selbst um dich (und deinen Track) vor, sobald das Netz gut ist.</string>
 </resources>

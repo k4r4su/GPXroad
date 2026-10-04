@@ -56,6 +56,7 @@ import com.olivier.gpxroad.android.ui.SettingsGroup
 import com.olivier.gpxroad.android.ui.SettingsRow
 import com.olivier.gpxroad.android.ui.ToggleRow
 import com.olivier.gpxroad.shared.LatLon
+import com.olivier.gpxroad.shared.offline.AutoPrefetch
 import com.olivier.gpxroad.shared.recording.RecordingConstants
 import com.olivier.gpxroad.shared.recording.RecordingDensity
 import com.olivier.gpxroad.shared.roadbook.RoadbookPaletteSetting
@@ -106,6 +107,7 @@ fun SettingsScreen(
             SettingsPage.RIDE -> SubPage(stringResource(R.string.settings_ride), back) { RideSettingsSection(settings) }
             SettingsPage.MAP -> SubPage(stringResource(R.string.settings_map), back) { MapCameraSection(settings) }
             SettingsPage.OFFLINE -> SubPage(stringResource(R.string.offline_title), back) {
+                AutoMapGroup(settings)
                 SettingsGroup { GroupContent { OfflineSection(offline, position) } }
             }
             SettingsPage.GOTO -> SubPage(stringResource(R.string.tab_goto), back) { GoToSettings(settings) }
@@ -315,6 +317,22 @@ private fun CommunitySettings(sync: SharedBlockageSync) {
                 value = url, onValueChange = { url = it; sync.update(sync.shareEnabled, it) }, singleLine = true, modifier = Modifier,
                 label = { Text(stringResource(R.string.shared_server)) },
             )
+        }
+    }
+}
+
+/** Carte automatique autour de soi : activée par défaut, rayon 10/15/20 km, avec ou sans données mobiles. */
+@Composable
+private fun AutoMapGroup(settings: AppSettings) {
+    SettingsGroup(stringResource(R.string.offline_auto_title), footer = stringResource(R.string.offline_auto_footer)) {
+        ToggleRow(stringResource(R.string.offline_auto_enable), settings.autoMapEnabled) { settings.updateAutoMap(it, settings.autoMapRadiusKm, settings.autoMapCellular) }
+        if (settings.autoMapEnabled) {
+            GroupDivider(16.dp)
+            GroupContent {
+                SettingChoice(stringResource(R.string.offline_auto_radius), AutoPrefetch.RADIUS_OPTIONS_KM, settings.autoMapRadiusKm, { "$it km" }) { settings.updateAutoMap(true, it, settings.autoMapCellular) }
+            }
+            GroupDivider(16.dp)
+            ToggleRow(stringResource(R.string.offline_auto_cellular), settings.autoMapCellular, subtitle = stringResource(R.string.offline_auto_cellular_hint)) { settings.updateAutoMap(true, settings.autoMapRadiusKm, it) }
         }
     }
 }
