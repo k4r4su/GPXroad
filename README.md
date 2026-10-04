@@ -102,7 +102,7 @@ même clé (aujourd'hui la clé de débogage ; changer de clé oblige à réinst
 
 **APK de test avec tes serveurs intégrés (privé)** : `./scripts/build-tester-apk.sh` demande les
 identifiants Valhalla et Overpass (saisie masquée, jamais écrits dans un fichier ni dans le dépôt)
-et produit `GPXroad-android-serveurs-integres.apk`, ignoré par git. Les testeurs n'ont alors rien à
+et produit `gpx-alpha-v<version> TEST android.apk`, ignoré par git. Les testeurs n'ont alors rien à
 régler ; leurs propres réglages, s'ils en font, restent prioritaires. ⚠ Tout ce qui est dans un APK
 s'extrait : à ne donner qu'à des proches de confiance, puis renouveler les mots de passe.
 

@@ -32,6 +32,7 @@ unset GPXROAD_VALHALLA_USER GPXROAD_VALHALLA_PASS GPXROAD_OVERPASS_USER GPXROAD_
 
 export JAVA_HOME="${JAVA_HOME:-/Applications/Android Studio.app/Contents/jbr/Contents/Home}"
 ./gradlew -q :androidApp:assembleRelease
-OUT="GPXroad-android-serveurs-integres.apk"
+VERSION="$(sed -n 's/.*versionName = "\(.*\)".*/\1/p' androidApp/build.gradle.kts | head -1)"
+OUT="gpx-alpha-v${VERSION} TEST android.apk"
 cp androidApp/build/outputs/apk/release/androidApp-release.apk "$OUT"
 echo "OK : $OUT (contient tes accès : ne pas publier, ne pas committer — les .apk sont ignorés par git)"
