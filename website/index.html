@@ -1,0 +1,121 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>GPXroad — Suis ta trace GPX, simplement</title>
+<meta name="description" content="GPXroad affiche une trace GPX, la suit avec un road book, et la reprend plus loin si besoin. Hors-ligne, sans compte.">
+<link rel="icon" href="icon.png">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <g id="bg">
+      <rect width="240" height="500" fill="#1b2a24"/>
+      <path d="M-10 120 L250 90 M-10 330 L250 370 M60 -10 L90 510 M180 -10 L150 510" stroke="#27382f" stroke-width="9" fill="none"/>
+      <path d="M-10 220 C80 240 140 180 250 210" stroke="#2f4338" stroke-width="5" fill="none"/>
+      <circle cx="200" cy="400" r="40" fill="#1f3a40"/>
+    </g>
+    <path id="trace" d="M30 470 C70 440 120 440 120 390 S60 330 100 280 S190 250 170 190 S120 110 160 40" fill="none" stroke="#ff5a24" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>
+  </defs>
+</svg>
+
+<nav><div class="wrap">
+  <a class="brand" href="#"><img src="icon.png" alt="">GPXroad</a>
+  <ul><li><a href="#comment">Comment ça marche</a></li><li><a href="#fonctions">Fonctions</a></li><li><a href="#telecharger">Télécharger</a></li></ul>
+  <a class="btn small" href="#telecharger">Télécharger</a>
+</div></nav>
+
+<header class="wrap hero">
+  <div>
+    <div class="eyebrow">Moto · vélo · rando</div>
+    <h1>Ta trace GPX.<br><em>Simplement.</em></h1>
+    <p class="lead">Charge une trace, suis-la avec un road book clair, reprends-la plus loin si tu t'arrêtes. Hors-ligne, sans compte.</p>
+    <div class="cta">
+      <a class="btn" href="#telecharger"> Télécharger l'app</a>
+      <a class="btn ghost" href="#comment">Voir comment ça marche</a>
+    </div>
+    <p class="note">iPhone aujourd'hui · Android bientôt</p>
+  </div>
+
+  <div class="phone big"><div class="screen">
+    <svg class="map" viewBox="0 0 240 500" preserveAspectRatio="xMidYMid slice"><use href="#bg"/><use href="#trace"/><circle cx="120" cy="390" r="9" fill="#2f8cff" stroke="#fff" stroke-width="3"/></svg>
+    <div class="banner"><div class="ic">↰</div><div><strong>Virage à gauche</strong><span>dans 300 m</span></div></div>
+    <div class="ctrl"><i>＋</i><i>−</i></div>
+    <div class="speed"><b>62</b>km/h</div>
+    <div class="tabbar"><b>Ride</b><span>Aller à</span><span>Road Book</span><span>Biblio</span></div>
+  </div></div>
+</header>
+
+<div class="quote"><div class="wrap"><p>« Afficher une trace de façon simple, pouvoir la suivre, la reprendre plus loin si besoin. »</p></div></div>
+
+<section id="comment"><div class="wrap">
+  <h2>Prête en 3 écrans</h2>
+  <p class="sub">Pas de compte, pas de configuration. Tu importes, tu roules.</p>
+  <div class="steps">
+
+    <div class="step"><div class="n">1</div><h3>Importe ta trace</h3><p>Depuis Fichiers, Mail ou Safari. Un tap sur la trace pour l'activer.</p>
+      <div class="phone"><div class="screen"><div class="lib">
+        <h4>Bibliothèque</h4>
+        <div class="row act"><div class="thumb">🏍️</div><div><strong>Vosges – Route des crêtes</strong><span>142 km · 03.10.2026</span></div><div class="ck">✓</div></div>
+        <div class="row"><div class="thumb">🚲</div><div><strong>Tour du lac</strong><span>38 km · 21.09.2026</span></div></div>
+        <div class="row"><div class="thumb">🥾</div><div><strong>Boucle du Ballon</strong><span>14 km · 02.09.2026</span></div></div>
+        <div class="row"><div class="thumb">🏍️</div><div><strong>Sortie Jura</strong><span>96 km · 15.08.2026</span></div></div>
+        <span class="imp">＋ Importer un GPX</span>
+      </div><div class="tabbar"><span>Ride</span><span>Aller à</span><span>Road Book</span><b>Biblio</b></div></div></div>
+    </div>
+
+    <div class="step"><div class="n">2</div><h3>Suis la carte</h3><p>Ta position, ta trace, le prochain virage annoncé à l'avance.</p>
+      <div class="phone"><div class="screen">
+        <svg class="map" viewBox="0 0 240 500" preserveAspectRatio="xMidYMid slice"><use href="#bg"/><use href="#trace"/><circle cx="100" cy="280" r="9" fill="#2f8cff" stroke="#fff" stroke-width="3"/></svg>
+        <div class="banner"><div class="ic">↱</div><div><strong>Droite serrée</strong><span>dans 150 m</span></div></div>
+        <div class="ctrl"><i>＋</i><i>−</i></div>
+        <div class="speed"><b>48</b>km/h</div>
+        <div class="tabbar"><b>Ride</b><span>Aller à</span><span>Road Book</span><span>Biblio</span></div>
+      </div></div>
+    </div>
+
+    <div class="step"><div class="n">3</div><h3>Lis le Road Book</h3><p>Comme un road book de rallye : directions, ronds-points, repères visibles.</p>
+      <div class="phone"><div class="screen"><div class="rb">
+        <h4>Road Book</h4>
+        <div class="focus"><div class="ic">⟳</div><div><strong>Rond-point · 2ᵉ sortie</strong>→ D 419 · 400 m</div></div>
+        <div class="step-row"><div class="ic">⛪</div>Église Saint-Martin<em>1,2 km</em></div>
+        <div class="step-row"><div class="ic">↰</div>Gauche<em>2,1 km</em></div>
+        <div class="step-row"><div class="ic">⛽</div>Station-service<em>3,4 km</em></div>
+        <div class="step-row"><div class="ic">↗</div>Légèrement à droite<em>5,0 km</em></div>
+        <div class="step-row"><div class="ic">🌉</div>Pont<em>6,3 km</em></div>
+      </div><div class="tabbar" style="background:#1c1a16"><span>Ride</span><span>Aller à</span><b>Road Book</b><span>Biblio</span></div></div></div>
+    </div>
+
+  </div>
+</div></section>
+
+<section id="fonctions" class="alt"><div class="wrap">
+  <h2>Tout ce qu'il faut, rien de plus</h2>
+  <p class="sub">Chaque fonction sert une seule idée : suivre ta trace sans te perdre.</p>
+  <div class="grid">
+    <div class="card"><div class="e">🧭</div><h3>Une trace jamais modifiée</h3><p>Ton fichier GPX n'est jamais recalculé ni réécrit. Un détour se dessine à côté, jamais à sa place.</p></div>
+    <div class="card"><div class="e">📖</div><h3>Road Book clair</h3><p>Uniquement les vrais carrefours, des ronds-points dessinés avec leur numéro de sortie, et des repères que tu vois vraiment. Export PDF.</p></div>
+    <div class="card"><div class="e">↩️</div><h3>Reprends plus loin</h3><p>Tu t'es écarté ? L'app te ramène sur la trace, ou tu reprends le guidage depuis n'importe quel point.</p></div>
+    <div class="card"><div class="e">📶</div><h3>Hors-ligne d'abord</h3><p>Les cartes se téléchargent avant le départ, autour de la trace ou d'une zone choisie. Plus besoin de réseau.</p></div>
+    <div class="card"><div class="e">⏺️</div><h3>Enregistre ta sortie</h3><p>Écran verrouillé ou autre app ouverte, l'enregistrement continue. Export GPX en fin de sortie.</p></div>
+    <div class="card"><div class="e">🌍</div><h3>5 langues</h3><p>Français, anglais, allemand, espagnol, italien. Sans compte, sans cloud, sans pub.</p></div>
+  </div>
+</div></section>
+
+<section id="telecharger" class="final"><div class="wrap">
+  <img src="icon.png" alt="Icône GPXroad">
+  <h2 style="margin-top:24px">Prêt à rouler ?</h2>
+  <p class="sub">Télécharge GPXroad et charge ta première trace en moins d'une minute.</p>
+  <div class="cta">
+    <a class="store" href="#" onclick="alert('Bientôt disponible : l\'app n\'est pas encore en ligne.');return false"><span style="font-size:26px"></span><span><small>Télécharger dans</small>l'App Store</span></a>
+    <a class="store dark" href="#" onclick="alert('Version Android à venir.');return false"><span style="font-size:22px">▶</span><span><small>Bientôt sur</small>Google Play</span></a>
+  </div>
+  <p class="note">Liens fictifs pour le moment — l'app n'est pas encore publiée.</p>
+</div></section>
+
+<footer><div class="wrap"><span>© 2026 GPXroad</span><span>Fait pour suivre une trace, pas pour vous suivre.</span></div></footer>
+</body>
+</html>
