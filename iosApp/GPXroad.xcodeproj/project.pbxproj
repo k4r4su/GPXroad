@@ -140,6 +140,7 @@
 		7913EA625350785A03790B2F /* RoadbookPDFExporter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 14AD0A22F8D024903F92CF24 /* RoadbookPDFExporter.swift */; };
 		7959B64C431D491829DFE3D5 /* EndRideView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2800697665F5F35600EAF31A /* EndRideView.swift */; };
 		7BC0B909F1ADF449FE7BBC3C /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 357B05C5F5A118A75E3661E0 /* Assets.xcassets */; };
+		7C2BAF9B15230E6AFD5D05C6 /* AutoMapTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = FE421E9BAF499CF82C441476 /* AutoMapTests.swift */; };
 		7CFF37FF168C1E73BF4AD49C /* RoadbookPanelView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3EE4F13F1A93564034CC6E5B /* RoadbookPanelView.swift */; };
 		7D1DE8F21D5C915AEAC3BDA8 /* RideStopButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1F1A4F73B5D0AF0B6E253DD /* RideStopButton.swift */; };
 		7E7D115DE5ECDB79EB14131A /* RoadbookLandmarkProgressView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 02365B90792E809A5FA9F4E5 /* RoadbookLandmarkProgressView.swift */; };
@@ -217,8 +218,10 @@
 		B19000DB1633600E95A7CDB6 /* DestinationSearchTabView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B3B159AEF87743AB05F46103 /* DestinationSearchTabView.swift */; };
 		B1CFF0414CFB9B8F27441029 /* TrackProjectorNearestPointTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 917A8DDCEE6E8F952B74F551 /* TrackProjectorNearestPointTests.swift */; };
 		B27F4AE0C990B828CAF025F5 /* SplashScreenView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11FA2098D27270E5E17871A6 /* SplashScreenView.swift */; };
+		B3A6B8B0B123F4BB76105EC1 /* AutoMapPolicy.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4B6BB589ED4CA61D1992B43D /* AutoMapPolicy.swift */; };
 		B3AA01F90AC4BC958B03C823 /* RideStatsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 64F6631207EC41EB9F6DA4D4 /* RideStatsView.swift */; };
 		B4CFE642E06D0A440ABDEA5B /* MapLibreBootstrap.swift in Sources */ = {isa = PBXBuildFile; fileRef = D2CD1FC574FA31C8B8AD1F93 /* MapLibreBootstrap.swift */; };
+		B60539FB834C4143FAA275E3 /* AutoMapPrefetcher.swift in Sources */ = {isa = PBXBuildFile; fileRef = CDF04CDC2508D87BE962F949 /* AutoMapPrefetcher.swift */; };
 		BDB7FF1BDE07E428F96CB475 /* ValhallaPolylineTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = E68D9B20D5B678A58E93A915 /* ValhallaPolylineTests.swift */; };
 		BE5ADEFFB91A0BD436DA192A /* CircleRegionPickerMapView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A0CFEB6403F50475AAAA55B /* CircleRegionPickerMapView.swift */; };
 		BEBC9F62EFD0B0360A0E0CC2 /* AppVersion.swift in Sources */ = {isa = PBXBuildFile; fileRef = 14F0C8B5A048CCCB7C5CBA92 /* AppVersion.swift */; };
@@ -396,6 +399,7 @@
 		42F0B5B9254EC909CAFCED24 /* RoadbookOffTrack.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RoadbookOffTrack.swift; sourceTree = "<group>"; };
 		4510CA09761442C2BFEAD5AD /* AppNavigationStateTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppNavigationStateTests.swift; sourceTree = "<group>"; };
 		47D0A9B48E9F3341378CFB16 /* LibraryStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LibraryStore.swift; sourceTree = "<group>"; };
+		4B6BB589ED4CA61D1992B43D /* AutoMapPolicy.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AutoMapPolicy.swift; sourceTree = "<group>"; };
 		4B99633D4161FC10A3CFAFD7 /* TileCoordinate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TileCoordinate.swift; sourceTree = "<group>"; };
 		4E049DDC4FFB46AC0A5817DA /* RideConstants.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RideConstants.swift; sourceTree = "<group>"; };
 		4E60726DB0828BBDC98461D8 /* RoadbookReadingMode.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RoadbookReadingMode.swift; sourceTree = "<group>"; };
@@ -546,6 +550,7 @@
 		CAEE8645C4EC4FD533805A57 /* TrackDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrackDetailView.swift; sourceTree = "<group>"; };
 		CD387F3F1FCA40970C341D24 /* RoadbookTierTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RoadbookTierTests.swift; sourceTree = "<group>"; };
 		CD9E59F93C784C690D5CDC23 /* DirectionChevronComputerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DirectionChevronComputerTests.swift; sourceTree = "<group>"; };
+		CDF04CDC2508D87BE962F949 /* AutoMapPrefetcher.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AutoMapPrefetcher.swift; sourceTree = "<group>"; };
 		CE06EBB3AF63493B141E08BF /* FlashOverlayView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FlashOverlayView.swift; sourceTree = "<group>"; };
 		CED0A2E7437FD66D92563F7F /* MapLoadStatus.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MapLoadStatus.swift; sourceTree = "<group>"; };
 		CFE18E19447CAB1FA5C19029 /* RoadbookInflectionTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RoadbookInflectionTests.swift; sourceTree = "<group>"; };
@@ -594,6 +599,7 @@
 		F956E77BD93CE50FF1D34E4C /* DistanceCountdownTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DistanceCountdownTests.swift; sourceTree = "<group>"; };
 		FC81EB4497A26B4524E4D298 /* GuidanceTargetTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GuidanceTargetTests.swift; sourceTree = "<group>"; };
 		FE3F51CB8F7ABD2A6F2A0EB8 /* NavRoute.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NavRoute.swift; sourceTree = "<group>"; };
+		FE421E9BAF499CF82C441476 /* AutoMapTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AutoMapTests.swift; sourceTree = "<group>"; };
 		FEB1438595F78BBD8C0C39C4 /* RegionDownloadView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RegionDownloadView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -814,6 +820,8 @@
 		AFA2EEBB48D3FF9C9F3C9C13 /* Offline */ = {
 			isa = PBXGroup;
 			children = (
+				4B6BB589ED4CA61D1992B43D /* AutoMapPolicy.swift */,
+				CDF04CDC2508D87BE962F949 /* AutoMapPrefetcher.swift */,
 				9A0CFEB6403F50475AAAA55B /* CircleRegionPickerMapView.swift */,
 				75F75787CA5C9A67BD00A615 /* CircleRegionPickerView.swift */,
 				6E858D9691013517E14EE997 /* CorridorPrecacheEstimator.swift */,
@@ -874,6 +882,7 @@
 			children = (
 				4510CA09761442C2BFEAD5AD /* AppNavigationStateTests.swift */,
 				AE52AAE1383D907EF411F367 /* AppVersionTests.swift */,
+				FE421E9BAF499CF82C441476 /* AutoMapTests.swift */,
 				D63ED4559F5CBDE97BAFD3E1 /* AutoRecomputeTests.swift */,
 				C5A08499A9DF8FFDA26D86CC /* ColorFlavorPatcherTests.swift */,
 				22E69090C32D246E20376157 /* DebugReplayDriverTests.swift */,
@@ -1210,6 +1219,8 @@
 				1B0588C92B2124E6E1CDE44E /* AppLanguage.swift in Sources */,
 				8C64996D1BC428AF666C5DBC /* AppNavigationState.swift in Sources */,
 				BEBC9F62EFD0B0360A0E0CC2 /* AppVersion.swift in Sources */,
+				B3A6B8B0B123F4BB76105EC1 /* AutoMapPolicy.swift in Sources */,
+				B60539FB834C4143FAA275E3 /* AutoMapPrefetcher.swift in Sources */,
 				CD6DC9E7F139966392063D17 /* BlockageLogStore.swift in Sources */,
 				9709B95E760E34F98FD128E9 /* BlockedPathBannerView.swift in Sources */,
 				FA8A3992626FC8725F335471 /* CameraPreviewMapView.swift in Sources */,
@@ -1394,6 +1405,7 @@
 			files = (
 				247F149A714CD0F5D51E4C85 /* AppNavigationStateTests.swift in Sources */,
 				AAB25FFF40A4550CACBE583D /* AppVersionTests.swift in Sources */,
+				7C2BAF9B15230E6AFD5D05C6 /* AutoMapTests.swift in Sources */,
 				2FA5B5B85AF3C6DC3C6969D9 /* AutoRecomputeTests.swift in Sources */,
 				484C9FD374DED11B412A29BC /* ColorFlavorPatcherTests.swift in Sources */,
 				DCFE3BA4F2DC28E4E98704A1 /* DebugReplayDriverTests.swift in Sources */,

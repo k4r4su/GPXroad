@@ -31,6 +31,27 @@ struct RegionDownloadView: View {
 
     var body: some View {
         List {
+            // Carte automatique (04/10) : même réglage qu'Android (Réglages > Cartes hors ligne > Carte automatique).
+            Section {
+                Toggle("Garder la carte autour de moi", isOn: $settings.autoMapEnabled)
+                if settings.autoMapEnabled {
+                    Picker("Rayon autour de moi", selection: $settings.autoMapRadiusKm) {
+                        ForEach(AutoMapConstants.radiusOptionsKm, id: \.self) { km in
+                            Text("\(km) km").tag(km)
+                        }
+                    }
+                    .pickerStyle(.segmented)
+                    Toggle("Aussi en 4G / 5G", isOn: $settings.autoMapCellular)
+                    Text("Utilise des données mobiles rapides, environ 15 à 30 Mo par renouvellement.")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+            } header: {
+                Text("Carte automatique")
+            } footer: {
+                Text("Dès que le réseau est bon (Wi-Fi, ou 4G/5G si coché), l'app télécharge la carte autour de toi et les 30 prochains km de ta trace, puis la renouvelle en roulant. Tu gardes une carte lisible même sans réseau. Les trois dernières zones sont gardées.")
+            }
+
             Section("Nouvelle zone") {
                 Text("Thème actif : \(settings.mapThemePreset.label)")
                     .font(.caption)

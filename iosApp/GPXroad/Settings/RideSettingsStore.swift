@@ -39,6 +39,9 @@ final class RideSettingsStore: ObservableObject {
         static let autoZoomMinMeters = "settings.autoZoomMinMeters"
         static let autoZoomMaxMeters = "settings.autoZoomMaxMeters"
         static let slopeWarningsEnabled = "settings.slopeWarningsEnabled"
+        static let autoMapEnabled = "settings.autoMapEnabled"
+        static let autoMapRadiusKm = "settings.autoMapRadiusKm"
+        static let autoMapCellular = "settings.autoMapCellular"
         static let slopeWarningThresholdPercent = "settings.slopeWarningThresholdPercent"
         static let valhallaEnabled = "settings.valhallaEnabled"
         static let valhallaEndpointURLString = "settings.valhallaEndpointURLString"
@@ -243,6 +246,18 @@ final class RideSettingsStore: ObservableObject {
         didSet { defaults.set(slopeWarningThresholdPercent, forKey: Keys.slopeWarningThresholdPercent) }
     }
 
+    /// Carte automatique autour de soi (retour terrain du 04/10 : zone sans réseau, carte illisible) —
+    /// activée par défaut ; rayon 10/15/20 km ; avec ou sans données mobiles. Même réglage qu'Android.
+    @Published var autoMapEnabled: Bool {
+        didSet { defaults.set(autoMapEnabled, forKey: Keys.autoMapEnabled) }
+    }
+    @Published var autoMapRadiusKm: Int {
+        didSet { defaults.set(autoMapRadiusKm, forKey: Keys.autoMapRadiusKm) }
+    }
+    @Published var autoMapCellular: Bool {
+        didSet { defaults.set(autoMapCellular, forKey: Keys.autoMapCellular) }
+    }
+
     /// Spec "valhalla-client-toggle" (it19) : désactivé par défaut (demande explicite) — tant
     /// que faux, `DetourRoutingService` n'appelle jamais Valhalla (voir
     /// `RideSessionManager.currentValhallaConfiguration`, `nil` si désactivé).
@@ -404,6 +419,10 @@ final class RideSettingsStore: ObservableObject {
         autoZoomMaxMeters = storedMax.map { min(max($0, boundsRange.lowerBound), boundsRange.upperBound) }
             ?? RideConstants.autoZoomMaxMetersDefault
 
+        autoMapEnabled = defaults.object(forKey: Keys.autoMapEnabled) == nil ? true : defaults.bool(forKey: Keys.autoMapEnabled)
+        let storedAutoMapRadius = defaults.integer(forKey: Keys.autoMapRadiusKm)
+        autoMapRadiusKm = AutoMapConstants.radiusOptionsKm.contains(storedAutoMapRadius) ? storedAutoMapRadius : AutoMapConstants.defaultRadiusKm
+        autoMapCellular = defaults.object(forKey: Keys.autoMapCellular) == nil ? true : defaults.bool(forKey: Keys.autoMapCellular)
         slopeWarningsEnabled = defaults.object(forKey: Keys.slopeWarningsEnabled) == nil
             ? true : defaults.bool(forKey: Keys.slopeWarningsEnabled)
         let storedSlopeThreshold = defaults.double(forKey: Keys.slopeWarningThresholdPercent)

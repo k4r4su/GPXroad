@@ -23,6 +23,7 @@ enum MapSourceResolver {
     static func resolve(
         activeVectorPackageFileURL: URL?,
         isNetworkReachable: Bool,
+        hasOfflineVectorCoverage: Bool = false,
         themePreset: MapThemePreset,
         fileExists: (URL) -> Bool = { FileManager.default.fileExists(atPath: $0.path) }
     ) -> MapSourceSelection {
@@ -32,7 +33,9 @@ enum MapSourceResolver {
         if let fileURL = activeVectorPackageFileURL, fileExists(fileURL) {
             return .vectorLocal(fileURL: fileURL, flavor: flavor)
         }
-        if isNetworkReachable {
+        // Carte automatique (04/10) : hors réseau mais dans une zone déjà téléchargée, on garde le vectoriel (net)
+        // plutôt que le raster flou.
+        if isNetworkReachable || hasOfflineVectorCoverage {
             return .vectorHosted(flavor: flavor)
         }
         return .raster(TileSource.active(for: themePreset))

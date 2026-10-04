@@ -143,6 +143,7 @@ enum TutorialContent {
                     String(localized: "Roadbook : sensibilité de détection des virages ; Repères du Road Book : catégories affichées.", bundle: .appLanguage),
                     String(localized: "Carte et Apparence : orientation, thème, unité de vitesse, trace, position des contrôles, palette du Road Book.", bundle: .appLanguage),
                     String(localized: "Enregistrement de la sortie : densité des points et nombre de sauvegardes de secours conservées.", bundle: .appLanguage),
+                    String(localized: "Cartes hors-ligne (Bibliothèque) : une carte « automatique » se prépare toute seule autour de toi (et de ta trace) dès que le réseau est bon.", bundle: .appLanguage),
                     String(localized: "Avancé : routage Valhalla (optionnel).", bundle: .appLanguage),
                 ]),
             ]

@@ -73,7 +73,15 @@ temps, la version iOS est vraiment correcte mais l'Android c'est une catastrophe
       Règle partagée `shared/offline/AutoPrefetch` (testée). Vérifié sur l'émulateur : zone créée au
       lancement (22 Mo). Non testé : renouvellement après déplacement (délai de 10 min) et passage
       réel de la 4G à une zone sans réseau — à valider en roulant. Android 0.0.36.
-  - [ ] iOS : même fonction à porter (cache de tuiles iOS, `Offline/`) — pas demandé pour l'instant.
+  - [x] iOS : même fonction (04/10, là où le défaut a été vu) — `Offline/AutoMapPrefetcher` (paquets hors ligne MapLibre,
+        style Liberty OpenFreeMap, mêmes règles `shared/offline/AutoPrefetch`), `AutoMapNetworkPolicy` (Wi-Fi, ou
+        4G/LTE/5G si permis, jamais en économie de données ; iOS ne donne pas l'itinérance, écart assumé), réglages
+        dans Biblio > Cartes hors-ligne, et `MapSourceResolver` garde le style VECTORIEL hors réseau dans une zone
+        préparée (avant : retour au raster flou, cause probable du défaut vu sur iPhone). iOS 0.0.36 = Android 0.0.36.
+        Vérifié au simulateur : paquet créé au premier fix (297 ressources, ~6,5 Mo). Non vérifié : renouvellement
+        en roulant, coupure réseau réelle — à valider sur le terrain.
+  - Estimation boucle de 200 km (calculée sur une trace réelle de 151 km, rayon 15 km) : ~70 à 110 Mo au total
+    (Android, mesure prudente) ; ~30 Mo mesurés côté iOS. Rayon 10 km : ~55 %, 20 km : ~135 % de ces valeurs.
 - [ ] Reste : avis du propriétaire sur la tablette (installée le 01/10), puis captures côte à côte
       iOS / Android pour les derniers écarts.
 - [ ] Validation par captures côte à côte iOS / Android sur tablette et téléphone.

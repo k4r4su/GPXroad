@@ -13,6 +13,7 @@ struct RideView: View {
     @EnvironmentObject private var trackRideSettings: TrackRideSettingsStore
     @EnvironmentObject private var vectorPackages: VectorPackageStore
     @EnvironmentObject private var networkMonitor: NetworkMonitor
+    @EnvironmentObject private var autoMap: AutoMapPrefetcher
     /// Enregistrement de la sortie (it30) : service applicatif, jamais arrêté par cette vue.
     @EnvironmentObject private var recorder: RideRecorder
     @State private var showDetourConfirmation = false
@@ -60,6 +61,7 @@ struct RideView: View {
         MapSourceResolver.resolve(
             activeVectorPackageFileURL: vectorPackages.activeFileURL,
             isNetworkReachable: networkMonitor.isReachable,
+            hasOfflineVectorCoverage: autoMap.coversPosition,
             themePreset: settings.mapThemePreset
         )
     }
@@ -768,6 +770,11 @@ struct RideView: View {
         }
         // Spec "link-recompute-on-divergence" (it18, Bloc 3) : "notification silencieuse
         // Recalcul brève, pas de bannière permanente" — même mécanisme toast que Pause/Stop.
+        // Carte automatique : à chaque position, regarde s'il faut préparer la carte autour (voir AutoMapPrefetcher).
+        .onChange(of: session.currentLocation) { location in
+            guard let location else { return }
+            autoMap.update(location: location, track: library.activeTrack, settings: settings, network: networkMonitor)
+        }
         .onChange(of: session.autoRecomputeToastToken) { _ in
             toastMessage = "Recalcul"
         }

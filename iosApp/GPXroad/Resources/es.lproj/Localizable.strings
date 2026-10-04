@@ -676,3 +676,10 @@
 "Le numéro de sortie compte les routes signalées, pas les accès de parking ni les chemins (dessinés en trait fin) ; il n'est affiché que s'il est sûr." = "El número de salida cuenta las carreteras señalizadas, no los accesos a aparcamientos ni los caminos (dibujados con trazo fino); solo se muestra si es seguro.";
 "La route de sortie est indiquée (→ D 419) ; deux ronds-points rapprochés sont annoncés ensemble (« puis 1re sortie »)." = "Se indica la carretera de salida (→ D 419); dos rotondas cercanas se anuncian juntas («luego 1.ª salida»).";
 "Exception : un repère de décor (église, pont, station…) suivi de près par un virage laisse la grande carte au virage, et s'affiche en dessous." = "Excepción: un punto de referencia del paisaje (iglesia, puente, gasolinera…) seguido de cerca por una curva cede la tarjeta grande a la curva y se muestra debajo.";
+"Garder la carte autour de moi" = "Mantener el mapa a mi alrededor";
+"Rayon autour de moi" = "Radio a mi alrededor";
+"Aussi en 4G / 5G" = "También en 4G / 5G";
+"Utilise des données mobiles rapides, environ 15 à 30 Mo par renouvellement." = "Usa datos móviles rápidos, unos 15 a 30 MB por actualización.";
+"Carte automatique" = "Mapa automático";
+"Dès que le réseau est bon (Wi-Fi, ou 4G/5G si coché), l'app télécharge la carte autour de toi et les 30 prochains km de ta trace, puis la renouvelle en roulant. Tu gardes une carte lisible même sans réseau. Les trois dernières zones sont gardées." = "En cuanto la red es buena (Wi-Fi, o 4G/5G si está marcado), la app descarga el mapa a tu alrededor y los próximos 30 km de tu ruta, y lo renueva mientras conduces. Conservas un mapa legible incluso sin red. Se conservan las tres últimas zonas.";
+"Cartes hors-ligne (Bibliothèque) : une carte « automatique » se prépare toute seule autour de toi (et de ta trace) dès que le réseau est bon." = "Mapas sin conexión (Biblioteca): un mapa «automático» se prepara solo a tu alrededor (y de tu ruta) en cuanto la red es buena.";

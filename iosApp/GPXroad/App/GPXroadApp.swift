@@ -21,6 +21,7 @@ struct GPXroadApp: App {
     @StateObject private var sharedBlockages: SharedBlockageSyncCoordinator
     @StateObject private var trackRideSettings = TrackRideSettingsStore()
     @StateObject private var vectorPackages = VectorPackageStore()
+    @StateObject private var autoMap = AutoMapPrefetcher()
     /// Enregistrement de la sortie (it30) : service applicatif, vit aussi longtemps que l'app,
     /// jamais lié à un écran.
     @StateObject private var rideRecorder: RideRecorder
@@ -80,6 +81,7 @@ struct GPXroadApp: App {
                     .environmentObject(sharedBlockages)
                     .environmentObject(trackRideSettings)
                     .environmentObject(vectorPackages)
+                    .environmentObject(autoMap)
                     .environmentObject(rideRecorder)
                     // It31 : langue choisie (formats de date/nombre) ; la vue racine est
                     // reconstruite quand elle change, pour que tous les textes suivent en direct.

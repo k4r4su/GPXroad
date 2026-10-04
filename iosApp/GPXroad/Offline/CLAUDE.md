@@ -4,6 +4,16 @@ Chargé automatiquement quand une session travaille sous `GPXroad/Offline/`. Le 
 du contexte projet (philosophie, règles absolues, conventions) reste dans le CLAUDE.md
 racine — ce fichier ne documente que ce qui est spécifique à ce dossier.
 
+## Carte automatique autour de soi (04/10, parité Android)
+
+`AutoMapPrefetcher` (environnement, créé par `GPXroadApp`, appelé par `RideView` à chaque position) :
+paquets `MLNOfflineStorage` du style Liberty publié par OpenFreeMap (le téléchargeur n'accepte pas le style
+embarqué ; mêmes adresses de tuiles/glyphes/icônes, donc le style embarqué les relit), disque 10/15/20 km +
+30 km de trace devant (niveaux 5-14). Règles (renouvellement au tiers du rayon, 10 min, 3 zones, couloir ±1 km)
+= `shared/offline/AutoPrefetch`, JAMAIS redéfinies ici ; les paquets automatiques se reconnaissent à leur
+contexte JSON (`auto`). Hors réseau dans une zone terminée, `MapSourceResolver` garde le vectoriel
+(`hasOfflineVectorCoverage`) : sinon le raster flou revenait. Toute modification se fait des DEUX côtés.
+
 ## Source satellite : tentée puis retirée (spec "satellite-sentinel2" it22, chore
 ## "remove-satellite" it22bis)
 
