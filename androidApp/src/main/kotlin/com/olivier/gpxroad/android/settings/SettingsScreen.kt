@@ -297,6 +297,9 @@ private fun RecordingSettings(settings: AppSettings) {
             )
         }
     }
+    SettingsGroup(footer = stringResource(R.string.settings_record_prompt_hint)) {
+        ToggleRow(stringResource(R.string.settings_record_prompt), settings.recordingPromptEnabled, onChange = settings::updateRecordingPromptEnabled)
+    }
     SettingsGroup(footer = stringResource(R.string.settings_unsaved_footer)) {
         GroupContent {
             SettingChoice(stringResource(R.string.settings_unsaved_retention), RecordingConstants.UNSAVED_RETENTION_OPTIONS, settings.unsavedRetention, { "$it" }, settings::updateUnsavedRetention)

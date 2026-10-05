@@ -64,6 +64,8 @@ temps, la version iOS est vraiment correcte mais l'Android c'est une catastrophe
       Corrigé : saisie via le terminal, variables exportées, build annulé si la valeur est vide,
       vérification de la valeur dans l'APK avant de le copier (longueur seulement, jamais le contenu).
       Testé avec des valeurs fictives (bash et zsh).
+- [x] Réglage « Proposer d'enregistrer au départ » (06/10, retour terrain : le popup revenait à chaque lancement) —
+      interrupteur activé par défaut, iOS (Réglages > Enregistrement de la sortie) ET Android (même page). Version 0.0.37.
 - [x] Carte automatique autour de soi (04/10, retour terrain : zone sans réseau, carte illisible parce que
       rien n'avait été téléchargé) : dès que le réseau est bon (Wi-Fi, ou 4G/5G hors itinérance avec un
       débit estimé ≥ 5 Mbit/s, réglable), l'app télécharge le disque de 10/15/20 km autour de la position

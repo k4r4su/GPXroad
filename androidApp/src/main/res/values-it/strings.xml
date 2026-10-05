@@ -507,4 +507,6 @@
     <string name="offline_auto_name">Automatica · %1$s</string>
     <!-- Tutoriel : carte automatique -->
     <string name="tuto_set_3">Mappa e fotocamera: tema, posizione del punto, zoom predefinito e automatico. Mappe offline: una mappa «automatica» si prepara da sola intorno a te (e alla traccia) appena la rete è buona.</string>
+    <string name="settings_record_prompt">Proponi di registrare alla partenza</string>
+    <string name="settings_record_prompt_hint">Disattivato: nessuna domanda all\'inizio della traccia; il pulsante Registra resta disponibile.</string>
 </resources>

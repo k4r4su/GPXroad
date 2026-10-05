@@ -410,7 +410,7 @@ fun RideScreen(
         FlashOverlay(flashToken, settings.flashCount)
         if (finishing) EndRideDialog(recorder, library, track?.entry?.name) { finishing = false }
         // Premier suivi d'une trace : « Enregistrer cette sortie ? » (une fois par trace et par lancement).
-        if (granted && track != null) RecordingPrompt(recorder, track.entry.id)
+        if (granted && track != null && settings.recordingPromptEnabled) RecordingPrompt(recorder, track.entry.id)
     }
 }
 

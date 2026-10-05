@@ -509,4 +509,6 @@
     <string name="offline_auto_name">Automatique · %1$s</string>
     <!-- Tutoriel : carte automatique -->
     <string name="tuto_set_3">Carte et caméra : thème, position du point, zoom par défaut et automatique. Cartes hors ligne : une carte « automatique » se prépare toute seule autour de toi (et de ta trace) dès que le réseau est bon.</string>
+    <string name="settings_record_prompt">Proposer d\'enregistrer au départ</string>
+    <string name="settings_record_prompt_hint">Désactivé : plus de question au début de la trace ; le bouton Enregistrer reste disponible.</string>
 </resources>

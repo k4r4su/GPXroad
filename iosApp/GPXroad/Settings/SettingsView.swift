@@ -254,6 +254,12 @@ struct SettingsView: View {
                     Text("\(settings.recordingDensityPreset.detail). Un enregistrement plus léger produit un fichier GPX exporté plus petit, mais moins fidèle au tracé réel.")
                 }
 
+                Section {
+                    Toggle("Proposer d'enregistrer au départ", isOn: $settings.recordingPromptEnabled)
+                } footer: {
+                    Text("Désactivé : plus de question au début de la trace ; le bouton Enregistrer reste disponible.")
+                }
+
                 // Spec "unsaved-ride-recovery" (it19, retour terrain "cleanup au bout de 10 ou
                 // 20 traces, réglable") — nombre de sauvegardes de secours conservées dans
                 // Biblio > "Sorties non enregistrées" avant purge automatique des plus anciennes.

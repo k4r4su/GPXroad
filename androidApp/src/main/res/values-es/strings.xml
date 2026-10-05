@@ -507,4 +507,6 @@
     <string name="offline_auto_name">Automático · %1$s</string>
     <!-- Tutoriel : carte automatique -->
     <string name="tuto_set_3">Mapa y cámara: tema, posición del punto, zoom por defecto y automático. Mapas sin conexión: un mapa «automático» se prepara solo a tu alrededor (y de tu ruta) en cuanto la red es buena.</string>
+    <string name="settings_record_prompt">Proponer grabar al empezar</string>
+    <string name="settings_record_prompt_hint">Desactivado: sin pregunta al empezar la ruta; el botón Grabar sigue disponible.</string>
 </resources>

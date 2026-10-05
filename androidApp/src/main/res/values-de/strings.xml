@@ -507,4 +507,6 @@
     <string name="offline_auto_name">Automatisch · %1$s</string>
     <!-- Tutoriel : carte automatique -->
     <string name="tuto_set_3">Karte und Kamera: Thema, Punktposition, Standard- und automatischer Zoom. Offline-Karten: Eine „automatische“ Karte bereitet sich selbst um dich (und deinen Track) vor, sobald das Netz gut ist.</string>
+    <string name="settings_record_prompt">Beim Start Aufzeichnung anbieten</string>
+    <string name="settings_record_prompt_hint">Aus: keine Frage mehr beim Start des Tracks; die Aufnahme-Taste bleibt verfügbar.</string>
 </resources>

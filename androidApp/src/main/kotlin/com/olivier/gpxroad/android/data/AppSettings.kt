@@ -73,6 +73,15 @@ class AppSettings(context: Context) {
     )
         private set
 
+    /** « Enregistrer cette sortie ? » au départ d'une trace (désactivable, comme l'iPhone). */
+    var recordingPromptEnabled by mutableStateOf(preferences.getBoolean("recordingPromptEnabled", true))
+        private set
+
+    fun updateRecordingPromptEnabled(value: Boolean) {
+        recordingPromptEnabled = value
+        preferences.edit().putBoolean("recordingPromptEnabled", value).apply()
+    }
+
     fun updateRecordingDensity(value: RecordingDensity) {
         recordingDensity = value
         preferences.edit().putString("recordingDensity", value.name).apply()

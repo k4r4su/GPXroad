@@ -39,6 +39,7 @@ final class RideSettingsStore: ObservableObject {
         static let autoZoomMinMeters = "settings.autoZoomMinMeters"
         static let autoZoomMaxMeters = "settings.autoZoomMaxMeters"
         static let slopeWarningsEnabled = "settings.slopeWarningsEnabled"
+        static let recordingPromptEnabled = "settings.recordingPromptEnabled"
         static let autoMapEnabled = "settings.autoMapEnabled"
         static let autoMapRadiusKm = "settings.autoMapRadiusKm"
         static let autoMapCellular = "settings.autoMapCellular"
@@ -248,6 +249,10 @@ final class RideSettingsStore: ObservableObject {
 
     /// Carte automatique autour de soi (retour terrain du 04/10 : zone sans réseau, carte illisible) —
     /// activée par défaut ; rayon 10/15/20 km ; avec ou sans données mobiles. Même réglage qu'Android.
+    /// « Enregistrer cette sortie ? » au départ d'une trace — désactivable (activé par défaut), comme Android.
+    @Published var recordingPromptEnabled: Bool {
+        didSet { defaults.set(recordingPromptEnabled, forKey: Keys.recordingPromptEnabled) }
+    }
     @Published var autoMapEnabled: Bool {
         didSet { defaults.set(autoMapEnabled, forKey: Keys.autoMapEnabled) }
     }
@@ -419,6 +424,7 @@ final class RideSettingsStore: ObservableObject {
         autoZoomMaxMeters = storedMax.map { min(max($0, boundsRange.lowerBound), boundsRange.upperBound) }
             ?? RideConstants.autoZoomMaxMetersDefault
 
+        recordingPromptEnabled = defaults.object(forKey: Keys.recordingPromptEnabled) == nil ? true : defaults.bool(forKey: Keys.recordingPromptEnabled)
         autoMapEnabled = defaults.object(forKey: Keys.autoMapEnabled) == nil ? true : defaults.bool(forKey: Keys.autoMapEnabled)
         let storedAutoMapRadius = defaults.integer(forKey: Keys.autoMapRadiusKm)
         autoMapRadiusKm = AutoMapConstants.radiusOptionsKm.contains(storedAutoMapRadius) ? storedAutoMapRadius : AutoMapConstants.defaultRadiusKm

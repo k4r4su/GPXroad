@@ -507,4 +507,6 @@
     <string name="offline_auto_name">Automatic · %1$s</string>
     <!-- Tutoriel : carte automatique -->
     <string name="tuto_set_3">Map and camera: theme, dot position, default and automatic zoom. Offline maps: an “automatic” map prepares itself around you (and your track) as soon as the network is good.</string>
+    <string name="settings_record_prompt">Offer to record at start</string>
+    <string name="settings_record_prompt_hint">Off: no more question when a track starts; the Record button stays available.</string>
 </resources>

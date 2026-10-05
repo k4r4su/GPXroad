@@ -683,3 +683,5 @@
 "Carte automatique" = "Automatische Karte";
 "Dès que le réseau est bon (Wi-Fi, ou 4G/5G si coché), l'app télécharge la carte autour de toi et les 30 prochains km de ta trace, puis la renouvelle en roulant. Tu gardes une carte lisible même sans réseau. Les trois dernières zones sont gardées." = "Sobald das Netz gut ist (WLAN oder 4G/5G, falls aktiviert), lädt die App die Karte um dich herum und die nächsten 30 km deines Tracks herunter und erneuert sie während der Fahrt. So bleibt die Karte auch ohne Netz lesbar. Die letzten drei Gebiete werden behalten.";
 "Cartes hors-ligne (Bibliothèque) : une carte « automatique » se prépare toute seule autour de toi (et de ta trace) dès que le réseau est bon." = "Offline-Karten (Bibliothek): Eine „automatische“ Karte bereitet sich selbst um dich (und deinen Track) vor, sobald das Netz gut ist.";
+"Proposer d'enregistrer au départ" = "Beim Start Aufzeichnung anbieten";
+"Désactivé : plus de question au début de la trace ; le bouton Enregistrer reste disponible." = "Aus: keine Frage mehr beim Start des Tracks; die Aufnahme-Taste bleibt verfügbar.";

@@ -526,7 +526,7 @@ struct RideView: View {
     @State private var showRecordingPrompt = false
 
     private func proposeRecordingIfNeeded(for trackID: UUID?) {
-        guard modeStore.mode == .trace else { return }
+        guard modeStore.mode == .trace, settings.recordingPromptEnabled else { return }
         if recorder.promptPolicy.shouldPrompt(onStartOf: trackID, recorderState: recorder.state, recordedPointCount: recorder.pointCount) {
             showRecordingPrompt = true
         }
