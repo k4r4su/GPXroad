@@ -26,6 +26,10 @@ struct RoadBookFocusRequest: Equatable {
 @MainActor
 final class AppNavigationState: ObservableObject {
     @Published var selectedTab: AppTab = .ride
+    /// Le splash (logo + version) est terminé : tant que c'est faux, aucune alerte ne doit
+    /// s'afficher par-dessus (la proposition d'enregistrement le masquait entièrement). Mis à
+    /// `true` par `GPXroadApp` à la fin du splash.
+    @Published var isSplashFinished = false
 
     init() {
         #if DEBUG

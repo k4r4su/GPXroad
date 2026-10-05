@@ -50,6 +50,7 @@ final class RideSettingsStore: ObservableObject {
         static let overpassLANEndpointURLString = OverpassConfiguration.lanEndpointDefaultsKey
         static let recordingDensityPreset = "settings.recordingDensityPreset"
         static let unsavedRideRetentionLimit = "settings.unsavedRideRetentionLimit"
+        static let recordingPromptEnabled = "settings.recordingPromptEnabled"
         static let roadbookReadingMode = "settings.roadbookReadingMode"
         static let roadbookPDFOptions = "settings.roadbookPDFOptionsJSON"
         static let roadbookPaletteSetting = "settings.roadbookPaletteSetting"
@@ -293,6 +294,13 @@ final class RideSettingsStore: ObservableObject {
         didSet { defaults.set(recordingDensityPreset.rawValue, forKey: Keys.recordingDensityPreset) }
     }
 
+    /// Proposition « Enregistrer cette sortie ? » au démarrage du suivi (it31) — activée par
+    /// défaut, désactivable dans Réglages > Enregistrement de la sortie. Le bouton Enregistrer
+    /// du Ride reste disponible dans tous les cas.
+    @Published var recordingPromptEnabled: Bool {
+        didSet { defaults.set(recordingPromptEnabled, forKey: Keys.recordingPromptEnabled) }
+    }
+
     /// Spec "unsaved-ride-recovery" (it19) : nombre de sauvegardes de secours (sorties non
     /// enregistrées) conservées avant que les plus anciennes ne soient purgées automatiquement.
     @Published var unsavedRideRetentionLimit: Int {
@@ -440,6 +448,8 @@ final class RideSettingsStore: ObservableObject {
         } else {
             recordingDensityPreset = .precis
         }
+
+        recordingPromptEnabled = defaults.object(forKey: Keys.recordingPromptEnabled) as? Bool ?? true
 
         let storedRetentionLimit = defaults.integer(forKey: Keys.unsavedRideRetentionLimit)
         unsavedRideRetentionLimit = RideConstants.unsavedRideRetentionLimitOptions.contains(storedRetentionLimit)

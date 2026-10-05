@@ -516,6 +516,9 @@ sous ce dossier) — 2D-only, fond vectoriel PMTiles, priorité MapSourceResolve
 - Proposition d'enregistrement (it31, `RecordingPromptPolicy`) : au démarrage du suivi d'une
   trace (mode trace), une seule fois par trace et par lancement, seulement si rien n'est en
   cours (état idle, 0 point). Refuser ne change rien ; le bouton Enregistrer reste le filet.
+  Depuis it37 : jamais pendant le splash (`AppNavigationState.isSplashFinished`, la question le
+  masquait entièrement ; `RideView` la déclenche à la fin du splash) et désactivable dans Réglages >
+  Enregistrement de la sortie (`RideSettingsStore.recordingPromptEnabled`, activée par défaut).
 - Fix "orphaned-active-track-id" (it19, trouvé en instrumentant un tout autre bug terrain via
   NSLog/`simctl spawn log stream` — voir méthode dans l'historique de commit) :
   `activeTrackID`/`displayedTrackIDs` (UserDefaults) et `tracks` (fichier `index.json`) sont

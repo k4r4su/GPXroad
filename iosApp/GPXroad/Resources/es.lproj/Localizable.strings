@@ -61,7 +61,7 @@
 "Assisté GPS" = "Asistido por GPS";
 "Assisté GPS : le prochain élément en grand, avec la distance qui diminue, puis la liste de ce qui suit." = "Asistido por GPS: el siguiente elemento en grande, con la distancia que disminuye, y después la lista de lo que sigue.";
 "Attention" = "Atención";
-"Au démarrage du suivi, l'app propose d'enregistrer la sortie. C'est recommandé, mais tu peux refuser." = "Al empezar el seguimiento, la app propone grabar la salida. Es recomendable, pero puedes rechazarlo.";
+"Au démarrage du suivi, l'app propose d'enregistrer la sortie. C'est recommandé, mais tu peux refuser ou désactiver cette question dans Réglages." = "Al empezar el seguimiento, la app propone grabar la salida. Es recomendable, pero puedes rechazarlo. También puedes desactivar esta pregunta en Ajustes.";
 "Aucun changement de direction au-dessus du seuil configuré (Réglages > Roadbook) sur cette trace." = "Ningún cambio de dirección por encima del umbral configurado (Ajustes > Roadbook) en esta ruta.";
 "Aucun itinéraire retourné par Valhalla." = "Valhalla no devolvió ninguna ruta.";
 "Aucun lieu trouvé." = "No se encontró ningún lugar.";
@@ -683,3 +683,6 @@
 "Carte automatique" = "Mapa automático";
 "Dès que le réseau est bon (Wi-Fi, ou 4G/5G si coché), l'app télécharge la carte autour de toi et les 30 prochains km de ta trace, puis la renouvelle en roulant. Tu gardes une carte lisible même sans réseau. Les trois dernières zones sont gardées." = "En cuanto la red es buena (Wi-Fi, o 4G/5G si está marcado), la app descarga el mapa a tu alrededor y los próximos 30 km de tu ruta, y lo renueva mientras conduces. Conservas un mapa legible incluso sin red. Se conservan las tres últimas zonas.";
 "Cartes hors-ligne (Bibliothèque) : une carte « automatique » se prépare toute seule autour de toi (et de ta trace) dès que le réseau est bon." = "Mapas sin conexión (Biblioteca): un mapa «automático» se prepara solo a tu alrededor (y de tu ruta) en cuanto la red es buena.";
+
+"Proposer d'enregistrer au démarrage" = "Ofrecer grabar al empezar";
+"Au démarrage du suivi d'une trace, l'app demande si tu veux enregistrer la sortie. Le bouton Enregistrer reste disponible si tu désactives cette question." = "Al empezar a seguir una ruta, la app pregunta si quieres grabar la salida. El botón de grabar sigue disponible si desactivas esta pregunta.";

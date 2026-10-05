@@ -38,7 +38,7 @@ enum TutorialContent {
                     String(localized: "Au-delà de 100 m pendant 2 s, la bannière « Rejoindre la trace » te guide par la route vers le point de la trace le plus proche devant toi, virage par virage.", bundle: .appLanguage),
                 ]),
                 .init(title: String(localized: "Enregistrer la sortie", bundle: .appLanguage), points: [
-                    String(localized: "Au démarrage du suivi, l'app propose d'enregistrer la sortie. C'est recommandé, mais tu peux refuser.", bundle: .appLanguage),
+                    String(localized: "Au démarrage du suivi, l'app propose d'enregistrer la sortie. C'est recommandé, mais tu peux refuser ou désactiver cette question dans Réglages.", bundle: .appLanguage),
                     String(localized: "Le bouton au-dessus du compteur de vitesse démarre, met en pause ou reprend l'enregistrement.", bundle: .appLanguage),
                     String(localized: "L'enregistrement continue dans les autres onglets, écran verrouillé ou dans une autre app : la flèche bleue d'iOS est alors affichée en haut de l'écran.", bundle: .appLanguage),
                     String(localized: "Touche le compteur de vitesse pour les mesures, puis « Terminer la sortie » pour l'enregistrer dans la Bibliothèque ou la supprimer.", bundle: .appLanguage),

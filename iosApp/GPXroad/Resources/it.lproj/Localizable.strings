@@ -61,7 +61,7 @@
 "Assisté GPS" = "Assistito GPS";
 "Assisté GPS : le prochain élément en grand, avec la distance qui diminue, puis la liste de ce qui suit." = "Assistito GPS: il prossimo elemento in grande, con la distanza che diminuisce, poi l'elenco di ciò che segue.";
 "Attention" = "Attenzione";
-"Au démarrage du suivi, l'app propose d'enregistrer la sortie. C'est recommandé, mais tu peux refuser." = "All'avvio del percorso, l'app propone di registrare l'uscita. È consigliato, ma puoi rifiutare.";
+"Au démarrage du suivi, l'app propose d'enregistrer la sortie. C'est recommandé, mais tu peux refuser ou désactiver cette question dans Réglages." = "All'avvio del percorso, l'app propone di registrare l'uscita. È consigliato, ma puoi rifiutare. Puoi anche disattivare questa domanda nelle Impostazioni.";
 "Aucun changement de direction au-dessus du seuil configuré (Réglages > Roadbook) sur cette trace." = "Nessun cambio di direzione sopra la soglia impostata (Impostazioni > Roadbook) su questa traccia.";
 "Aucun itinéraire retourné par Valhalla." = "Valhalla non ha restituito alcun percorso.";
 "Aucun lieu trouvé." = "Nessun luogo trovato.";
@@ -683,3 +683,6 @@
 "Carte automatique" = "Mappa automatica";
 "Dès que le réseau est bon (Wi-Fi, ou 4G/5G si coché), l'app télécharge la carte autour de toi et les 30 prochains km de ta trace, puis la renouvelle en roulant. Tu gardes une carte lisible même sans réseau. Les trois dernières zones sont gardées." = "Appena la rete è buona (Wi-Fi, o 4G/5G se attivato), l'app scarica la mappa intorno a te e i prossimi 30 km della traccia, poi la rinnova mentre guidi. Hai una mappa leggibile anche senza rete. Le ultime tre aree vengono conservate.";
 "Cartes hors-ligne (Bibliothèque) : une carte « automatique » se prépare toute seule autour de toi (et de ta trace) dès que le réseau est bon." = "Mappe offline (Libreria): una mappa «automatica» si prepara da sola intorno a te (e alla traccia) appena la rete è buona.";
+
+"Proposer d'enregistrer au démarrage" = "Proponi di registrare all'avvio";
+"Au démarrage du suivi d'une trace, l'app demande si tu veux enregistrer la sortie. Le bouton Enregistrer reste disponible si tu désactives cette question." = "All'avvio del percorso, l'app chiede se vuoi registrare l'uscita. Il pulsante di registrazione resta disponibile se disattivi questa domanda.";

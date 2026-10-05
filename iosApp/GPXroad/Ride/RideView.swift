@@ -526,7 +526,8 @@ struct RideView: View {
     @State private var showRecordingPrompt = false
 
     private func proposeRecordingIfNeeded(for trackID: UUID?) {
-        guard modeStore.mode == .trace else { return }
+        guard modeStore.mode == .trace, settings.recordingPromptEnabled,
+              navigationState.isSplashFinished else { return }
         if recorder.promptPolicy.shouldPrompt(onStartOf: trackID, recorderState: recorder.state, recordedPointCount: recorder.pointCount) {
             showRecordingPrompt = true
         }
@@ -725,9 +726,13 @@ struct RideView: View {
             } else {
                 hasStartedRideSession = true
                 session.start(track: track)
-            proposeRecordingIfNeeded(for: track?.id)
                 proposeRecordingIfNeeded(for: track?.id)
             }
+        }
+        // La proposition attend la fin du splash (sinon elle le masque) : si Ride est apparu
+        // avant, on la déclenche ici. La politique ne la propose qu'une fois par trace.
+        .onChange(of: navigationState.isSplashFinished) { finished in
+            if finished { proposeRecordingIfNeeded(for: track?.id) }
         }
         .onDisappear { session.stop() }
         .onChange(of: track?.id) { _ in
