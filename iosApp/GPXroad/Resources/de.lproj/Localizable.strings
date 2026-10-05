@@ -61,7 +61,7 @@
 "Assisté GPS" = "GPS-unterstützt";
 "Assisté GPS : le prochain élément en grand, avec la distance qui diminue, puis la liste de ce qui suit." = "GPS-unterstützt: das nächste Element groß mit abnehmender Entfernung, darunter die Liste der folgenden.";
 "Attention" = "Achtung";
-"Au démarrage du suivi, l'app propose d'enregistrer la sortie. C'est recommandé, mais tu peux refuser." = "Beim Start der Führung bietet die App an, die Fahrt aufzuzeichnen. Empfohlen, aber du kannst ablehnen.";
+"Au démarrage du suivi, l'app propose d'enregistrer la sortie. C'est recommandé, mais tu peux refuser ou désactiver cette question dans Réglages." = "Beim Start der Führung bietet die App an, die Fahrt aufzuzeichnen. Empfohlen, aber du kannst ablehnen. Du kannst diese Frage auch in den Einstellungen ausschalten.";
 "Aucun changement de direction au-dessus du seuil configuré (Réglages > Roadbook) sur cette trace." = "Keine Richtungsänderung über dem eingestellten Schwellenwert (Einstellungen > Roadbook) auf diesem Track.";
 "Aucun itinéraire retourné par Valhalla." = "Valhalla hat keine Route geliefert.";
 "Aucun lieu trouvé." = "Kein Ort gefunden.";
@@ -683,3 +683,6 @@
 "Carte automatique" = "Automatische Karte";
 "Dès que le réseau est bon (Wi-Fi, ou 4G/5G si coché), l'app télécharge la carte autour de toi et les 30 prochains km de ta trace, puis la renouvelle en roulant. Tu gardes une carte lisible même sans réseau. Les trois dernières zones sont gardées." = "Sobald das Netz gut ist (WLAN oder 4G/5G, falls aktiviert), lädt die App die Karte um dich herum und die nächsten 30 km deines Tracks herunter und erneuert sie während der Fahrt. So bleibt die Karte auch ohne Netz lesbar. Die letzten drei Gebiete werden behalten.";
 "Cartes hors-ligne (Bibliothèque) : une carte « automatique » se prépare toute seule autour de toi (et de ta trace) dès que le réseau est bon." = "Offline-Karten (Bibliothek): Eine „automatische“ Karte bereitet sich selbst um dich (und deinen Track) vor, sobald das Netz gut ist.";
+
+"Proposer d'enregistrer au démarrage" = "Aufzeichnung beim Start anbieten";
+"Au démarrage du suivi d'une trace, l'app demande si tu veux enregistrer la sortie. Le bouton Enregistrer reste disponible si tu désactives cette question." = "Beim Start der Streckenverfolgung fragt die App, ob die Fahrt aufgezeichnet werden soll. Die Aufnahmetaste bleibt verfügbar, wenn du diese Frage ausschaltest.";

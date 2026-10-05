@@ -61,7 +61,7 @@
 "Assisté GPS" = "GPS assisted";
 "Assisté GPS : le prochain élément en grand, avec la distance qui diminue, puis la liste de ce qui suit." = "GPS assisted: the next item shown large with the distance counting down, then the list of what follows.";
 "Attention" = "Caution";
-"Au démarrage du suivi, l'app propose d'enregistrer la sortie. C'est recommandé, mais tu peux refuser." = "When you start following a track, the app offers to record the ride. It's recommended, but you can decline.";
+"Au démarrage du suivi, l'app propose d'enregistrer la sortie. C'est recommandé, mais tu peux refuser ou désactiver cette question dans Réglages." = "When you start following a track, the app offers to record the ride. It's recommended, but you can decline. You can also turn this question off in Settings.";
 "Aucun changement de direction au-dessus du seuil configuré (Réglages > Roadbook) sur cette trace." = "No direction change above the configured threshold (Settings > Roadbook) on this track.";
 "Aucun itinéraire retourné par Valhalla." = "No route returned by Valhalla.";
 "Aucun lieu trouvé." = "No place found.";
@@ -683,3 +683,6 @@
 "Carte automatique" = "Automatic map";
 "Dès que le réseau est bon (Wi-Fi, ou 4G/5G si coché), l'app télécharge la carte autour de toi et les 30 prochains km de ta trace, puis la renouvelle en roulant. Tu gardes une carte lisible même sans réseau. Les trois dernières zones sont gardées." = "As soon as the network is good (Wi-Fi, or 4G/5G if ticked), the app downloads the map around you and the next 30 km of your track, then renews it as you ride. You keep a readable map even without network. The last three areas are kept.";
 "Cartes hors-ligne (Bibliothèque) : une carte « automatique » se prépare toute seule autour de toi (et de ta trace) dès que le réseau est bon." = "Offline maps (Library): an “automatic” map prepares itself around you (and your track) as soon as the network is good.";
+
+"Proposer d'enregistrer au démarrage" = "Offer to record at start";
+"Au démarrage du suivi d'une trace, l'app demande si tu veux enregistrer la sortie. Le bouton Enregistrer reste disponible si tu désactives cette question." = "When you start following a track, the app asks whether to record the ride. The Record button stays available if you turn this question off.";

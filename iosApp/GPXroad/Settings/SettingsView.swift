@@ -258,6 +258,12 @@ struct SettingsView: View {
                 // 20 traces, réglable") — nombre de sauvegardes de secours conservées dans
                 // Biblio > "Sorties non enregistrées" avant purge automatique des plus anciennes.
                 Section {
+                    Toggle("Proposer d'enregistrer au démarrage", isOn: $settings.recordingPromptEnabled)
+                } footer: {
+                    Text("Au démarrage du suivi d'une trace, l'app demande si tu veux enregistrer la sortie. Le bouton Enregistrer reste disponible si tu désactives cette question.")
+                }
+
+                Section {
                     Picker("Sauvegardes de secours conservées", selection: $settings.unsavedRideRetentionLimit) {
                         ForEach(RideConstants.unsavedRideRetentionLimitOptions, id: \.self) { count in
                             Text("\(count)").tag(count)

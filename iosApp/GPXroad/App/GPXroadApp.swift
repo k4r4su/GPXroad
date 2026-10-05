@@ -101,6 +101,7 @@ struct GPXroadApp: App {
                         withAnimation(.easeOut(duration: 0.25)) {
                             isSplashActive = false
                         }
+                        navigationState.isSplashFinished = true
                     }
                     .transition(.opacity)
                 }
