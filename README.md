@@ -30,6 +30,7 @@ GPXroad est une application iOS (et bientôt Android) pour suivre une trace GPX 
 - Téléchargement automatique du corridor autour d'une trace avant de partir
 - Téléchargement manuel d'une zone plus large (avec estimation de taille en direct)
 - Préparation de la trace : dès que le réseau est bon, la carte du couloir, les repères du Road Book, le recalage des virages et les ronds-points de la trace active sont téléchargés ; une pastille dit si tu peux partir sans réseau
+- Pistes : avec « Autoriser les pistes », les portions dont l'accès est à vérifier d'après OpenStreetMap sont surlignées ; tu peux en signaler une comme interdite pour que les prochains itinéraires l'évitent
 - Créer un itinéraire : tu poses des points sur la carte, Valhalla les relie par les routes (autoroutes et péages évités, moto, voiture ou vélo) et l'itinéraire devient une trace comme les autres, avec son Road Book
 - Mode longue sortie : quand la batterie baisse, les téléchargements automatiques s'arrêtent et la carte économise l'énergie ; une alerte te prévient avant que l'enregistrement ne risque d'être coupé
 - Alerte « plus de carte devant » : un message te prévient 15 km puis 5 km avant de sortir de la zone de carte téléchargée

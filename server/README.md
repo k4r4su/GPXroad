@@ -29,6 +29,23 @@ Si un point existant se trouve à moins de 100 m, il est **reconfirmé** (sa dat
 fraîcheur est mise à jour) au lieu de créer un doublon — c'est le seul mécanisme de
 confiance en v1, il n'y a pas de vote.
 
+### Deux types de signalement (`kind`, 06/10)
+
+- `blocked` (défaut, comportement d'avant) : chemin impraticable (arbre, barrière…) — montré dans le Ride.
+- `forbidden` : chemin interdit aux véhicules, signalé depuis le planificateur d'itinéraire. Jamais montré comme
+  obstacle, mais évité par les itinéraires créés (Valhalla `exclude_locations`). `way_id` (optionnel) = identifiant
+  OpenStreetMap du chemin : deux signalements du même chemin se reconfirment même éloignés.
+
+```bash
+curl -X POST http://localhost:8000/blockages -H "Content-Type: application/json" \
+  -d '{"lat": 48.03, "lon": 7.05, "kind": "forbidden", "way_id": 50316888, "reporter_id": "a1b2c3d4"}'
+curl "http://localhost:8000/blockages?min_lat=47&min_lon=7&max_lat=48&max_lon=8&kind=forbidden"
+```
+
+Un point `blocked` et un point `forbidden` au même endroit ne fusionnent jamais. Une base existante est migrée au
+démarrage (colonnes `kind` et `way_id` ajoutées, points d'avant = `blocked`). Tests (base temporaire) :
+`pip install httpx pytest && pytest server/test_app.py`.
+
 ### `GET /blockages` — lister les points d'une zone
 
 ```bash

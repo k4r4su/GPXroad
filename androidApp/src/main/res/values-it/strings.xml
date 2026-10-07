@@ -569,4 +569,17 @@
     <string name="plan_cancel">Annulla</string>
     <string name="plan_ok">OK</string>
     <string name="tuto_lib_7">«+» > Crea un percorso: tocca dei punti sulla mappa, Valhalla li collega lungo strade reali (autostrade evitate per impostazione predefinita) e salva il percorso come traccia.</string>
+    <string name="plan_access_checking">Verifica degli accessi…</string>
+    <string name="plan_access_unavailable">Verifica degli accessi non disponibile (rete o server).</string>
+    <string name="plan_access_none">Nessuna restrizione di accesso segnalata in OpenStreetMap su questo percorso.</string>
+    <string name="plan_access_flagged">%1$d tratti da verificare · %2$s</string>
+    <string name="plan_flagged_title">Piste da verificare</string>
+    <string name="plan_unnamed">Strada senza nome</string>
+    <string name="plan_verdict_verify">Da verificare: OpenStreetMap non indica l\'accesso</string>
+    <string name="plan_verdict_restricted">Accesso riservato a residenti o destinazione</string>
+    <string name="plan_verdict_forbidden">Vietato secondo OpenStreetMap</string>
+    <string name="plan_report_forbidden">Segnala come vietato</string>
+    <string name="plan_report_title">Segnalare questa strada come vietata?</string>
+    <string name="plan_report_message">I prossimi percorsi lo eviteranno. La segnalazione viene inviata al database condiviso se configurato.</string>
+    <string name="tuto_lib_8">Con «Consenti le piste», i tratti il cui accesso va verificato secondo OpenStreetMap vengono evidenziati; segnalane uno come vietato e i prossimi percorsi lo eviteranno.</string>
 </resources>

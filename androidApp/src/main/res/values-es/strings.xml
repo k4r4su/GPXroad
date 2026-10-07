@@ -569,4 +569,17 @@
     <string name="plan_cancel">Cancelar</string>
     <string name="plan_ok">OK</string>
     <string name="tuto_lib_7">«+» > Crear una ruta: pon puntos en el mapa, Valhalla los une por carreteras reales (autopistas evitadas por defecto) y guarda la ruta como una ruta de la Biblioteca.</string>
+    <string name="plan_access_checking">Comprobando accesos…</string>
+    <string name="plan_access_unavailable">Comprobación de accesos imposible (red o servidor).</string>
+    <string name="plan_access_none">Ninguna restricción de acceso señalada en OpenStreetMap en este trazado.</string>
+    <string name="plan_access_flagged">%1$d tramos por comprobar · %2$s</string>
+    <string name="plan_flagged_title">Pistas por comprobar</string>
+    <string name="plan_unnamed">Camino sin nombre</string>
+    <string name="plan_verdict_verify">Por comprobar: OpenStreetMap no indica el acceso</string>
+    <string name="plan_verdict_restricted">Acceso solo para residentes o destino</string>
+    <string name="plan_verdict_forbidden">Prohibido según OpenStreetMap</string>
+    <string name="plan_report_forbidden">Señalar como prohibido</string>
+    <string name="plan_report_title">¿Señalar este camino como prohibido?</string>
+    <string name="plan_report_message">Las próximas rutas lo evitarán. El aviso se envía a la base compartida si está configurada.</string>
+    <string name="tuto_lib_8">Con «Permitir pistas», los tramos cuyo acceso debe comprobarse según OpenStreetMap se resaltan; señala uno como prohibido y las próximas rutas lo evitarán.</string>
 </resources>

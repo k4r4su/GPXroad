@@ -224,7 +224,7 @@ private fun GPXroadApp(services: AppServices, incomingGpx: Uri?, onLanguageChang
                     services.rideCamera.focusOn(point)
                     tab = AppTab.RIDE
                 }
-                AppTab.LIBRARY -> LibraryScreen(library, settings, services.recorder, services.offline, services.preparer, services.servers, services.routing, services.location.location?.let { LatLon(it.latitude, it.longitude) }, incomingGpx, onImportHandled)
+                AppTab.LIBRARY -> LibraryScreen(library, settings, services.recorder, services.offline, services.preparer, services.servers, services.routing, services.overpass, services.blockageSync, services.location.location?.let { LatLon(it.latitude, it.longitude) }, incomingGpx, onImportHandled)
                 AppTab.SETTINGS -> SettingsScreen(settings, services.servers, services.overpass, services.routing, services.blockageSync, services.offline, services.location.location?.let { LatLon(it.latitude, it.longitude) }, onOpenTutorial = { tutorial = true }, onLanguageChanged = onLanguageChanged)
             }
         }

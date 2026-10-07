@@ -1,11 +1,13 @@
 import SwiftUI
 import MapLibre
+import GPXroadShared
 import CoreLocation
 
 /// Carte de « Créer un itinéraire » : un tap pose un point, l'itinéraire calculé est tracé en orange.
 struct PlannerMapView: UIViewRepresentable {
     let waypoints: [CLLocationCoordinate2D]
     let route: [CLLocationCoordinate2D]
+    let flagged: [FlaggedSegment]
     let fitToken: Int
     let startCenter: CLLocationCoordinate2D
     let onTap: (CLLocationCoordinate2D) -> Void
@@ -55,7 +57,7 @@ struct PlannerMapView: UIViewRepresentable {
         }
 
         func refresh(_ mapView: MLNMapView) {
-            let signature = "\(parent.waypoints.map { "\($0.latitude),\($0.longitude)" }.joined(separator: ";"))|\(parent.route.count)|\(parent.route.last?.latitude ?? 0)"
+            let signature = "\(parent.waypoints.map { "\($0.latitude),\($0.longitude)" }.joined(separator: ";"))|\(parent.route.count)|\(parent.route.last?.latitude ?? 0)|\(parent.flagged.map { $0.id.uuidString }.joined())"
             if signature != drawnSignature {
                 drawnSignature = signature
                 if let old = mapView.annotations { mapView.removeAnnotations(old) }
@@ -63,6 +65,13 @@ struct PlannerMapView: UIViewRepresentable {
                 if parent.route.count > 1 {
                     var coordinates = parent.route
                     annotations.append(MLNPolyline(coordinates: &coordinates, count: UInt(coordinates.count)))
+                }
+                // Pistes à vérifier / interdites : par-dessus l'itinéraire, en couleur selon le verdict.
+                for segment in parent.flagged where segment.coordinates.count > 1 {
+                    var coordinates = segment.coordinates
+                    let line = FlaggedPolyline(coordinates: &coordinates, count: UInt(coordinates.count))
+                    line.verdict = segment.verdict
+                    annotations.append(line)
                 }
                 for (index, coordinate) in parent.waypoints.enumerated() {
                     let pin = MLNPointAnnotation()
@@ -93,11 +102,23 @@ struct PlannerMapView: UIViewRepresentable {
         }
 
         func mapView(_ mapView: MLNMapView, strokeColorForShapeAnnotation annotation: MLNShape) -> UIColor {
-            UIColor(red: 1.0, green: 0.55, blue: 0.0, alpha: 1)
+            guard let flagged = annotation as? FlaggedPolyline else { return UIColor(red: 1.0, green: 0.55, blue: 0.0, alpha: 1) }
+            switch flagged.verdict {
+            case .forbidden: return UIColor(red: 0.85, green: 0.12, blue: 0.12, alpha: 1)
+            case .restricted: return UIColor(red: 0.95, green: 0.3, blue: 0.1, alpha: 1)
+            default: return UIColor(red: 0.95, green: 0.78, blue: 0.0, alpha: 1)
+            }
         }
 
-        func mapView(_ mapView: MLNMapView, lineWidthForPolylineAnnotation annotation: MLNPolyline) -> CGFloat { 5 }
+        func mapView(_ mapView: MLNMapView, lineWidthForPolylineAnnotation annotation: MLNPolyline) -> CGFloat {
+            annotation is FlaggedPolyline ? 8 : 5
+        }
 
         func mapView(_ mapView: MLNMapView, annotationCanShowCallout annotation: MLNAnnotation) -> Bool { true }
     }
+}
+
+/// Tronçon à signaler dessiné sur la carte (couleur selon le verdict d'accès).
+final class FlaggedPolyline: MLNPolyline {
+    var verdict: AccessVerdict = .toVerify
 }

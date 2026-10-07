@@ -257,10 +257,10 @@ fun RideScreen(
     LaunchedEffect(track?.traversalKey, blockageSync.serverUrl, blockageSync.shareEnabled) { track?.let { blockageSync.syncIfNeeded(it.latLons) } }
     var hiddenBlockageId by remember { mutableStateOf<String?>(null) }
     val sharedAlert = remember(track?.traversalKey, blockageSync.blockages) {
-        track?.let { SharedBlockages.nearestAlongTrack(blockageSync.blockages, it.latLons) }
+        track?.let { SharedBlockages.nearestAlongTrack(blockageSync.blockedOnly, it.latLons) }
     }?.takeIf { it.id != hiddenBlockageId }
     val now = System.currentTimeMillis()
-    val blockagePins = remember(blockageSync.blockages) { blockageSync.blockages.map { it.coordinate to it.isFaded(now) } }
+    val blockagePins = remember(blockageSync.blockages) { blockageSync.blockedOnly.map { it.coordinate to it.isFaded(now) } }
 
     val nextIndex = projection?.let { p -> maneuvers.indexOfFirst { it.cumulativeDistanceMeters > p.cumulativeDistanceMeters }.takeIf { it >= 0 } }
     val nextDistance = nextIndex?.let { maneuvers[it].cumulativeDistanceMeters - projection.cumulativeDistanceMeters }

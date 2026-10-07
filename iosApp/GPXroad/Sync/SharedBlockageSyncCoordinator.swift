@@ -90,13 +90,41 @@ final class SharedBlockageSyncCoordinator: ObservableObject {
         }
     }
 
+    /// Chemin signalé INTERDIT depuis le planificateur d'itinéraire : enregistré tout de suite en local (les prochains
+    /// itinéraires l'évitent même sans serveur), puis envoyé à la base partagée si elle est configurée et joignable.
+    func reportForbidden(coordinate: CLLocationCoordinate2D, wayID: Int64?, serverURLString: String, isReachable: Bool, isEnabled: Bool) {
+        let now = Date()
+        merge([SharedBlockage(id: "local-\(UUID().uuidString)", coordinate: coordinate, note: nil, createdAt: now, lastConfirmedAt: now, kind: .forbidden, wayID: wayID)])
+        guard isEnabled, isReachable, !serverURLString.isEmpty else { return }
+        let payload = SharedBlockageOutgoingReport(coordinate: coordinate, note: nil, reporterID: AnonymousReporterID.current(), kind: .forbidden, wayID: wayID)
+        Task { [weak self] in
+            do {
+                let confirmed = try await SharedBlockageSyncService.submit(payload, serverURLString: serverURLString)
+                self?.merge([confirmed])
+            } catch {
+                print("[SharedBlockages] Signalement « interdit » non envoyé (reste local) : \(error.localizedDescription)")
+            }
+        }
+    }
+
+    /// Obstacles réels (arbre, barrière…) : les seuls montrés dans le Ride.
+    var blockedOnly: [SharedBlockage] { blockages.filter { $0.kind == .blocked } }
+
+    /// Points que Valhalla doit éviter pour un itinéraire créé : tous les signalements (bloqués ET interdits) de la zone.
+    func exclusionLocations(inside bounds: (minLat: Double, minLon: Double, maxLat: Double, maxLon: Double)) -> [CLLocationCoordinate2D] {
+        blockages.compactMap { blockage in
+            let c = blockage.coordinate.coordinate
+            return (c.latitude >= bounds.minLat && c.latitude <= bounds.maxLat && c.longitude >= bounds.minLon && c.longitude <= bounds.maxLon) ? c : nil
+        }
+    }
+
     /// Point bloqué connu le plus proche d'une trace, si sous le seuil d'alerte (spec :
     /// pill d'alerte si la trace passe à moins de 300 m). Approximation par distance au
     /// point de trace le plus proche — suffisant pour une alerte, pas pour un recalcul.
     func nearestKnownBlockage(alongTrackPoints points: [CLLocationCoordinate2D]) -> SharedBlockage? {
         guard !points.isEmpty, !blockages.isEmpty else { return nil }
         var best: (blockage: SharedBlockage, distance: Double)?
-        for blockage in blockages {
+        for blockage in blockedOnly {
             let coordinate = blockage.coordinate.coordinate
             var minDistance = Double.greatestFiniteMagnitude
             for point in points {

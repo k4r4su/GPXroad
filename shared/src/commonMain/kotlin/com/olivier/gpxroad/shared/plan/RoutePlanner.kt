@@ -28,6 +28,9 @@ object RoutePlanner {
     /** Valhalla refuse au-delà de 20 lieux par requête `/route` (réglage par défaut du serveur). */
     const val MAX_WAYPOINTS = 20
 
+    /** Valhalla accepte beaucoup de lieux à exclure, mais une requête trop lourde est refusée par certains serveurs. */
+    const val MAX_EXCLUDED_LOCATIONS = 50
+
     /** Un point posé à moins de cette distance du précédent est ignoré (double tap). */
     const val MIN_SPACING_METERS = 30.0
 
@@ -42,7 +45,7 @@ object RoutePlanner {
      * à 1 (préférer) ; 0,5 est la valeur neutre de Valhalla. Éviter n'est pas interdire : si aucune autre route n'existe,
      * Valhalla peut quand même emprunter l'autoroute.
      */
-    fun requestBody(points: List<LatLon>, options: PlanOptions): String {
+    fun requestBody(points: List<LatLon>, options: PlanOptions, excludeLocations: List<LatLon> = emptyList()): String {
         val neutral = 0.5
         fun use(avoid: Boolean) = if (avoid) 0.0 else neutral
         val costing = costing(options.vehicle)
@@ -59,8 +62,18 @@ object RoutePlanner {
         }
         val locations = points.joinToString(",") { """{"lat":${it.latitude},"lon":${it.longitude},"type":"break"}""" }
         val values = costingOptions.joinToString(",") { "\"${it.first}\":${it.second}" }
-        return """{"locations":[$locations],"costing":"$costing","costing_options":{"$costing":{$values}},"units":"kilometers"}"""
+        // Chemins signalés bloqués ou interdits (base partagée + signalements locaux) : Valhalla évite l'arête qui s'y trouve.
+        val excluded = excludeLocations.take(MAX_EXCLUDED_LOCATIONS).joinToString(",") { """{"lat":${it.latitude},"lon":${it.longitude}}""" }
+        val exclusion = if (excluded.isEmpty()) "" else ""","exclude_locations":[$excluded]"""
+        return """{"locations":[$locations],"costing":"$costing","costing_options":{"$costing":{$values}}$exclusion,"units":"kilometers"}"""
     }
+
+    /**
+     * Corps `/trace_attributes` pour lire les chemins OSM d'un tronçon DÉJÀ calculé : la forme du tronçon (polyline6 renvoyée
+     * par `/route`) est suivie telle quelle (`edge_walk`), sans recalage qui pourrait choisir une autre route.
+     */
+    fun attributesRequestBody(encodedPolyline6: String, vehicle: PlanVehicle): String =
+        """{"encoded_polyline":"${encodedPolyline6.replace("\\", "\\\\").replace("\"", "\\\"")}","costing":"${costing(vehicle)}","shape_match":"edge_walk","filters":{"attributes":["edge.way_id","edge.use","edge.unpaved","edge.length","edge.begin_shape_index","edge.end_shape_index","edge.names","shape"],"action":"include"}}"""
 
     /** Met bout à bout les tronçons d'une réponse : le dernier point d'un tronçon est le premier du suivant (un seul gardé). */
     fun mergeLegs(legs: List<List<LatLon>>): List<LatLon> {

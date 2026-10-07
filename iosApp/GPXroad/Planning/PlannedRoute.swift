@@ -7,6 +7,8 @@ struct PlannedRoute: Equatable {
     let points: [CLLocationCoordinate2D]
     let distanceMeters: Double
     let durationSeconds: Double
+    /// Formes (polyline6) de chaque tronçon, telles que Valhalla les a renvoyées : relues par le contrôle d'accès des pistes.
+    let legShapes: [String]
 
     static func == (lhs: PlannedRoute, rhs: PlannedRoute) -> Bool {
         lhs.distanceMeters == rhs.distanceMeters && lhs.durationSeconds == rhs.durationSeconds && lhs.points.count == rhs.points.count
@@ -19,12 +21,13 @@ extension ValhallaRoutingService {
     static func plan(
         waypoints: [CLLocationCoordinate2D],
         options: PlanOptions,
+        excluding excluded: [CLLocationCoordinate2D] = [],
         configuration: ValhallaConfiguration
     ) async throws -> PlannedRoute {
         guard let url = endpointURL(configuration.endpointURLString, path: "route") else {
             throw ValhallaRoutingError.invalidEndpoint
         }
-        let body = RoutePlanner.shared.requestBody(points: waypoints.map(SharedRoadbook.latLon), options: options)
+        let body = RoutePlanner.shared.requestBody(points: waypoints.map(SharedRoadbook.latLon), options: options, excludeLocations: excluded.map(SharedRoadbook.latLon))
         var request = URLRequest(url: url, timeoutInterval: RideConstants.valhallaRequestTimeoutSeconds)
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
@@ -36,8 +39,8 @@ extension ValhallaRoutingService {
               let trip = root["trip"] as? [String: Any],
               let legs = trip["legs"] as? [[String: Any]]
         else { throw ValhallaRoutingError.noRoute }
-        let shapes = legs.compactMap { $0["shape"] as? String }.map { decodePolyline6($0) }
-        let points = shapes.flatMap { $0 }
+        let encodedShapes = legs.compactMap { $0["shape"] as? String }
+        let points = encodedShapes.map { decodePolyline6($0) }.flatMap { $0 }
         guard points.count > 1 else { throw ValhallaRoutingError.noRoute }
         // Les tronçons se rejoignent au même point : un seul gardé.
         var merged: [CLLocationCoordinate2D] = []
@@ -46,6 +49,6 @@ extension ValhallaRoutingService {
         }
         let summary = trip["summary"] as? [String: Any]
         let kilometers = (summary?["length"] as? Double) ?? RoutePlanner.shared.lengthMeters(points: merged.map(SharedRoadbook.latLon)) / 1000
-        return PlannedRoute(points: merged, distanceMeters: kilometers * 1000, durationSeconds: (summary?["time"] as? Double) ?? 0)
+        return PlannedRoute(points: merged, distanceMeters: kilometers * 1000, durationSeconds: (summary?["time"] as? Double) ?? 0, legShapes: encodedShapes)
     }
 }

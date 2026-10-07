@@ -79,8 +79,21 @@ class BlockedPathDetector {
     }
 }
 
-/** Point bloqué partagé (serveur auto-hébergé, anonyme). */
-data class SharedBlockage(val id: String, val coordinate: LatLon, val note: String?, val lastConfirmedMillis: Long) {
+/**
+ * `BLOCKED` : chemin impraticable (arbre, barrière…), montré dans le Ride ; `FORBIDDEN` : chemin interdit aux véhicules,
+ * signalé depuis le planificateur d'itinéraire — jamais montré comme obstacle, mais évité par les itinéraires créés.
+ */
+enum class BlockageKind { BLOCKED, FORBIDDEN }
+
+/** Point bloqué partagé (serveur auto-hébergé, anonyme). [wayId] : identifiant OpenStreetMap du chemin, s'il est connu. */
+data class SharedBlockage(
+    val id: String,
+    val coordinate: LatLon,
+    val note: String?,
+    val lastConfirmedMillis: Long,
+    val kind: BlockageKind = BlockageKind.BLOCKED,
+    val wayId: Long? = null,
+) {
     fun ageDays(nowMillis: Long): Double = (nowMillis - lastConfirmedMillis) / 86_400_000.0
     fun isFaded(nowMillis: Long): Boolean = ageDays(nowMillis) > DetourConstants.SHARED_FADE_AFTER_DAYS
     fun isExpired(nowMillis: Long): Boolean = ageDays(nowMillis) > DetourConstants.SHARED_EXPIRE_AFTER_DAYS

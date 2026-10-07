@@ -21,10 +21,22 @@ import kotlinx.coroutines.withContext
 /** État de l'écran « Créer un itinéraire » (`RoutePlannerModel` iOS) : points posés, options, itinéraire calculé. */
 class PlannerModel(
     private val routing: RoutingClient,
+    private val checker: TrackAccessChecker,
     private val valhalla: () -> ValhallaConfiguration?,
+    /** Points déjà signalés bloqués ou interdits dans la zone (minLat, minLon, maxLat, maxLon) : évités par Valhalla. */
+    private val exclusions: (Double, Double, Double, Double) -> List<LatLon>,
     private val scope: CoroutineScope,
 ) {
     enum class Status { IDLE, COMPUTING, NOT_CONFIGURED, FAILED }
+
+    /** Contrôle d'accès des pistes (seulement quand « Autoriser les pistes » est actif). */
+    enum class AccessStatus { IDLE, CHECKING, CHECKED, UNAVAILABLE }
+
+    var flagged by mutableStateOf<List<FlaggedSegment>>(emptyList())
+        private set
+    var accessStatus by mutableStateOf(AccessStatus.IDLE)
+        private set
+    private var accessJob: Job? = null
 
     var waypoints by mutableStateOf<List<LatLon>>(emptyList())
         private set
@@ -62,8 +74,11 @@ class PlannerModel(
 
     fun clear() {
         job?.cancel()
+        accessJob?.cancel()
         waypoints = emptyList()
         route = null
+        flagged = emptyList()
+        accessStatus = AccessStatus.IDLE
         status = Status.IDLE
         fitToken++
     }
@@ -75,10 +90,13 @@ class PlannerModel(
     /** Fenêtre d'options fermée : on recalcule avec les nouveaux réglages. */
     fun optionsChanged() = recompute()
 
-    private fun recompute() {
+    fun recompute() {
         job?.cancel()
+        accessJob?.cancel()
         if (waypoints.size < RoutePlanner.MIN_WAYPOINTS) {
             route = null
+            flagged = emptyList()
+            accessStatus = AccessStatus.IDLE
             status = Status.IDLE
             return
         }
@@ -91,18 +109,43 @@ class PlannerModel(
         val points = waypoints
         val chosen = options
         val first = route == null
+        val padding = 0.5   // degrés autour des points posés
+        val excluded = exclusions(points.minOf { it.latitude } - padding, points.minOf { it.longitude } - padding, points.maxOf { it.latitude } + padding, points.maxOf { it.longitude } + padding)
         job = scope.launch {
             try {
                 delay(350)   // plusieurs points posés d'affilée ne font qu'un calcul
-                val planned = withContext(Dispatchers.IO) { routing.plan(points, chosen, configuration) }
+                val planned = withContext(Dispatchers.IO) { routing.plan(points, chosen, excluded, configuration) }
                 route = planned
                 status = Status.IDLE
                 if (first) fitToken++
+                checkAccess(planned, chosen, configuration)
             } catch (cancelled: CancellationException) {
                 throw cancelled
             } catch (error: Exception) {
                 route = null
+                flagged = emptyList()
+                accessStatus = AccessStatus.IDLE
                 status = Status.FAILED
+            }
+        }
+    }
+
+    /** Pistes autorisées ? Seulement si l'utilisateur les a permises : on lit alors l'accès de chaque chemin non goudronné. */
+    private fun checkAccess(planned: PlannedRoute, chosen: PlanOptions, configuration: ValhallaConfiguration) {
+        accessJob?.cancel()
+        flagged = emptyList()
+        if (!chosen.allowTracks) {
+            accessStatus = AccessStatus.IDLE
+            return
+        }
+        accessStatus = AccessStatus.CHECKING
+        accessJob = scope.launch {
+            val result = withContext(Dispatchers.IO) { runCatching { checker.check(planned, chosen.vehicle, configuration) }.getOrNull() }
+            if (result != null) {
+                flagged = result
+                accessStatus = AccessStatus.CHECKED
+            } else {
+                accessStatus = AccessStatus.UNAVAILABLE
             }
         }
     }

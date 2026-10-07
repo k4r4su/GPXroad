@@ -171,6 +171,13 @@ GPXroad/
                    nommé Pays/Région/Ville + rayon, voir Offline/CLAUDE.md) ; fix "region-picker-
                    atlantic-ocean-default" (it21, RegionPickerMapView centrée sur GPS/repli
                    France plutôt que (0,0)).
+  Planning/       « Créer un itinéraire » (06/10, Biblio > « + ») : `RoutePlannerView` (carte + panneau), `PlannerMapView`
+                   (tap = point, tracé orange, portions à vérifier colorées), `RoutePlannerModel` (points, options, calcul Valhalla
+                   `/route` en UN appel, contrôle d'accès des pistes), `TrackAccessChecker` (`/trace_attributes` + Overpass `way(id:…)`).
+                   Règles COMMUNES dans `shared/plan/` (`RoutePlanner` : corps de requête, `TrackAccess` : accès OSM) ; Android =
+                   `androidApp/.../plan/` (mêmes noms). Nouveau dossier iOS : à déclarer dans `project.yml` (`sources:` listées une à une).
+                   Pistes sans étiquette d'accès = « à vérifier », JAMAIS « autorisées » (voir TODO). Signalements « interdit » =
+                   `SharedBlockage.kind` (`blocked` montré dans le Ride, `forbidden` seulement évité par les itinéraires créés).
   Waypoints/      RollingWaypoint(Store) — sert uniquement à "Signaler" (Nav) depuis it10 ;
                    le bouton "Point" (POI rapide Essence/Eau/Bivouac) a été supprimé pour de
                    vrai (chore "remove-poi"), ne pas le réintroduire à moitié

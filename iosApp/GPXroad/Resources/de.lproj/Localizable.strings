@@ -738,3 +738,16 @@
 "Autoriser les pistes" = "Pisten erlauben";
 "Éviter n'est pas interdire : si aucune autre route n'existe, l'itinéraire peut quand même passer par là. Les pistes ne sont proposées que si les données OpenStreetMap les disent accessibles ; l'interdiction réelle sur le terrain peut différer." = "Vermeiden heißt nicht verbieten: Gibt es keine andere Straße, kann die Route trotzdem dort entlangführen. Pisten werden nur angeboten, wenn die OpenStreetMap-Daten sie als zugänglich ausweisen; die tatsächlichen Beschränkungen vor Ort können abweichen.";
 "« + » > Créer un itinéraire : pose des points sur la carte, Valhalla les relie par les routes (autoroutes évitées par défaut), puis enregistre l'itinéraire comme une trace." = "„+“ > Route erstellen: Setze Punkte auf der Karte, Valhalla verbindet sie über echte Straßen (Autobahnen standardmäßig vermieden) und du speicherst die Route als Track.";
+"Vérification des accès…" = "Zugang wird geprüft…";
+"Vérification des accès impossible (réseau ou serveur)." = "Zugangsprüfung nicht möglich (Netz oder Server).";
+"Aucune restriction d'accès signalée dans OpenStreetMap sur ce tracé." = "Keine Zugangsbeschränkung in OpenStreetMap für diese Route gemeldet.";
+"%lld portions à vérifier · %@" = "%lld Abschnitte zu prüfen · %@";
+"Pistes à vérifier" = "Pisten zu prüfen";
+"Chemin sans nom" = "Weg ohne Namen";
+"À vérifier : OpenStreetMap n'indique pas l'accès" = "Zu prüfen: OpenStreetMap gibt den Zugang nicht an";
+"Accès réservé aux riverains ou à la destination" = "Zugang nur für Anlieger oder Ziel";
+"Interdit d'après OpenStreetMap" = "Laut OpenStreetMap verboten";
+"Signaler interdit" = "Als verboten melden";
+"Signaler ce chemin comme interdit ?" = "Diesen Weg als verboten melden?";
+"Les prochains itinéraires l'éviteront. Le signalement est envoyé à la base partagée si elle est configurée." = "Künftige Routen meiden ihn. Die Meldung wird an die gemeinsame Datenbank gesendet, falls eine eingerichtet ist.";
+"Avec « Autoriser les pistes », les portions dont l'accès est à vérifier d'après OpenStreetMap sont surlignées ; signale-en une comme interdite et les prochains itinéraires l'éviteront." = "Mit „Pisten erlauben“ werden Abschnitte hervorgehoben, deren Zugang laut OpenStreetMap zu prüfen ist; melde einen als verboten, und künftige Routen meiden ihn.";

@@ -3,7 +3,12 @@ package com.olivier.gpxroad.android.plan
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material3.OutlinedButton
+import androidx.compose.ui.graphics.Color
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.WindowInsets
@@ -53,7 +58,9 @@ import androidx.lifecycle.compose.LocalLifecycleOwner
 import com.olivier.gpxroad.android.R
 import com.olivier.gpxroad.android.data.DistanceUnit
 import com.olivier.gpxroad.android.data.TrackLibrary
+import com.olivier.gpxroad.android.net.OverpassClient
 import com.olivier.gpxroad.android.net.RoutingClient
+import com.olivier.gpxroad.android.sync.SharedBlockageSync
 import com.olivier.gpxroad.android.net.ServerSettings
 import com.olivier.gpxroad.android.ride.RideMapStyle
 import com.olivier.gpxroad.android.roadbook.RoadbookTexts
@@ -64,6 +71,7 @@ import com.olivier.gpxroad.android.ui.ScreenHeader
 import com.olivier.gpxroad.android.ui.SettingsGroup
 import com.olivier.gpxroad.android.ui.ToggleRow
 import com.olivier.gpxroad.shared.LatLon
+import com.olivier.gpxroad.shared.plan.AccessVerdict
 import com.olivier.gpxroad.shared.plan.PlanOptions
 import com.olivier.gpxroad.shared.plan.PlanVehicle
 import com.olivier.gpxroad.shared.recording.GpxWriter
@@ -89,10 +97,14 @@ import kotlin.math.roundToInt
 
 private const val ROUTE_SOURCE = "plan-route"
 private const val POINTS_SOURCE = "plan-points"
+private const val FLAGGED_SOURCE = "plan-flagged"
 private val ROUTE_COLOR = android.graphics.Color.rgb(255, 140, 0)
 private val START_COLOR = android.graphics.Color.rgb(52, 168, 83)
 private val END_COLOR = android.graphics.Color.rgb(217, 48, 37)
 private val MID_COLOR = android.graphics.Color.rgb(0, 122, 255)
+private val FLAG_VERIFY_COLOR = android.graphics.Color.rgb(242, 199, 0)
+private val FLAG_RESTRICTED_COLOR = android.graphics.Color.rgb(242, 77, 26)
+private val FLAG_FORBIDDEN_COLOR = android.graphics.Color.rgb(217, 31, 31)
 
 /**
  * « Créer un itinéraire » (06/10, `RoutePlannerView` iOS) : on pose des points sur la carte, Valhalla les relie par les routes
@@ -100,11 +112,14 @@ private val MID_COLOR = android.graphics.Color.rgb(0, 122, 255)
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun RoutePlannerScreen(library: TrackLibrary, servers: ServerSettings, routing: RoutingClient, start: LatLon?, onClose: () -> Unit) {
+fun RoutePlannerScreen(library: TrackLibrary, servers: ServerSettings, routing: RoutingClient, overpass: OverpassClient, sync: SharedBlockageSync, start: LatLon?, onClose: () -> Unit) {
     BackHandler(onBack = onClose)
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
-    val model = remember { PlannerModel(routing, { servers.valhalla }, scope) }
+    val model = remember {
+        PlannerModel(routing, TrackAccessChecker(routing, overpass), { servers.valhalla }, { minLat, minLon, maxLat, maxLon -> sync.exclusionLocations(minLat, minLon, maxLat, maxLon) }, scope)
+    }
+    var showFlagged by remember { mutableStateOf(false) }
     var style by remember { mutableStateOf<Style?>(null) }
     var map by remember { mutableStateOf<MapLibreMap?>(null) }
     var showOptions by remember { mutableStateOf(false) }
@@ -149,7 +164,15 @@ fun RoutePlannerScreen(library: TrackLibrary, servers: ServerSettings, routing: 
             loadedMap.setStyle(Style.Builder().fromJson(RideMapStyle.vector(context) ?: RideMapStyle.raster())) { loaded ->
                 loaded.addSource(GeoJsonSource(ROUTE_SOURCE))
                 loaded.addSource(GeoJsonSource(POINTS_SOURCE))
+                loaded.addSource(GeoJsonSource(FLAGGED_SOURCE))
                 loaded.addLayer(LineLayer("plan-route-line", ROUTE_SOURCE).withProperties(PropertyFactory.lineColor(ROUTE_COLOR), PropertyFactory.lineWidth(5f), PropertyFactory.lineCap("round"), PropertyFactory.lineJoin("round")))
+                // Pistes à vérifier / interdites : par-dessus l'itinéraire, en couleur selon le verdict.
+                loaded.addLayer(
+                    LineLayer("plan-flagged-line", FLAGGED_SOURCE).withProperties(
+                        PropertyFactory.lineWidth(8f), PropertyFactory.lineCap("round"), PropertyFactory.lineJoin("round"),
+                        PropertyFactory.lineColor(Expression.match(Expression.get("verdict"), Expression.color(FLAG_VERIFY_COLOR), Expression.stop("forbidden", Expression.color(FLAG_FORBIDDEN_COLOR)), Expression.stop("restricted", Expression.color(FLAG_RESTRICTED_COLOR)))),
+                    ),
+                )
                 loaded.addLayer(
                     CircleLayer("plan-points-circle", POINTS_SOURCE).withProperties(
                         PropertyFactory.circleRadius(9f), PropertyFactory.circleStrokeWidth(3f), PropertyFactory.circleStrokeColor(android.graphics.Color.WHITE),
@@ -167,10 +190,16 @@ fun RoutePlannerScreen(library: TrackLibrary, servers: ServerSettings, routing: 
         }
     }
     // Carte à jour : tracé orange, points colorés (départ vert, arrivée rouge).
-    LaunchedEffect(style, model.waypoints, model.route) {
+    LaunchedEffect(style, model.waypoints, model.route, model.flagged) {
         val loaded = style ?: return@LaunchedEffect
         val line = model.route?.points?.takeIf { it.size > 1 }?.let { Feature.fromGeometry(LineString.fromLngLats(it.map { p -> Point.fromLngLat(p.longitude, p.latitude) })) }
         loaded.getSourceAs<GeoJsonSource>(ROUTE_SOURCE)?.setGeoJson(FeatureCollection.fromFeatures(listOfNotNull(line)))
+        val flaggedFeatures = model.flagged.filter { it.coordinates.size > 1 }.map { segment ->
+            Feature.fromGeometry(LineString.fromLngLats(segment.coordinates.map { Point.fromLngLat(it.longitude, it.latitude) })).also {
+                it.addStringProperty("verdict", when (segment.verdict) { AccessVerdict.FORBIDDEN -> "forbidden"; AccessVerdict.RESTRICTED -> "restricted"; else -> "to_verify" })
+            }
+        }
+        loaded.getSourceAs<GeoJsonSource>(FLAGGED_SOURCE)?.setGeoJson(FeatureCollection.fromFeatures(flaggedFeatures))
         val last = model.waypoints.lastIndex
         val features = model.waypoints.mapIndexed { index, p ->
             Feature.fromGeometry(Point.fromLngLat(p.longitude, p.latitude)).also { it.addStringProperty("kind", if (index == 0) "start" else if (index == last) "end" else "mid") }
@@ -200,6 +229,7 @@ fun RoutePlannerScreen(library: TrackLibrary, servers: ServerSettings, routing: 
                 AndroidView(factory = { mapView }, modifier = Modifier.fillMaxSize())
                 PlannerPanel(
                     model = model,
+                    onFlagged = { showFlagged = true },
                     onOptions = { showOptions = true },
                     onSave = {
                         routeName = defaultName(context)
@@ -211,6 +241,28 @@ fun RoutePlannerScreen(library: TrackLibrary, servers: ServerSettings, routing: 
         }
     }
 
+    if (showFlagged) {
+        var pending by remember { mutableStateOf<FlaggedSegment?>(null) }
+        ModalBottomSheet(onDismissRequest = { showFlagged = false }) {
+            FlaggedSegmentsSheet(model.flagged) { pending = it }
+        }
+        pending?.let { segment ->
+            AlertDialog(
+                onDismissRequest = { pending = null },
+                title = { Text(stringResource(R.string.plan_report_title)) },
+                text = { Text(stringResource(R.string.plan_report_message)) },
+                confirmButton = {
+                    TextButton(onClick = {
+                        segment.midpoint?.let { sync.reportForbidden(it, segment.wayIds.firstOrNull()) }
+                        pending = null
+                        showFlagged = false
+                        model.recompute()   // le chemin signalé est maintenant évité
+                    }) { Text(stringResource(R.string.plan_report_forbidden), color = MaterialTheme.colorScheme.error) }
+                },
+                dismissButton = { TextButton(onClick = { pending = null }) { Text(stringResource(R.string.plan_cancel)) } },
+            )
+        }
+    }
     if (showOptions) {
         ModalBottomSheet(onDismissRequest = { showOptions = false; model.optionsChanged() }) {
             PlannerOptionsSheet(model.options, model::updateOptions)
@@ -265,7 +317,7 @@ private fun duration(seconds: Double): String {
 }
 
 @Composable
-private fun PlannerPanel(model: PlannerModel, onOptions: () -> Unit, onSave: () -> Unit, modifier: Modifier = Modifier) {
+private fun PlannerPanel(model: PlannerModel, onFlagged: () -> Unit, onOptions: () -> Unit, onSave: () -> Unit, modifier: Modifier = Modifier) {
     Surface(modifier.fillMaxWidth(), shape = RoundedCornerShape(20.dp), color = MaterialTheme.colorScheme.surfaceContainerHigh, tonalElevation = 2.dp, shadowElevation = 6.dp) {
         Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
             if (model.waypoints.isEmpty()) {
@@ -280,6 +332,7 @@ private fun PlannerPanel(model: PlannerModel, onOptions: () -> Unit, onSave: () 
                         if (route.durationSeconds > 0) Text("· " + duration(route.durationSeconds), color = MaterialTheme.colorScheme.onSurfaceVariant)
                     }
                 }
+                AccessLine(model, onFlagged)
                 Row(Modifier.horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     model.waypoints.forEachIndexed { index, _ ->
                         AssistChip(
@@ -336,4 +389,53 @@ private fun PlannerOptionsSheet(options: PlanOptions, onChange: (PlanOptions) ->
             }
         }
     }
+}
+
+/** Pistes : vérification de l'accès (seulement si « Autoriser les pistes » est actif). */
+@Composable
+private fun AccessLine(model: PlannerModel, onFlagged: () -> Unit) {
+    when (model.accessStatus) {
+        PlannerModel.AccessStatus.CHECKING -> Text(stringResource(R.string.plan_access_checking), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        PlannerModel.AccessStatus.UNAVAILABLE -> Text(stringResource(R.string.plan_access_unavailable), style = MaterialTheme.typography.bodySmall, color = Color(0xFFF29900))
+        PlannerModel.AccessStatus.CHECKED ->
+            if (model.flagged.isEmpty()) {
+                Text(stringResource(R.string.plan_access_none), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            } else {
+                TextButton(onClick = onFlagged, contentPadding = androidx.compose.foundation.layout.PaddingValues(0.dp)) {
+                    Text(
+                        stringResource(R.string.plan_access_flagged, model.flagged.size, RoadbookTexts.distance(model.flagged.sumOf { it.lengthMeters }, DistanceUnit.KM)),
+                        style = MaterialTheme.typography.bodyMedium, fontWeight = androidx.compose.ui.text.font.FontWeight.SemiBold, color = Color(0xFFF29900),
+                    )
+                }
+            }
+        PlannerModel.AccessStatus.IDLE -> Unit
+    }
+}
+
+/** Liste des portions à vérifier : on peut en signaler une comme interdite (les prochains itinéraires l'évitent). */
+@Composable
+private fun FlaggedSegmentsSheet(segments: List<FlaggedSegment>, onReport: (FlaggedSegment) -> Unit) {
+    Column(Modifier.fillMaxWidth().padding(horizontal = 16.dp).padding(bottom = 24.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+        Text(stringResource(R.string.plan_flagged_title), style = MaterialTheme.typography.titleLarge)
+        segments.forEach { segment ->
+            Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Box(Modifier.size(10.dp).background(verdictColor(segment.verdict), CircleShape))
+                    Text(segment.name ?: stringResource(R.string.plan_unnamed), style = MaterialTheme.typography.titleSmall, modifier = Modifier.weight(1f))
+                    Text(RoadbookTexts.distance(segment.lengthMeters, DistanceUnit.KM), color = MaterialTheme.colorScheme.onSurfaceVariant)
+                }
+                Text(
+                    stringResource(when (segment.verdict) { AccessVerdict.FORBIDDEN -> R.string.plan_verdict_forbidden; AccessVerdict.RESTRICTED -> R.string.plan_verdict_restricted; else -> R.string.plan_verdict_verify }),
+                    style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+                OutlinedButton(onClick = { onReport(segment) }) { Text(stringResource(R.string.plan_report_forbidden), color = MaterialTheme.colorScheme.error) }
+            }
+        }
+    }
+}
+
+private fun verdictColor(verdict: AccessVerdict): Color = when (verdict) {
+    AccessVerdict.FORBIDDEN -> Color(0xFFD91F1F)
+    AccessVerdict.RESTRICTED -> Color(0xFFF24D1A)
+    else -> Color(0xFFF2C700)
 }

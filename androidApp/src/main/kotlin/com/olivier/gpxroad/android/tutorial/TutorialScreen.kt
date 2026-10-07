@@ -62,7 +62,7 @@ private val pages = listOf(
     ),
     Page(
         R.string.tab_library, R.string.tuto_lib_summary,
-        listOf(Topic(R.string.tuto_lib_tracks, listOf(R.string.tuto_lib_1, R.string.tuto_lib_2, R.string.tuto_lib_3, R.string.tuto_lib_4, R.string.tuto_lib_5, R.string.tuto_lib_6, R.string.tuto_lib_7))),
+        listOf(Topic(R.string.tuto_lib_tracks, listOf(R.string.tuto_lib_1, R.string.tuto_lib_2, R.string.tuto_lib_3, R.string.tuto_lib_4, R.string.tuto_lib_5, R.string.tuto_lib_6, R.string.tuto_lib_7, R.string.tuto_lib_8))),
     ),
     Page(
         R.string.tab_settings, R.string.tuto_set_summary,

@@ -5,8 +5,15 @@ import Foundation
 @MainActor
 final class SharedBlockageStore {
     private let fileManager = FileManager.default
+    /// Seam de test : ne JAMAIS toucher aux vraies données de l'app.
+    private let directoryOverride: URL?
+
+    init(directoryOverride: URL? = nil) {
+        self.directoryOverride = directoryOverride
+    }
 
     private var fileURL: URL {
+        if let directoryOverride { return directoryOverride.appendingPathComponent("shared-blockages.json") }
         let docs = fileManager.urls(for: .documentDirectory, in: .userDomainMask)[0]
         return docs.appendingPathComponent("Sync/shared-blockages.json")
     }

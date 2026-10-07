@@ -569,4 +569,17 @@
     <string name="plan_cancel">Abbrechen</string>
     <string name="plan_ok">OK</string>
     <string name="tuto_lib_7">„+“ > Route erstellen: Setze Punkte auf der Karte, Valhalla verbindet sie über echte Straßen (Autobahnen standardmäßig vermieden) und du speicherst die Route als Track.</string>
+    <string name="plan_access_checking">Zugang wird geprüft…</string>
+    <string name="plan_access_unavailable">Zugangsprüfung nicht möglich (Netz oder Server).</string>
+    <string name="plan_access_none">Keine Zugangsbeschränkung in OpenStreetMap für diese Route gemeldet.</string>
+    <string name="plan_access_flagged">%1$d Abschnitte zu prüfen · %2$s</string>
+    <string name="plan_flagged_title">Pisten zu prüfen</string>
+    <string name="plan_unnamed">Weg ohne Namen</string>
+    <string name="plan_verdict_verify">Zu prüfen: OpenStreetMap gibt den Zugang nicht an</string>
+    <string name="plan_verdict_restricted">Zugang nur für Anlieger oder Ziel</string>
+    <string name="plan_verdict_forbidden">Laut OpenStreetMap verboten</string>
+    <string name="plan_report_forbidden">Als verboten melden</string>
+    <string name="plan_report_title">Diesen Weg als verboten melden?</string>
+    <string name="plan_report_message">Künftige Routen meiden ihn. Die Meldung wird an die gemeinsame Datenbank gesendet, falls eine eingerichtet ist.</string>
+    <string name="tuto_lib_8">Mit „Pisten erlauben“ werden Abschnitte hervorgehoben, deren Zugang laut OpenStreetMap zu prüfen ist; melde einen als verboten, und künftige Routen meiden ihn.</string>
 </resources>

@@ -738,3 +738,16 @@
 "Autoriser les pistes" = "Consenti le piste";
 "Éviter n'est pas interdire : si aucune autre route n'existe, l'itinéraire peut quand même passer par là. Les pistes ne sont proposées que si les données OpenStreetMap les disent accessibles ; l'interdiction réelle sur le terrain peut différer." = "Evitare non significa vietare: se non esiste altra strada, il percorso può comunque passare di lì. Le piste sono proposte solo se i dati OpenStreetMap le indicano accessibili; le restrizioni reali sul terreno possono differire.";
 "« + » > Créer un itinéraire : pose des points sur la carte, Valhalla les relie par les routes (autoroutes évitées par défaut), puis enregistre l'itinéraire comme une trace." = "«+» > Crea un percorso: tocca dei punti sulla mappa, Valhalla li collega lungo strade reali (autostrade evitate per impostazione predefinita) e salva il percorso come traccia.";
+"Vérification des accès…" = "Verifica degli accessi…";
+"Vérification des accès impossible (réseau ou serveur)." = "Verifica degli accessi non disponibile (rete o server).";
+"Aucune restriction d'accès signalée dans OpenStreetMap sur ce tracé." = "Nessuna restrizione di accesso segnalata in OpenStreetMap su questo percorso.";
+"%lld portions à vérifier · %@" = "%lld tratti da verificare · %@";
+"Pistes à vérifier" = "Piste da verificare";
+"Chemin sans nom" = "Strada senza nome";
+"À vérifier : OpenStreetMap n'indique pas l'accès" = "Da verificare: OpenStreetMap non indica l'accesso";
+"Accès réservé aux riverains ou à la destination" = "Accesso riservato a residenti o destinazione";
+"Interdit d'après OpenStreetMap" = "Vietato secondo OpenStreetMap";
+"Signaler interdit" = "Segnala come vietato";
+"Signaler ce chemin comme interdit ?" = "Segnalare questa strada come vietata?";
+"Les prochains itinéraires l'éviteront. Le signalement est envoyé à la base partagée si elle est configurée." = "I prossimi percorsi lo eviteranno. La segnalazione viene inviata al database condiviso se configurato.";
+"Avec « Autoriser les pistes », les portions dont l'accès est à vérifier d'après OpenStreetMap sont surlignées ; signale-en une comme interdite et les prochains itinéraires l'éviteront." = "Con «Consenti le piste», i tratti il cui accesso va verificato secondo OpenStreetMap vengono evidenziati; segnalane uno come vietato e i prossimi percorsi lo eviteranno.";

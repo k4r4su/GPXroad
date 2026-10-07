@@ -7,6 +7,7 @@ import androidx.compose.runtime.setValue
 import com.olivier.gpxroad.android.net.Http
 import com.olivier.gpxroad.shared.LatLon
 import com.olivier.gpxroad.shared.recording.IsoTime
+import com.olivier.gpxroad.shared.ride.BlockageKind
 import com.olivier.gpxroad.shared.ride.SharedBlockage
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.MainScope
@@ -66,11 +67,30 @@ class SharedBlockageSync(context: Context) {
         }
     }
 
+    /** Obstacles réels (arbre, barrière…) : les seuls montrés dans le Ride. */
+    val blockedOnly: List<SharedBlockage> get() = blockages.filter { it.kind == BlockageKind.BLOCKED }
+
+    /** Points que Valhalla doit éviter pour un itinéraire créé : tous les signalements (bloqués ET interdits) de la zone. */
+    fun exclusionLocations(minLat: Double, minLon: Double, maxLat: Double, maxLon: Double): List<LatLon> =
+        blockages.map { it.coordinate }.filter { it.latitude in minLat..maxLat && it.longitude in minLon..maxLon }
+
+    /**
+     * Chemin signalé INTERDIT depuis le planificateur : enregistré tout de suite en local (les prochains itinéraires l'évitent
+     * même sans serveur), puis envoyé à la base partagée si elle est configurée.
+     */
+    fun reportForbidden(position: LatLon, wayId: Long?) {
+        merge(listOf(SharedBlockage("local-" + UUID.randomUUID(), position, null, System.currentTimeMillis(), BlockageKind.FORBIDDEN, wayId)))
+        report(position, BlockageKind.FORBIDDEN, wayId)
+    }
+
     /** Signalement anonyme d'un chemin bloqué (échec sans conséquence : rien n'est bloquant). */
-    fun report(position: LatLon) {
+    fun report(position: LatLon, kind: BlockageKind = BlockageKind.BLOCKED, wayId: Long? = null) {
         val url = serverUrl
         if (!shareEnabled || url.isEmpty()) return
-        val body = JSONObject().put("lat", position.latitude).put("lon", position.longitude).put("reporter_id", reporterId()).toString()
+        val json = JSONObject().put("lat", position.latitude).put("lon", position.longitude).put("reporter_id", reporterId())
+        if (kind == BlockageKind.FORBIDDEN) json.put("kind", "forbidden")
+        wayId?.let { json.put("way_id", it) }
+        val body = json.toString()
         scope.launch {
             val confirmed = withContext(Dispatchers.IO) {
                 runCatching {
@@ -98,6 +118,7 @@ class SharedBlockageSync(context: Context) {
             file.writeText(JSONArray(blockages.map { b ->
                 JSONObject().put("id", b.id).put("lat", b.coordinate.latitude).put("lon", b.coordinate.longitude)
                     .put("note", b.note ?: JSONObject.NULL).put("last_confirmed_at", IsoTime.format(b.lastConfirmedMillis))
+                    .put("kind", if (b.kind == BlockageKind.FORBIDDEN) "forbidden" else "blocked").put("way_id", b.wayId ?: JSONObject.NULL)
             }).toString())
         }
     }
@@ -112,7 +133,10 @@ class SharedBlockageSync(context: Context) {
 
     private fun parse(o: JSONObject): SharedBlockage? {
         val confirmed = IsoTime.parse(o.optString("last_confirmed_at")) ?: return null
-        return SharedBlockage(o.getString("id"), LatLon(o.getDouble("lat"), o.getDouble("lon")), o.optString("note").takeIf { it.isNotEmpty() && it != "null" }, confirmed)
+        // « kind » et « way_id » : absents des anciens serveurs et des caches d'avant (comportement d'avant : bloqué).
+        val kind = if (o.optString("kind") == "forbidden") BlockageKind.FORBIDDEN else BlockageKind.BLOCKED
+        val wayId = if (o.has("way_id") && !o.isNull("way_id")) o.getLong("way_id") else null
+        return SharedBlockage(o.getString("id"), LatLon(o.getDouble("lat"), o.getDouble("lon")), o.optString("note").takeIf { it.isNotEmpty() && it != "null" }, confirmed, kind, wayId)
     }
 
     private companion object {

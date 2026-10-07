@@ -15,7 +15,7 @@ import uuid
 from contextlib import contextmanager
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
-from typing import Optional
+from typing import Literal, Optional
 
 from fastapi import FastAPI, HTTPException, Query
 from pydantic import BaseModel, Field
@@ -70,6 +70,13 @@ def init_db() -> None:
             )
             """
         )
+        # Migration (06/10) : « kind » distingue un chemin BLOQUÉ (arbre, barrière…) d'un chemin INTERDIT aux véhicules
+        # (signalé depuis le planificateur d'itinéraire) ; « way_id » = identifiant OpenStreetMap du chemin, s'il est connu.
+        columns = {row["name"] for row in conn.execute("PRAGMA table_info(blockages)").fetchall()}
+        if "kind" not in columns:
+            conn.execute("ALTER TABLE blockages ADD COLUMN kind TEXT NOT NULL DEFAULT 'blocked'")
+        if "way_id" not in columns:
+            conn.execute("ALTER TABLE blockages ADD COLUMN way_id INTEGER")
 
 
 class BlockageReport(BaseModel):
@@ -77,6 +84,9 @@ class BlockageReport(BaseModel):
     lon: float = Field(ge=-180, le=180)
     note: Optional[str] = Field(default=None, max_length=280)
     reporter_id: str = Field(min_length=1, max_length=64)
+    # Absent chez les anciens clients : « blocked », comportement d'avant.
+    kind: Literal["blocked", "forbidden"] = "blocked"
+    way_id: Optional[int] = Field(default=None, ge=1)
 
 
 class Blockage(BaseModel):
@@ -84,6 +94,8 @@ class Blockage(BaseModel):
     lat: float
     lon: float
     note: Optional[str] = None
+    kind: Literal["blocked", "forbidden"] = "blocked"
+    way_id: Optional[int] = None
     created_at: str
     last_confirmed_at: str
 
@@ -110,8 +122,10 @@ def report_blockage(report: BlockageReport) -> dict:
         cutoff = (datetime.now(timezone.utc) - timedelta(days=EXPIRE_AFTER_DAYS)).isoformat()
         conn.execute("DELETE FROM blockages WHERE last_confirmed_at < ?", (cutoff,))
 
-        for row in conn.execute("SELECT * FROM blockages").fetchall():
-            if haversine_meters(report.lat, report.lon, row["lat"], row["lon"]) <= DEDUP_RADIUS_METERS:
+        for row in conn.execute("SELECT * FROM blockages WHERE kind = ?", (report.kind,)).fetchall():
+            # Même chemin OSM (s'il est connu des deux côtés) OU point à moins de 100 m — jamais entre deux types différents.
+            same_way = report.way_id is not None and row["way_id"] == report.way_id
+            if same_way or haversine_meters(report.lat, report.lon, row["lat"], row["lon"]) <= DEDUP_RADIUS_METERS:
                 conn.execute(
                     "UPDATE blockages SET last_confirmed_at = ?, note = COALESCE(?, note) WHERE id = ?",
                     (now, report.note, row["id"]),
@@ -120,9 +134,9 @@ def report_blockage(report: BlockageReport) -> dict:
 
         new_id = str(uuid.uuid4())
         conn.execute(
-            "INSERT INTO blockages (id, lat, lon, note, reporter_id, created_at, last_confirmed_at) "
-            "VALUES (?, ?, ?, ?, ?, ?, ?)",
-            (new_id, report.lat, report.lon, report.note, report.reporter_id, now, now),
+            "INSERT INTO blockages (id, lat, lon, note, reporter_id, created_at, last_confirmed_at, kind, way_id) "
+            "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
+            (new_id, report.lat, report.lon, report.note, report.reporter_id, now, now, report.kind, report.way_id),
         )
         return dict(conn.execute("SELECT * FROM blockages WHERE id = ?", (new_id,)).fetchone())
 
@@ -133,12 +147,15 @@ def list_blockages(
     min_lon: float = Query(..., ge=-180, le=180),
     max_lat: float = Query(..., ge=-90, le=90),
     max_lon: float = Query(..., ge=-180, le=180),
+    kind: Optional[Literal["blocked", "forbidden"]] = Query(default=None),
 ) -> list[dict]:
     if min_lat > max_lat or min_lon > max_lon:
         raise HTTPException(status_code=400, detail="bbox invalide")
     with db() as conn:
-        rows = conn.execute(
-            "SELECT * FROM blockages WHERE lat BETWEEN ? AND ? AND lon BETWEEN ? AND ?",
-            (min_lat, max_lat, min_lon, max_lon),
-        ).fetchall()
+        query = "SELECT * FROM blockages WHERE lat BETWEEN ? AND ? AND lon BETWEEN ? AND ?"
+        params: list = [min_lat, max_lat, min_lon, max_lon]
+        if kind is not None:
+            query += " AND kind = ?"
+            params.append(kind)
+        rows = conn.execute(query, params).fetchall()
         return [dict(row) for row in rows]

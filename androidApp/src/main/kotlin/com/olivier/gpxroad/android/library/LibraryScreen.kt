@@ -95,7 +95,9 @@ import com.olivier.gpxroad.android.data.TrackEntry
 import com.olivier.gpxroad.android.data.TrackFolder
 import com.olivier.gpxroad.android.data.TrackLibrary
 import com.olivier.gpxroad.android.offline.OfflineMaps
+import com.olivier.gpxroad.android.net.OverpassClient
 import com.olivier.gpxroad.android.net.RoutingClient
+import com.olivier.gpxroad.android.sync.SharedBlockageSync
 import com.olivier.gpxroad.android.net.ServerSettings
 import com.olivier.gpxroad.android.plan.RoutePlannerScreen
 import androidx.compose.material.icons.rounded.Route
@@ -124,7 +126,7 @@ private val UnsavedAmber = Color(0xFFFF9500)
  * dossier, suppression). [pendingImport] : fichier GPX ouvert depuis une autre app.
  */
 @Composable
-fun LibraryScreen(library: TrackLibrary, settings: AppSettings, recorder: RideRecorder, offline: OfflineMaps, preparer: TrackPreparer, servers: ServerSettings, routing: RoutingClient, startPosition: LatLon?, pendingImport: Uri?, onImportHandled: () -> Unit) {
+fun LibraryScreen(library: TrackLibrary, settings: AppSettings, recorder: RideRecorder, offline: OfflineMaps, preparer: TrackPreparer, servers: ServerSettings, routing: RoutingClient, overpass: OverpassClient, blockageSync: SharedBlockageSync, startPosition: LatLon?, pendingImport: Uri?, onImportHandled: () -> Unit) {
     val context = LocalContext.current
     val snackbar = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
@@ -172,7 +174,7 @@ fun LibraryScreen(library: TrackLibrary, settings: AppSettings, recorder: RideRe
         androidx.compose.ui.window.Dialog(
             onDismissRequest = { planning = false },
             properties = androidx.compose.ui.window.DialogProperties(usePlatformDefaultWidth = false, decorFitsSystemWindows = false),
-        ) { RoutePlannerScreen(library, servers, routing, startPosition) { planning = false } }
+        ) { RoutePlannerScreen(library, servers, routing, overpass, blockageSync, startPosition) { planning = false } }
     }
     Scaffold(
         snackbarHost = { SnackbarHost(snackbar) },

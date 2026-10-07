@@ -74,7 +74,21 @@ temps, la version iOS est vraiment correcte mais l'Android c'est une catastrophe
       autorisée). Limites assumées : pas de déplacement d'un point par glisser (supprimer puis reposer), pas de recherche d'adresse,
       pas de score de sinuosité (Valhalla n'en a pas), « éviter » ≠ « interdire », nécessite Valhalla configuré (repli sur une
       instance publique à décider).
-  - [ ] Phase 2 (pistes autorisées + base des points interdits) : voir « À venir ».
+- [x] Créer un itinéraire, phase 2 (06/10) : pistes autorisées + base des points interdits. Avec « Autoriser les pistes », chaque
+      tronçon calculé est relu (Valhalla `/trace_attributes`, chemins OSM suivis) puis ses étiquettes d'accès lues sur Overpass ;
+      règles communes `shared/plan/TrackAccess` : étiquette explicite d'abord (`motorcycle` > `motor_vehicle` > `vehicle` > `access`),
+      « riverains/destination » = restreint, `no/private/forestry/agricultural` = interdit, piste SANS étiquette = « à vérifier »
+      (jamais « autorisée » : la légalité dépend du pays, en France la circulation hors voies ouvertes à la circulation publique est
+      interdite), chemin/sentier = interdit aux moteurs. Portions surlignées (jaune/orange/rouge), résumé dans le panneau, liste avec
+      « Signaler interdit » → enregistré localement tout de suite (les itinéraires suivants l'évitent via `exclude_locations`) puis
+      envoyé à la base si configurée. Serveur : `kind` (blocked/forbidden) + `way_id`, migration d'une base existante, 8 tests
+      (`server/test_app.py`). Le Ride ne montre que les obstacles `blocked`. Vérifié : requêtes acceptées par Valhalla, tests sur de
+      VRAIES réponses (Valhalla + Overpass, Vosges) côté Kotlin/Android et iOS, affichage iOS au simulateur (Overpass public
+      surchargé : cas « vérification impossible » vu ET cas nominal simulé). NON vérifié : Android à l'exécution, serveur déployé
+      (pas encore chez le propriétaire), envoi réel d'un signalement. Limites : exclusion limitée aux points du cache local (la base
+      n'est interrogée que près des traces suivies, pas près d'un itinéraire en création) ; « éviter » ≠ « interdire ».
+  - [ ] À faire ensuite : interroger la base partagée sur la zone d'un itinéraire en création ; glisser un point ; recherche d'adresse ;
+        repli sur une instance Valhalla publique ; limites de vitesse/sinuosité.
 - [x] Mode longue sortie (06/10, idée 3/3) : réglage Off / Auto (≤ 20 % hors charge, par défaut) / Toujours, iOS (Réglages >
       Enregistrement de la sortie) et Android (même page). Actif : carte automatique et préparation de la trace suspendues,
       carte limitée à 30 images/s (`preferredFramesPerSecond` iOS, `setMaximumFps` Android) ; alerte à 15 % puis 5 % pendant un

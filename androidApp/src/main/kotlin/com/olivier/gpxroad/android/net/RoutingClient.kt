@@ -1,6 +1,7 @@
 package com.olivier.gpxroad.android.net
 
 import com.olivier.gpxroad.shared.plan.PlanOptions
+import com.olivier.gpxroad.shared.plan.PlanVehicle
 import com.olivier.gpxroad.shared.plan.RoutePlanner
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -110,12 +111,16 @@ class RoutingClient {
      * Itinéraire créé à la volée (06/10) : `/route` pour tous les points posés en un seul appel, corps construit par la règle
      * commune ([RoutePlanner], identique sur iPhone). Valhalla recale chaque tronçon sur les routes existantes.
      */
-    fun plan(points: List<LatLon>, options: PlanOptions, configuration: ValhallaConfiguration): PlannedRoute {
-        val body = JSONObject(RoutePlanner.requestBody(points, options))
+    fun plan(points: List<LatLon>, options: PlanOptions, excluded: List<LatLon>, configuration: ValhallaConfiguration): PlannedRoute {
+        val body = JSONObject(RoutePlanner.requestBody(points, options, excluded))
         val planned = parsePlannedRoute(post(configuration, "route", body, REQUEST_TIMEOUT_MILLIS))
         lastSuccess = RoutingProvider.VALHALLA to System.currentTimeMillis()
         return planned
     }
+
+    /** Chemins OSM suivis par un tronçon DÉJÀ calculé (`/trace_attributes`, forme suivie telle quelle) : réponse brute. */
+    fun traceAttributes(encodedShape: String, vehicle: PlanVehicle, configuration: ValhallaConfiguration): ByteArray =
+        post(configuration, "trace_attributes", JSONObject(RoutePlanner.attributesRequestBody(encodedShape, vehicle)), REQUEST_TIMEOUT_MILLIS)
 
     private fun post(configuration: ValhallaConfiguration, path: String, body: JSONObject, timeoutMillis: Int): ByteArray {
         val url = endpoint(configuration.endpoint, path)
@@ -148,11 +153,12 @@ class RoutingClient {
         fun parsePlannedRoute(data: ByteArray): PlannedRoute {
             val trip = JSONObject(data.toString(Charsets.UTF_8)).getJSONObject("trip")
             val legs = trip.getJSONArray("legs")
-            val merged = RoutePlanner.mergeLegs((0 until legs.length()).map { ValhallaMapMatching.decodePolyline6(legs.getJSONObject(it).getString("shape")) })
+            val encoded = (0 until legs.length()).map { legs.getJSONObject(it).getString("shape") }
+            val merged = RoutePlanner.mergeLegs(encoded.map { ValhallaMapMatching.decodePolyline6(it) })
             if (merged.size < 2) throw HttpException("aucun itinéraire")
             val summary = trip.optJSONObject("summary")
             val kilometers = summary?.optDouble("length", Double.NaN)?.takeIf { !it.isNaN() } ?: (RoutePlanner.lengthMeters(merged) / 1000)
-            return PlannedRoute(merged, kilometers * 1000, summary?.optDouble("time", 0.0) ?: 0.0)
+            return PlannedRoute(merged, kilometers * 1000, summary?.optDouble("time", 0.0) ?: 0.0, encoded)
         }
 
         /** Réponse `/route` de Valhalla → itinéraire et manœuvres (textes tels que Valhalla les rédige). */
@@ -193,4 +199,4 @@ class RoutingClient {
 }
 
 /** Itinéraire calculé pour la création d'une trace à la volée : tracé, longueur et durée estimées par Valhalla. */
-data class PlannedRoute(val points: List<LatLon>, val distanceMeters: Double, val durationSeconds: Double)
+data class PlannedRoute(val points: List<LatLon>, val distanceMeters: Double, val durationSeconds: Double, val legShapes: List<String> = emptyList())

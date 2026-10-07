@@ -5,24 +5,36 @@ import CoreLocation
 /// de `BlockageEvent` (journal 100% local, par trace) — celui-ci vient (ou peut venir) de
 /// la communauté et n'est jamais modifié par le client, seulement affiché et comparé.
 struct SharedBlockage: Codable, Identifiable, Equatable {
+    /// `blocked` : chemin impraticable (arbre, barrière…), montré dans le Ride ; `forbidden` : chemin interdit aux véhicules,
+    /// signalé depuis le planificateur d'itinéraire — jamais montré comme obstacle, mais évité par les itinéraires créés.
+    enum Kind: String, Codable {
+        case blocked, forbidden
+    }
+
     let id: String
     let coordinate: CLLocationCoordinate2DCodable
     let note: String?
     let createdAt: Date
     let lastConfirmedAt: Date
+    let kind: Kind
+    /// Identifiant OpenStreetMap du chemin, s'il est connu.
+    let wayID: Int64?
 
-    init(id: String, coordinate: CLLocationCoordinate2D, note: String?, createdAt: Date, lastConfirmedAt: Date) {
+    init(id: String, coordinate: CLLocationCoordinate2D, note: String?, createdAt: Date, lastConfirmedAt: Date, kind: Kind = .blocked, wayID: Int64? = nil) {
         self.id = id
         self.coordinate = CLLocationCoordinate2DCodable(coordinate)
         self.note = note
         self.createdAt = createdAt
         self.lastConfirmedAt = lastConfirmedAt
+        self.kind = kind
+        self.wayID = wayID
     }
 
     private enum CodingKeys: String, CodingKey {
-        case id, lat, lon, note
+        case id, lat, lon, note, kind
         case createdAt = "created_at"
         case lastConfirmedAt = "last_confirmed_at"
+        case wayID = "way_id"
     }
 
     init(from decoder: Decoder) throws {
@@ -34,6 +46,9 @@ struct SharedBlockage: Codable, Identifiable, Equatable {
         note = try container.decodeIfPresent(String.self, forKey: .note)
         createdAt = try container.decode(Date.self, forKey: .createdAt)
         lastConfirmedAt = try container.decode(Date.self, forKey: .lastConfirmedAt)
+        // Absents des anciens serveurs et des caches d'avant : « blocked », comportement d'avant.
+        kind = (try? container.decodeIfPresent(Kind.self, forKey: .kind)) ?? .blocked
+        wayID = try container.decodeIfPresent(Int64.self, forKey: .wayID)
     }
 
     func encode(to encoder: Encoder) throws {
@@ -44,6 +59,8 @@ struct SharedBlockage: Codable, Identifiable, Equatable {
         try container.encodeIfPresent(note, forKey: .note)
         try container.encode(createdAt, forKey: .createdAt)
         try container.encode(lastConfirmedAt, forKey: .lastConfirmedAt)
+        try container.encode(kind, forKey: .kind)
+        try container.encodeIfPresent(wayID, forKey: .wayID)
     }
 
     /// Sécurité côté client si le cache local n'a pas resynchronisé récemment — le serveur
@@ -66,17 +83,22 @@ struct SharedBlockageOutgoingReport: Encodable, Equatable {
     let lon: Double
     let note: String?
     let reporterID: String
+    let kind: SharedBlockage.Kind
+    let wayID: Int64?
 
-    init(coordinate: CLLocationCoordinate2D, note: String?, reporterID: String) {
+    init(coordinate: CLLocationCoordinate2D, note: String?, reporterID: String, kind: SharedBlockage.Kind = .blocked, wayID: Int64? = nil) {
         lat = coordinate.latitude
         lon = coordinate.longitude
         self.note = note
         self.reporterID = reporterID
+        self.kind = kind
+        self.wayID = wayID
     }
 
     private enum CodingKeys: String, CodingKey {
-        case lat, lon, note
+        case lat, lon, note, kind
         case reporterID = "reporter_id"
+        case wayID = "way_id"
     }
 }
 

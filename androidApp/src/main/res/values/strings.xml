@@ -571,4 +571,17 @@
     <string name="plan_cancel">Annuler</string>
     <string name="plan_ok">OK</string>
     <string name="tuto_lib_7">« Créer un itinéraire » > Créer un itinéraire : pose des points sur la carte, Valhalla les relie par les routes (autoroutes évitées par défaut), puis enregistre l\'itinéraire comme une trace.</string>
+    <string name="plan_access_checking">Vérification des accès…</string>
+    <string name="plan_access_unavailable">Vérification des accès impossible (réseau ou serveur).</string>
+    <string name="plan_access_none">Aucune restriction d\'accès signalée dans OpenStreetMap sur ce tracé.</string>
+    <string name="plan_access_flagged">%1$d portions à vérifier · %2$s</string>
+    <string name="plan_flagged_title">Pistes à vérifier</string>
+    <string name="plan_unnamed">Chemin sans nom</string>
+    <string name="plan_verdict_verify">À vérifier : OpenStreetMap n\'indique pas l\'accès</string>
+    <string name="plan_verdict_restricted">Accès réservé aux riverains ou à la destination</string>
+    <string name="plan_verdict_forbidden">Interdit d\'après OpenStreetMap</string>
+    <string name="plan_report_forbidden">Signaler interdit</string>
+    <string name="plan_report_title">Signaler ce chemin comme interdit ?</string>
+    <string name="plan_report_message">Les prochains itinéraires l\'éviteront. Le signalement est envoyé à la base partagée si elle est configurée.</string>
+    <string name="tuto_lib_8">Avec « Autoriser les pistes », les portions dont l\'accès est à vérifier d\'après OpenStreetMap sont surlignées ; signale-en une comme interdite et les prochains itinéraires l\'éviteront.</string>
 </resources>

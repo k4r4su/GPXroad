@@ -738,3 +738,16 @@
 "Autoriser les pistes" = "Permitir pistas";
 "Éviter n'est pas interdire : si aucune autre route n'existe, l'itinéraire peut quand même passer par là. Les pistes ne sont proposées que si les données OpenStreetMap les disent accessibles ; l'interdiction réelle sur le terrain peut différer." = "Evitar no es prohibir: si no existe otra carretera, la ruta puede pasar igualmente por ahí. Las pistas solo se ofrecen si los datos de OpenStreetMap indican que son accesibles; las restricciones reales sobre el terreno pueden diferir.";
 "« + » > Créer un itinéraire : pose des points sur la carte, Valhalla les relie par les routes (autoroutes évitées par défaut), puis enregistre l'itinéraire comme une trace." = "«+» > Crear una ruta: pon puntos en el mapa, Valhalla los une por carreteras reales (autopistas evitadas por defecto) y guarda la ruta como una ruta de la Biblioteca.";
+"Vérification des accès…" = "Comprobando accesos…";
+"Vérification des accès impossible (réseau ou serveur)." = "Comprobación de accesos imposible (red o servidor).";
+"Aucune restriction d'accès signalée dans OpenStreetMap sur ce tracé." = "Ninguna restricción de acceso señalada en OpenStreetMap en este trazado.";
+"%lld portions à vérifier · %@" = "%lld tramos por comprobar · %@";
+"Pistes à vérifier" = "Pistas por comprobar";
+"Chemin sans nom" = "Camino sin nombre";
+"À vérifier : OpenStreetMap n'indique pas l'accès" = "Por comprobar: OpenStreetMap no indica el acceso";
+"Accès réservé aux riverains ou à la destination" = "Acceso solo para residentes o destino";
+"Interdit d'après OpenStreetMap" = "Prohibido según OpenStreetMap";
+"Signaler interdit" = "Señalar como prohibido";
+"Signaler ce chemin comme interdit ?" = "¿Señalar este camino como prohibido?";
+"Les prochains itinéraires l'éviteront. Le signalement est envoyé à la base partagée si elle est configurée." = "Las próximas rutas lo evitarán. El aviso se envía a la base compartida si está configurada.";
+"Avec « Autoriser les pistes », les portions dont l'accès est à vérifier d'après OpenStreetMap sont surlignées ; signale-en une comme interdite et les prochains itinéraires l'éviteront." = "Con «Permitir pistas», los tramos cuyo acceso debe comprobarse según OpenStreetMap se resaltan; señala uno como prohibido y las próximas rutas lo evitarán.";

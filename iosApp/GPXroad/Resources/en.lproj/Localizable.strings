@@ -738,3 +738,16 @@
 "Autoriser les pistes" = "Allow tracks";
 "Éviter n'est pas interdire : si aucune autre route n'existe, l'itinéraire peut quand même passer par là. Les pistes ne sont proposées que si les données OpenStreetMap les disent accessibles ; l'interdiction réelle sur le terrain peut différer." = "Avoiding is not forbidding: if no other road exists, the route may still go that way. Tracks are only offered when OpenStreetMap data says they are accessible; real-world restrictions may differ.";
 "« + » > Créer un itinéraire : pose des points sur la carte, Valhalla les relie par les routes (autoroutes évitées par défaut), puis enregistre l'itinéraire comme une trace." = "“+” > Create a route: tap points on the map, Valhalla links them along real roads (motorways avoided by default), then save the route as a track.";
+"Vérification des accès…" = "Checking access…";
+"Vérification des accès impossible (réseau ou serveur)." = "Access check unavailable (network or server).";
+"Aucune restriction d'accès signalée dans OpenStreetMap sur ce tracé." = "No access restriction reported in OpenStreetMap on this route.";
+"%lld portions à vérifier · %@" = "%lld sections to check · %@";
+"Pistes à vérifier" = "Tracks to check";
+"Chemin sans nom" = "Unnamed way";
+"À vérifier : OpenStreetMap n'indique pas l'accès" = "To check: OpenStreetMap does not state the access";
+"Accès réservé aux riverains ou à la destination" = "Access for residents or destination only";
+"Interdit d'après OpenStreetMap" = "Forbidden according to OpenStreetMap";
+"Signaler interdit" = "Report as forbidden";
+"Signaler ce chemin comme interdit ?" = "Report this way as forbidden?";
+"Les prochains itinéraires l'éviteront. Le signalement est envoyé à la base partagée si elle est configurée." = "Future routes will avoid it. The report is sent to the shared database if one is configured.";
+"Avec « Autoriser les pistes », les portions dont l'accès est à vérifier d'après OpenStreetMap sont surlignées ; signale-en une comme interdite et les prochains itinéraires l'éviteront." = "With “Allow tracks”, sections whose access should be checked according to OpenStreetMap are highlighted; report one as forbidden and future routes will avoid it.";

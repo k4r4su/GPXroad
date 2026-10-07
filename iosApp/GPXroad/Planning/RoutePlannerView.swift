@@ -8,7 +8,10 @@ struct RoutePlannerView: View {
     @Environment(\.dismiss) private var dismiss
     @EnvironmentObject private var library: LibraryStore
     @EnvironmentObject private var settings: RideSettingsStore
+    @EnvironmentObject private var sharedBlockages: SharedBlockageSyncCoordinator
+    @EnvironmentObject private var networkMonitor: NetworkMonitor
     @StateObject private var model = RoutePlannerModel()
+    @State private var showFlagged = false
     @StateObject private var locationManager = LocationManager()
     @State private var showOptions = false
     @State private var showNamePrompt = false
@@ -26,6 +29,7 @@ struct RoutePlannerView: View {
                 PlannerMapView(
                     waypoints: model.waypoints,
                     route: model.route?.points ?? [],
+                    flagged: model.flagged,
                     fitToken: model.fitToken,
                     startCenter: startCenter,
                     onTap: { model.add($0) }
@@ -41,7 +45,24 @@ struct RoutePlannerView: View {
                 }
             }
         }
-        .onAppear { model.configuration = { settings.valhallaConfigurationIfEnabled } }
+        .onAppear {
+            model.configuration = { settings.valhallaConfigurationIfEnabled }
+            // Chemins déjà signalés bloqués ou interdits (cache local de la base partagée + signalements faits ici) : évités.
+            model.exclusions = { sharedBlockages.exclusionLocations(inside: $0) }
+        }
+        .sheet(isPresented: $showFlagged) {
+            FlaggedSegmentsSheet(segments: model.flagged) { segment in
+                guard let point = segment.midpoint else { return }
+                sharedBlockages.reportForbidden(
+                    coordinate: point, wayID: segment.wayIDs.first,
+                    serverURLString: settings.sharedBlockageServerURLString,
+                    isReachable: networkMonitor.isReachable, isEnabled: settings.shareBlockagesAnonymously
+                )
+                model.recompute()   // le chemin signalé est maintenant évité
+                showFlagged = false
+            }
+            .presentationDetents([.medium, .large])
+        }
         .sheet(isPresented: $showOptions, onDismiss: { model.optionsChanged() }) {
             PlannerOptionsView(options: $model.options)
                 .presentationDetents([.medium])
@@ -69,6 +90,7 @@ struct RoutePlannerView: View {
                     .foregroundStyle(.secondary)
             } else {
                 summary
+                accessLine
                 waypointChips
             }
             if case .failed(let message) = model.status {
@@ -122,6 +144,40 @@ struct RoutePlannerView: View {
             }
         }
         .font(.subheadline)
+    }
+
+    /// Pistes : vérification de l'accès (seulement si « Autoriser les pistes » est actif).
+    @ViewBuilder
+    private var accessLine: some View {
+        switch model.accessStatus {
+        case .checking:
+            Label("Vérification des accès…", systemImage: "magnifyingglass")
+                .font(.footnote)
+                .foregroundStyle(.secondary)
+        case .unavailable:
+            Label("Vérification des accès impossible (réseau ou serveur).", systemImage: "exclamationmark.triangle")
+                .font(.footnote)
+                .foregroundStyle(.orange)
+        case .checked:
+            if model.flagged.isEmpty {
+                Label("Aucune restriction d'accès signalée dans OpenStreetMap sur ce tracé.", systemImage: "checkmark.seal")
+                    .font(.footnote)
+                    .foregroundStyle(.secondary)
+            } else {
+                Button { showFlagged = true } label: {
+                    Label(
+                        String(format: String(localized: "%lld portions à vérifier · %@", bundle: .appLanguage), model.flagged.count,
+                               DistanceUnit.km.displayString(fromMeters: model.flagged.reduce(0) { $0 + $1.lengthMeters })),
+                        systemImage: "exclamationmark.triangle.fill"
+                    )
+                    .font(.footnote.weight(.semibold))
+                    .foregroundStyle(.orange)
+                }
+                .buttonStyle(.plain)
+            }
+        case .idle:
+            EmptyView()
+        }
     }
 
     private var waypointChips: some View {
@@ -234,5 +290,61 @@ struct RoutePlannerCover: ViewModifier {
 
     func body(content: Content) -> some View {
         content.fullScreenCover(isPresented: $isPresented) { RoutePlannerView() }
+    }
+}
+
+/// Liste des portions à vérifier : on peut en signaler une comme interdite (les prochains itinéraires l'évitent).
+struct FlaggedSegmentsSheet: View {
+    let segments: [FlaggedSegment]
+    let onReportForbidden: (FlaggedSegment) -> Void
+    @Environment(\.dismiss) private var dismiss
+    @State private var pending: FlaggedSegment?
+
+    var body: some View {
+        NavigationStack {
+            List(segments) { segment in
+                VStack(alignment: .leading, spacing: 6) {
+                    HStack(spacing: 8) {
+                        Circle().fill(color(segment.verdict)).frame(width: 10, height: 10)
+                        Text(segment.name ?? String(localized: "Chemin sans nom", bundle: .appLanguage)).font(.headline)
+                        Spacer()
+                        Text(DistanceUnit.km.displayString(fromMeters: segment.lengthMeters)).foregroundStyle(.secondary)
+                    }
+                    Text(explanation(segment.verdict)).font(.footnote).foregroundStyle(.secondary)
+                    Button("Signaler interdit", role: .destructive) { pending = segment }
+                        .font(.footnote)
+                        .buttonStyle(.bordered)
+                }
+                .padding(.vertical, 4)
+            }
+            .navigationTitle("Pistes à vérifier")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar { ToolbarItem(placement: .confirmationAction) { Button("OK") { dismiss() } } }
+            .confirmationDialog("Signaler ce chemin comme interdit ?", isPresented: Binding(get: { pending != nil }, set: { if !$0 { pending = nil } }), titleVisibility: .visible) {
+                Button("Signaler interdit", role: .destructive) {
+                    if let pending { onReportForbidden(pending) }
+                    pending = nil
+                }
+                Button("Annuler", role: .cancel) { pending = nil }
+            } message: {
+                Text("Les prochains itinéraires l'éviteront. Le signalement est envoyé à la base partagée si elle est configurée.")
+            }
+        }
+    }
+
+    private func color(_ verdict: AccessVerdict) -> Color {
+        switch verdict {
+        case .forbidden: return .red
+        case .restricted: return .orange
+        default: return .yellow
+        }
+    }
+
+    private func explanation(_ verdict: AccessVerdict) -> String {
+        switch verdict {
+        case .forbidden: return String(localized: "Interdit d'après OpenStreetMap", bundle: .appLanguage)
+        case .restricted: return String(localized: "Accès réservé aux riverains ou à la destination", bundle: .appLanguage)
+        default: return String(localized: "À vérifier : OpenStreetMap n'indique pas l'accès", bundle: .appLanguage)
+        }
     }
 }

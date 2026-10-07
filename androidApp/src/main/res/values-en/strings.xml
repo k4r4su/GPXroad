@@ -569,4 +569,17 @@
     <string name="plan_cancel">Cancel</string>
     <string name="plan_ok">OK</string>
     <string name="tuto_lib_7">“+” > Create a route: tap points on the map, Valhalla links them along real roads (motorways avoided by default), then save the route as a track.</string>
+    <string name="plan_access_checking">Checking access…</string>
+    <string name="plan_access_unavailable">Access check unavailable (network or server).</string>
+    <string name="plan_access_none">No access restriction reported in OpenStreetMap on this route.</string>
+    <string name="plan_access_flagged">%1$d sections to check · %2$s</string>
+    <string name="plan_flagged_title">Tracks to check</string>
+    <string name="plan_unnamed">Unnamed way</string>
+    <string name="plan_verdict_verify">To check: OpenStreetMap does not state the access</string>
+    <string name="plan_verdict_restricted">Access for residents or destination only</string>
+    <string name="plan_verdict_forbidden">Forbidden according to OpenStreetMap</string>
+    <string name="plan_report_forbidden">Report as forbidden</string>
+    <string name="plan_report_title">Report this way as forbidden?</string>
+    <string name="plan_report_message">Future routes will avoid it. The report is sent to the shared database if one is configured.</string>
+    <string name="tuto_lib_8">With “Allow tracks”, sections whose access should be checked according to OpenStreetMap are highlighted; report one as forbidden and future routes will avoid it.</string>
 </resources>
