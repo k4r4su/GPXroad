@@ -95,6 +95,10 @@ import com.olivier.gpxroad.android.data.TrackEntry
 import com.olivier.gpxroad.android.data.TrackFolder
 import com.olivier.gpxroad.android.data.TrackLibrary
 import com.olivier.gpxroad.android.offline.OfflineMaps
+import com.olivier.gpxroad.android.net.RoutingClient
+import com.olivier.gpxroad.android.net.ServerSettings
+import com.olivier.gpxroad.android.plan.RoutePlannerScreen
+import androidx.compose.material.icons.rounded.Route
 import com.olivier.gpxroad.android.offline.TrackPreparer
 import com.olivier.gpxroad.android.offline.readinessLabel
 import com.olivier.gpxroad.shared.offline.ReadinessLevel
@@ -120,7 +124,7 @@ private val UnsavedAmber = Color(0xFFFF9500)
  * dossier, suppression). [pendingImport] : fichier GPX ouvert depuis une autre app.
  */
 @Composable
-fun LibraryScreen(library: TrackLibrary, settings: AppSettings, recorder: RideRecorder, offline: OfflineMaps, preparer: TrackPreparer, pendingImport: Uri?, onImportHandled: () -> Unit) {
+fun LibraryScreen(library: TrackLibrary, settings: AppSettings, recorder: RideRecorder, offline: OfflineMaps, preparer: TrackPreparer, servers: ServerSettings, routing: RoutingClient, startPosition: LatLon?, pendingImport: Uri?, onImportHandled: () -> Unit) {
     val context = LocalContext.current
     val snackbar = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
@@ -163,19 +167,35 @@ fun LibraryScreen(library: TrackLibrary, settings: AppSettings, recorder: RideRe
     val unsaved = recorder.unsavedRides.rides.sortedByDescending { it.startedMillis }
 
     var collapsed by rememberSaveable { mutableStateOf(setOf<String>()) }
+    var planning by rememberSaveable { mutableStateOf(false) }
+    if (planning) {
+        androidx.compose.ui.window.Dialog(
+            onDismissRequest = { planning = false },
+            properties = androidx.compose.ui.window.DialogProperties(usePlatformDefaultWidth = false, decorFitsSystemWindows = false),
+        ) { RoutePlannerScreen(library, servers, routing, startPosition) { planning = false } }
+    }
     Scaffold(
         snackbarHost = { SnackbarHost(snackbar) },
         containerColor = MaterialTheme.colorScheme.background,
         // Les marges système sont déjà appliquées par la barre d'onglets de l'app.
         contentWindowInsets = WindowInsets(0, 0, 0, 0),
         floatingActionButton = {
-            ExtendedFloatingActionButton(
-                onClick = { picker.launch(arrayOf("*/*")) },
-                icon = { Icon(Icons.Rounded.Add, contentDescription = null) },
-                text = { Text(stringResource(R.string.library_import)) },
-                containerColor = MaterialTheme.colorScheme.primary,
-                contentColor = MaterialTheme.colorScheme.onPrimary,
-            )
+            Column(horizontalAlignment = Alignment.End, verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                ExtendedFloatingActionButton(
+                    onClick = { planning = true },
+                    icon = { Icon(Icons.Rounded.Route, contentDescription = null) },
+                    text = { Text(stringResource(R.string.plan_menu)) },
+                    containerColor = MaterialTheme.colorScheme.secondaryContainer,
+                    contentColor = MaterialTheme.colorScheme.onSecondaryContainer,
+                )
+                ExtendedFloatingActionButton(
+                    onClick = { picker.launch(arrayOf("*/*")) },
+                    icon = { Icon(Icons.Rounded.Add, contentDescription = null) },
+                    text = { Text(stringResource(R.string.library_import)) },
+                    containerColor = MaterialTheme.colorScheme.primary,
+                    contentColor = MaterialTheme.colorScheme.onPrimary,
+                )
+            }
         },
     ) { padding ->
         Column(Modifier.fillMaxSize().padding(padding)) {

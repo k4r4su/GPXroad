@@ -120,6 +120,7 @@ enum TutorialContent {
                     String(localized: "Le rond à gauche d'une trace la rend active : c'est elle que suivent Ride et Road Book.", bundle: .appLanguage),
                     String(localized: "Un tap sur une trace ouvre sa fiche : partager, renommer, supprimer, statistiques.", bundle: .appLanguage),
                     String(localized: "Glisser vers la droite : paramétrer la trace (sens de parcours, apparence) ou la déplacer.", bundle: .appLanguage),
+                    String(localized: "« + » > Créer un itinéraire : pose des points sur la carte, Valhalla les relie par les routes (autoroutes évitées par défaut), puis enregistre l'itinéraire comme une trace.", bundle: .appLanguage),
                     String(localized: "Sur la trace active, une pastille dit si tout est en local (« Prête hors ligne ») ou s'il manque quelque chose ; l'app télécharge toute seule la carte du couloir, les repères, le recalage et les ronds-points dès que le réseau est bon.", bundle: .appLanguage),
                 ]),
                 .init(title: String(localized: "Dossiers", bundle: .appLanguage), points: [

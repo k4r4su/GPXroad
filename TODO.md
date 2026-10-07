@@ -64,6 +64,17 @@ temps, la version iOS est vraiment correcte mais l'Android c'est une catastrophe
       Corrigé : saisie via le terminal, variables exportées, build annulé si la valeur est vide,
       vérification de la valeur dans l'APK avant de le copier (longueur seulement, jamais le contenu).
       Testé avec des valeurs fictives (bash et zsh).
+- [x] Créer un itinéraire à la volée, phase 1 (06/10) : Biblio > « + » > Créer un itinéraire (iOS) / bouton « Créer un itinéraire »
+      (Android). Options (moto par défaut, voiture, vélo ; éviter autoroutes, péages, ferries ; pistes sur demande), points posés
+      au toucher, Valhalla `/route` en un seul appel recale les tronçons sur les routes (autoroutes évitées : vérifié, 68 km moto
+      Bâle → Rheinfelden → Säckingen sans A2/A98), distance et durée, puces de suppression, annuler/effacer, enregistrement comme
+      trace de la Bibliothèque (GPX sans horodatage). Règles communes `shared/plan/RoutePlanner` + `GpxWriter.writeRoute` (testées).
+      Vérifié : iOS simulateur (affichage réel avec une instance publique de Valhalla), décodage Android sur une VRAIE réponse
+      enregistrée (3 tests), requête acceptée par Valhalla. NON vérifié : écran Android à l'exécution (émulateur planté, tablette non
+      autorisée). Limites assumées : pas de déplacement d'un point par glisser (supprimer puis reposer), pas de recherche d'adresse,
+      pas de score de sinuosité (Valhalla n'en a pas), « éviter » ≠ « interdire », nécessite Valhalla configuré (repli sur une
+      instance publique à décider).
+  - [ ] Phase 2 (pistes autorisées + base des points interdits) : voir « À venir ».
 - [x] Mode longue sortie (06/10, idée 3/3) : réglage Off / Auto (≤ 20 % hors charge, par défaut) / Toujours, iOS (Réglages >
       Enregistrement de la sortie) et Android (même page). Actif : carte automatique et préparation de la trace suspendues,
       carte limitée à 30 images/s (`preferredFramesPerSecond` iOS, `setMaximumFps` Android) ; alerte à 15 % puis 5 % pendant un

@@ -11,6 +11,7 @@ struct LibraryView: View {
     @State private var pendingActivation: TrackActivationRequest?
     @StateObject private var unsavedRides = UnsavedRideStore()
     @State private var isImporting = false
+    @State private var isPlanning = false
     @State private var renamingTrack: GPXTrack?
     @State private var renameText = ""
     @State private var trackToConfigure: GPXTrack?
@@ -66,6 +67,11 @@ struct LibraryView: View {
                             isImporting = true
                         } label: {
                             Label("Importer un fichier GPX", systemImage: "square.and.arrow.down")
+                        }
+                        Button {
+                            isPlanning = true
+                        } label: {
+                            Label("Créer un itinéraire", systemImage: "point.topleft.down.curvedto.point.bottomright.up")
                         }
                         Button {
                             library.loadSample()
@@ -238,6 +244,7 @@ struct LibraryView: View {
         } message: { folder in
             Text("« \(folder.name) » est supprimé. Ses \(library.tracks(inFolder: folder.id).count) traces ne sont pas supprimées : elles retournent dans « Non classé ».")
         }
+        .modifier(RoutePlannerCover(isPresented: $isPlanning))
         .sheet(item: $trackToConfigure) { track in
             TrackSettingsView(track: track)
         }

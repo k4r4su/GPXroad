@@ -46,6 +46,21 @@ object RecordingSampler {
  * nom et commentaire (`<desc>`), puis un `<trk>` d'un seul segment ; altitude et heure si connues.
  */
 object GpxWriter {
+    /**
+     * GPX d'un itinéraire CRÉÉ (pas enregistré) : mêmes balises, mais ni heure ni altitude — il n'y a pas eu de passage, donc
+     * aucune vitesse ou durée réelle à en tirer (les statistiques de fiche restent « indisponibles », comme pour un import sans temps).
+     */
+    fun writeRoute(name: String, points: List<com.olivier.gpxroad.shared.LatLon>, comment: String? = null): String = buildString {
+        append("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n")
+        append("<gpx version=\"1.1\" creator=\"GPXroad\" xmlns=\"http://www.topografix.com/GPX/1/1\">\n")
+        append("  <metadata>\n    <name>").append(escape(name)).append("</name>\n")
+        if (!comment.isNullOrBlank()) append("    <desc>").append(escape(comment)).append("</desc>\n")
+        append("  </metadata>\n")
+        append("  <trk>\n    <name>").append(escape(name)).append("</name>\n    <trkseg>\n")
+        for (p in points) append("      <trkpt lat=\"").append(plain(p.latitude)).append("\" lon=\"").append(plain(p.longitude)).append("\"></trkpt>\n")
+        append("    </trkseg>\n  </trk>\n</gpx>\n")
+    }
+
     fun write(name: String, points: List<RecordedPoint>, comment: String? = null): String = buildString {
         append("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n")
         append("<gpx version=\"1.1\" creator=\"GPXroad\" xmlns=\"http://www.topografix.com/GPX/1/1\">\n")
