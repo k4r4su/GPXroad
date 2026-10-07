@@ -1545,7 +1545,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 0.0.38;
+				MARKETING_VERSION = 0.0.39;
 				PRODUCT_BUNDLE_IDENTIFIER = com.olivier.gpxlibre;
 				SDKROOT = iphoneos;
 				TARGETED_DEVICE_FAMILY = 1;
@@ -1598,7 +1598,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 0.0.38;
+				MARKETING_VERSION = 0.0.39;
 				PRODUCT_BUNDLE_IDENTIFIER = com.olivier.gpxlibre;
 				SDKROOT = iphoneos;
 				TARGETED_DEVICE_FAMILY = 1;

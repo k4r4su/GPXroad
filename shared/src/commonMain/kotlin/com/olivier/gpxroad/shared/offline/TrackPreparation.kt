@@ -49,6 +49,19 @@ object CoverageGap {
     const val LOOK_AHEAD_METERS = 20_000.0
     const val SAMPLE_STEP_METERS = 250.0
 
+    /** Seuils d'alerte « plus de carte dans X km » : une seule alerte par seuil franchi. */
+    val ALERT_THRESHOLDS_METERS = listOf(15_000.0, 5_000.0)
+
+    /**
+     * Seuil à annoncer maintenant, ou `null`. `distance` = trou devant (`null` : pas de trou) ; `lastAlerted` = dernier seuil
+     * annoncé (`null` : aucun). Retourne le plus petit seuil atteint s'il est plus petit que le dernier annoncé.
+     */
+    fun nextAlert(distance: Double?, lastAlerted: Double?): Double? {
+        if (distance == null) return null
+        val reached = ALERT_THRESHOLDS_METERS.filter { distance <= it }.minOrNull() ?: return null
+        return if (lastAlerted == null || reached < lastAlerted) reached else null
+    }
+
     /** Point dans un anneau (lancer de rayon, plan lat/lon : les zones font quelques dizaines de km). */
     fun inRing(point: LatLon, ring: List<LatLon>): Boolean {
         var inside = false

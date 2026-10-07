@@ -525,6 +525,17 @@ struct RideView: View {
     /// dans `RideRecorder.promptPolicy`.
     @State private var showRecordingPrompt = false
 
+    private func handleAutoMapLocation(_ location: CLLocation) {
+        var checksCoverage = false
+        if case .vectorHosted = activeMapSource { checksCoverage = true }
+        autoMap.update(location: location, track: library.activeTrack, settings: settings, network: networkMonitor, checksCoverage: checksCoverage)
+    }
+
+    private func showGapAlert() {
+        let distance = DistanceUnit.km.countdownString(fromMeters: autoMap.gapAlertMeters)
+        toastMessage = String(format: String(localized: "Plus de carte dans %@", bundle: .appLanguage), distance)
+    }
+
     private func proposeRecordingIfNeeded(for trackID: UUID?) {
         guard modeStore.mode == .trace, settings.recordingPromptEnabled else { return }
         if recorder.promptPolicy.shouldPrompt(onStartOf: trackID, recorderState: recorder.state, recordedPointCount: recorder.pointCount) {
@@ -770,11 +781,9 @@ struct RideView: View {
         }
         // Spec "link-recompute-on-divergence" (it18, Bloc 3) : "notification silencieuse
         // Recalcul brève, pas de bannière permanente" — même mécanisme toast que Pause/Stop.
-        // Carte automatique : à chaque position, regarde s'il faut préparer la carte autour (voir AutoMapPrefetcher).
-        .onChange(of: session.currentLocation) { location in
-            guard let location else { return }
-            autoMap.update(location: location, track: library.activeTrack, settings: settings, network: networkMonitor)
-        }
+        // Carte automatique : à chaque position, regarde s'il faut préparer la carte autour (voir AutoMapPrefetcher),
+        // et prévient quand la carte va manquer devant.
+        .modifier(AutoMapRideHooks(autoMap: autoMap, location: session.currentLocation, onLocation: handleAutoMapLocation, onGapAlert: showGapAlert))
         .onChange(of: session.autoRecomputeToastToken) { _ in
             toastMessage = "Recalcul"
         }

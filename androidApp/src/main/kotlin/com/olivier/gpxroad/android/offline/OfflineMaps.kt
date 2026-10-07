@@ -8,6 +8,7 @@ import com.olivier.gpxroad.android.R
 import com.olivier.gpxroad.android.net.Http
 import com.olivier.gpxroad.shared.LatLon
 import com.olivier.gpxroad.shared.offline.AutoPrefetch
+import com.olivier.gpxroad.shared.offline.CoverageGap
 import com.olivier.gpxroad.shared.offline.OfflineArea
 import com.olivier.gpxroad.shared.offline.OfflineConstants
 import org.json.JSONObject
@@ -95,6 +96,30 @@ class OfflineMaps(private val context: Context) {
     private fun pruneAutoZones() {
         zones.filter { it.auto && it.isComplete }.sortedByDescending { it.createdMillis }.drop(AutoPrefetch.MAX_AUTO_ZONES).forEach { delete(it.id) }
     }
+
+    private val ringsCache = HashMap<Long, List<List<LatLon>>>()
+
+    /** Anneaux des zones terminées (mémorisés par zone) : sert à savoir où la carte est gardée hors ligne. */
+    fun coverageRings(): List<List<LatLon>> {
+        val complete = zones.filter { it.isComplete }.map { it.id }.toSet()
+        ringsCache.keys.retainAll(complete)
+        complete.forEach { id -> ringsCache.getOrPut(id) { ringsOf(regions[id]) } }
+        return ringsCache.values.flatten()
+    }
+
+    private fun ringsOf(region: OfflineRegion?): List<List<LatLon>> {
+        val definition = region?.definition as? OfflineGeometryRegionDefinition ?: return emptyList()
+        val polygons = when (val geometry = definition.geometry) {
+            is MultiPolygon -> geometry.polygons()
+            is Polygon -> listOf(geometry)
+            else -> emptyList()
+        }
+        return polygons.mapNotNull { polygon -> polygon.outer()?.coordinates()?.map { LatLon(it.latitude(), it.longitude()) } }
+    }
+
+    /** La position est-elle dans une zone terminée ? Sans position (GPS pas encore là) : une zone quelconque suffit. */
+    fun covers(position: LatLon?): Boolean =
+        if (position == null) hasZones else CoverageGap.covered(position, coverageRings())
 
     fun zoneForTrack(trackId: String): OfflineZone? = zones.firstOrNull { it.trackId == trackId }
 

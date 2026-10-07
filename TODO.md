@@ -64,6 +64,12 @@ temps, la version iOS est vraiment correcte mais l'Android c'est une catastrophe
       Corrigé : saisie via le terminal, variables exportées, build annulé si la valeur est vide,
       vérification de la valeur dans l'APK avant de le copier (longueur seulement, jamais le contenu).
       Testé avec des valeurs fictives (bash et zsh).
+- [x] Alerte « plus de carte devant » (06/10, idée 2/3) : toast du Ride une fois à 15 km puis à 5 km avant la première portion de
+      trace hors des zones gardées (règle `shared/offline/CoverageGap`, testée), vérifiée toutes les 10 s, seulement sur la trace
+      (< 3 km) et avec un fond vectoriel. Parité : la carte nette hors réseau dépend maintenant de la POSITION (zone terminée qui
+      la contient, disque automatique ou couloir de trace préparée) sur iOS ET Android (avant : Android = « une zone existe »).
+      Vérifié : iOS simulateur (sur trace couverte : pas de fausse alerte, pas de plantage) ; Android compile seulement.
+      Non vérifié : alerte réelle (simulateur sans trace non couverte atteignable) — à voir en roulant.
 - [x] Préparation complète de la trace active (06/10, idée 1/3 des évolutions proposées) : dès que le réseau est bon, carte du
       couloir (±1 km, niveaux 10-14), repères du Road Book, recalage Valhalla et ronds-points sont téléchargés pour la trace active ;
       pastille « Prête hors ligne » / « Incomplète » / « Non préparée » dans Biblio, détail et « Préparer maintenant » dans la fiche,

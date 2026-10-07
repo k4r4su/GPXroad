@@ -40,8 +40,8 @@ private val pages = listOf(
     Page(
         R.string.tab_ride, R.string.tuto_ride_summary,
         listOf(
-            Topic(R.string.tuto_follow, listOf(R.string.tuto_follow_1, R.string.tuto_follow_2, R.string.tuto_follow_3, R.string.tuto_follow_4, R.string.tuto_follow_5)),
-            Topic(R.string.tuto_record, listOf(R.string.tuto_record_1, R.string.tuto_record_2, R.string.tuto_record_3, R.string.tuto_record_4)),
+            Topic(R.string.tuto_follow, listOf(R.string.tuto_follow_1, R.string.tuto_follow_2, R.string.tuto_follow_3, R.string.tuto_follow_4, R.string.tuto_follow_5, R.string.tuto_follow_6)),
+            Topic(R.string.tuto_record, listOf(R.string.tuto_record_1, R.string.tuto_record_2, R.string.tuto_record_3, R.string.tuto_record_4, R.string.tuto_record_5)),
             Topic(R.string.tuto_controls, listOf(R.string.tuto_controls_1, R.string.tuto_controls_2, R.string.tuto_controls_3)),
         ),
     ),

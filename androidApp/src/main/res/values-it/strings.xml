@@ -524,4 +524,7 @@
     <string name="settings_auto_prepare">Prepara automaticamente la traccia attiva</string>
     <string name="settings_auto_prepare_hint">Scarica la mappa del corridoio della traccia, i punti di riferimento del Road Book, il riconoscimento delle svolte e le rotonde appena la rete è buona, per guidare senza rete.</string>
     <string name="tuto_lib_6">Sulla traccia attiva, un\'etichetta indica se tutto è in locale («Pronta offline») o se manca qualcosa; l\'app scarica da sola la mappa del corridoio, i punti di riferimento, il riconoscimento delle svolte e le rotonde appena la rete è buona.</string>
+    <string name="coverage_gap_alert">Niente mappa tra %1$s</string>
+    <string name="tuto_follow_6">Quando la traccia esce dall\'area di mappa salvata offline, un messaggio ti avvisa 15 km e poi 5 km prima: scarica la mappa prima della zona senza rete.</string>
+    <string name="tuto_record_5">Puoi disattivare questa proposta in Impostazioni > Registrazione dell\'uscita («Proponi di registrare alla partenza»).</string>
 </resources>

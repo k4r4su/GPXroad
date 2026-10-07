@@ -526,4 +526,7 @@
     <string name="settings_auto_prepare">Préparer la trace active automatiquement</string>
     <string name="settings_auto_prepare_hint">Télécharge la carte du couloir de la trace, les repères du Road Book, le recalage des virages et les ronds-points dès que le réseau est bon, pour rouler sans réseau.</string>
     <string name="tuto_lib_6">Sur la trace active, une pastille dit si tout est en local (« Prête hors ligne ») ou s\'il manque quelque chose ; l\'app télécharge toute seule la carte du couloir, les repères, le recalage et les ronds-points dès que le réseau est bon.</string>
+    <string name="coverage_gap_alert">Plus de carte dans %1$s</string>
+    <string name="tuto_follow_6">Quand ta trace sort de la zone de carte gardée hors ligne, un message te prévient 15 km puis 5 km avant : télécharge la carte avant la zone sans réseau.</string>
+    <string name="tuto_record_5">Cette proposition se désactive dans Réglages > Enregistrement de la sortie (« Proposer d\'enregistrer au départ »).</string>
 </resources>

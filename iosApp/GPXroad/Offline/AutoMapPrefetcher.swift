@@ -1,4 +1,5 @@
 import Foundation
+import SwiftUI
 import CoreLocation
 import MapLibre
 import GPXroadShared
@@ -12,6 +13,12 @@ import GPXroadShared
 final class AutoMapPrefetcher: ObservableObject {
     /// Vrai si une zone automatique terminée couvre la position : le Ride garde alors le style vectoriel hors ligne.
     @Published private(set) var coversPosition = false
+    /// Alerte « plus de carte devant » (idée du 06/10) : le jeton change à chaque alerte ; `gapAlertMeters` = distance du trou.
+    @Published private(set) var gapAlertToken = 0
+    private(set) var gapAlertMeters = 0.0
+    private var lastGapThreshold: Double?
+    private var lastGapCheck = Date.distantPast
+    private var ringsCache: [ObjectIdentifier: [[GPXroadShared.LatLon]]] = [:]
 
     private struct PackInfo: Codable {
         var auto: Bool
@@ -47,10 +54,12 @@ final class AutoMapPrefetcher: ObservableObject {
 
     // MARK: - Appelé à chaque position GPS du Ride
 
-    func update(location: CLLocation, track: GPXTrack?, settings: RideSettingsStore, network: NetworkMonitor) {
+    /// `checksCoverage` : la carte affichée est le fond vectoriel hébergé (le seul que ces zones couvrent).
+    func update(location: CLLocation, track: GPXTrack?, settings: RideSettingsStore, network: NetworkMonitor, checksCoverage: Bool = false) {
         guard let packs = MLNOfflineStorage.shared.packs else { return }   // pas encore chargés
         OfflinePacks.requestStatesIfNeeded(packs)   // zones d'avant le redémarrage : état inconnu tant qu'on ne le demande pas
         refreshCoverage(position: location.coordinate, packs: packs)
+        if checksCoverage { checkGap(location: location, track: track, packs: packs) } else { lastGapThreshold = nil }
         guard settings.autoMapEnabled else { return }
         dropStuckPackIfNeeded()
 
@@ -75,8 +84,9 @@ final class AutoMapPrefetcher: ObservableObject {
 
     // MARK: - Téléchargement
 
-    private func trackAhead(of track: GPXTrack?, from position: CLLocationCoordinate2D) -> [GPXroadShared.LatLon] {
-        guard let track, track.points.count > 1 else { return [] }
+    /// Point de la trace le plus proche de la position, et distances cumulées ; `nil` si la trace est loin (> 3 km).
+    private func projection(on track: GPXTrack?, from position: CLLocationCoordinate2D) -> (cumulative: [Double], nearest: Int)? {
+        guard let track, track.points.count > 1 else { return nil }
         let cumulative = TrackProjector.cumulativeDistances(for: track)
         var nearest = 0
         var best = Double.infinity
@@ -84,7 +94,58 @@ final class AutoMapPrefetcher: ObservableObject {
             let d = RoadbookAnalyzer.distanceMeters(position, point.coordinate)
             if d < best { best = d; nearest = index }
         }
-        guard best <= AutoMapConstants.maxDistanceToTrackMeters else { return [] }   // loin de la trace : disque seul
+        return best <= AutoMapConstants.maxDistanceToTrackMeters ? (cumulative, nearest) : nil
+    }
+
+    // MARK: - Alerte « plus de carte devant »
+
+    /// Anneaux des zones terminées (mémorisés : `shape` est reconstruit à chaque lecture).
+    private func coverageRings(_ packs: [MLNOfflinePack]) -> [[GPXroadShared.LatLon]] {
+        var live = Set<ObjectIdentifier>()
+        var result: [[GPXroadShared.LatLon]] = []
+        for pack in packs where pack.state == .complete {
+            let id = ObjectIdentifier(pack)
+            live.insert(id)
+            if ringsCache[id] == nil {
+                var polygons: [MLNPolygon] = []
+                if let region = pack.region as? MLNShapeOfflineRegion {
+                    if let multi = region.shape as? MLNMultiPolygon { polygons = multi.polygons }
+                    else if let single = region.shape as? MLNPolygon { polygons = [single] }
+                }
+                ringsCache[id] = polygons.map { polygon in
+                    (0..<Int(polygon.pointCount)).map { GPXroadShared.LatLon(latitude: polygon.coordinates[$0].latitude, longitude: polygon.coordinates[$0].longitude) }
+                }
+            }
+            result += ringsCache[id] ?? []
+        }
+        ringsCache = ringsCache.filter { live.contains($0.key) }
+        return result
+    }
+
+    private func checkGap(location: CLLocation, track: GPXTrack?, packs: [MLNOfflinePack]) {
+        guard Date().timeIntervalSince(lastGapCheck) >= 10 else { return }
+        lastGapCheck = Date()
+        guard let track, let projection = projection(on: track, from: location.coordinate) else { lastGapThreshold = nil; return }
+        let rings = coverageRings(packs)
+        let distance = CoverageGap.shared.distanceToGap(
+            points: SharedRoadbook.latLons(track.points),
+            cumulative: SharedRoadbook.doubleArray(projection.cumulative),
+            fromCumulativeMeters: projection.cumulative[projection.nearest],
+            rings: rings,
+            lookAheadMeters: CoverageGap.shared.LOOK_AHEAD_METERS
+        )?.doubleValue
+        if distance == nil { lastGapThreshold = nil }   // plus de trou devant : les prochains seront annoncés de nouveau
+        if let threshold = CoverageGap.shared.nextAlert(distance: distance.map { KotlinDouble(value: $0) }, lastAlerted: lastGapThreshold.map { KotlinDouble(value: $0) })?.doubleValue {
+            lastGapThreshold = threshold
+            gapAlertMeters = distance ?? threshold
+            gapAlertToken += 1
+        }
+    }
+
+    private func trackAhead(of track: GPXTrack?, from position: CLLocationCoordinate2D) -> [GPXroadShared.LatLon] {
+        guard let track, let projection = projection(on: track, from: position) else { return [] }   // loin de la trace : disque seul
+        let cumulative = projection.cumulative
+        let nearest = projection.nearest
         return AutoPrefetch.shared.trackAhead(
             points: SharedRoadbook.latLons(track.points),
             cumulative: SharedRoadbook.doubleArray(cumulative),
@@ -176,12 +237,27 @@ final class AutoMapPrefetcher: ObservableObject {
         for entry in old { MLNOfflineStorage.shared.removePack(entry.pack) { _ in } }
     }
 
+    /// Position dans une zone terminée (disque automatique OU couloir d'une trace préparée) : mêmes anneaux et même règle
+    /// que l'alerte « plus de carte devant » et qu'Android (`OfflineMaps.covers`).
     private func refreshCoverage(position: CLLocationCoordinate2D, packs: [MLNOfflinePack]) {
         lastPosition = position
-        let covered = autoPacks(in: packs).contains { entry in
-            entry.pack.state == .complete
-                && RoadbookAnalyzer.distanceMeters(position, CLLocationCoordinate2D(latitude: entry.info.lat, longitude: entry.info.lon)) <= entry.info.radiusMeters
-        }
+        let covered = CoverageGap.shared.covered(point: SharedRoadbook.latLon(position), rings: coverageRings(packs))
         if covered != coversPosition { coversPosition = covered }
+    }
+}
+
+/// Réactions du Ride à la position et à l'alerte « plus de carte devant » (sorties de `RideView`, déjà à la limite du compilateur).
+struct AutoMapRideHooks: ViewModifier {
+    @ObservedObject var autoMap: AutoMapPrefetcher
+    let location: CLLocation?
+    let onLocation: (CLLocation) -> Void
+    let onGapAlert: () -> Void
+
+    func body(content: Content) -> some View {
+        content
+            .onChange(of: location) { newLocation in
+                if let newLocation { onLocation(newLocation) }
+            }
+            .onChange(of: autoMap.gapAlertToken) { _ in onGapAlert() }
     }
 }

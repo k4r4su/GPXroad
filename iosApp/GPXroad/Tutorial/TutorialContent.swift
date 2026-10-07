@@ -36,9 +36,11 @@ enum TutorialContent {
                     String(localized: "Le bandeau latéral annonce le prochain virage avec un compte à rebours ; l'écran flashe dans les 100 derniers mètres.", bundle: .appLanguage),
                     String(localized: "Si tu t'écartes de plus de 30 m, la puce « Hors trace » apparaît ; après 30 s, elle indique la distance pour rejoindre la trace.", bundle: .appLanguage),
                     String(localized: "Au-delà de 100 m pendant 2 s, la bannière « Rejoindre la trace » te guide par la route vers le point de la trace le plus proche devant toi, virage par virage.", bundle: .appLanguage),
+                    String(localized: "Quand ta trace sort de la zone de carte gardée hors ligne, un message te prévient 15 km puis 5 km avant : télécharge la carte avant la zone sans réseau.", bundle: .appLanguage),
                 ]),
                 .init(title: String(localized: "Enregistrer la sortie", bundle: .appLanguage), points: [
                     String(localized: "Au démarrage du suivi, l'app propose d'enregistrer la sortie. C'est recommandé, mais tu peux refuser.", bundle: .appLanguage),
+                    String(localized: "Cette proposition se désactive dans Réglages > Enregistrement de la sortie (« Proposer d'enregistrer au départ »).", bundle: .appLanguage),
                     String(localized: "Le bouton au-dessus du compteur de vitesse démarre, met en pause ou reprend l'enregistrement.", bundle: .appLanguage),
                     String(localized: "L'enregistrement continue dans les autres onglets, écran verrouillé ou dans une autre app : la flèche bleue d'iOS est alors affichée en haut de l'écran.", bundle: .appLanguage),
                     String(localized: "Touche le compteur de vitesse pour les mesures, puis « Terminer la sortie » pour l'enregistrer dans la Bibliothèque ou la supprimer.", bundle: .appLanguage),

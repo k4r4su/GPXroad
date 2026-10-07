@@ -524,4 +524,7 @@
     <string name="settings_auto_prepare">Aktiven Track automatisch vorbereiten</string>
     <string name="settings_auto_prepare_hint">Lädt die Korridorkarte des Tracks, die Road-Book-Landmarken, den Abbiege-Abgleich und die Kreisverkehre herunter, sobald das Netz gut ist – damit du ohne Netz fahren kannst.</string>
     <string name="tuto_lib_6">Auf dem aktiven Track zeigt ein Abzeichen, ob alles lokal vorliegt („Offline bereit“) oder etwas fehlt; die App lädt Korridorkarte, Landmarken, Abbiege-Abgleich und Kreisverkehre selbst herunter, sobald das Netz gut ist.</string>
+    <string name="coverage_gap_alert">Keine Karte mehr in %1$s</string>
+    <string name="tuto_follow_6">Wenn dein Track den Offline-Kartenbereich verlässt, warnt dich eine Meldung 15 km und dann 5 km vorher: Lade die Karte vor der Zone ohne Netz herunter.</string>
+    <string name="tuto_record_5">Du kannst dieses Angebot unter Einstellungen > Aufzeichnung der Fahrt ausschalten („Beim Start Aufzeichnung anbieten“).</string>
 </resources>

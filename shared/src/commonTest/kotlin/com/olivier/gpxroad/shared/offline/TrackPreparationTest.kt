@@ -38,6 +38,18 @@ class TrackPreparationTest {
     }
 
     @Test
+    fun alertsOncePerThresholdAndOnlyGettingCloser() {
+        assertNull(CoverageGap.nextAlert(null, null), "pas de trou, pas d'alerte")
+        assertNull(CoverageGap.nextAlert(18_000.0, null), "trop loin")
+        assertEquals(15_000.0, CoverageGap.nextAlert(14_000.0, null))
+        assertNull(CoverageGap.nextAlert(12_000.0, 15_000.0), "déjà annoncé à 15 km")
+        assertEquals(5_000.0, CoverageGap.nextAlert(4_000.0, 15_000.0))
+        assertNull(CoverageGap.nextAlert(1_000.0, 5_000.0), "déjà annoncé à 5 km")
+        // Un trou apparu d'un coup à 3 km : une seule alerte (au seuil le plus proche).
+        assertEquals(5_000.0, CoverageGap.nextAlert(3_000.0, null))
+    }
+
+    @Test
     fun noZoneMeansAnImmediateGap() {
         assertEquals(0.0, CoverageGap.distanceToGap(track, cumulative, 0.0, emptyList()))
     }

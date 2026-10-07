@@ -98,6 +98,7 @@ import com.olivier.gpxroad.android.ui.Accent
 import com.olivier.gpxroad.shared.LatLon
 import com.olivier.gpxroad.shared.geodesicDistanceMeters
 import com.olivier.gpxroad.shared.offline.AutoPrefetch
+import com.olivier.gpxroad.shared.offline.CoverageGap
 import com.olivier.gpxroad.shared.ride.SlopeAnalyzer
 import com.olivier.gpxroad.shared.ride.RideCameraConstants
 import com.olivier.gpxroad.shared.roadbook.RejoinPlanner
@@ -164,6 +165,11 @@ fun RideScreen(
     val fix = location.location
     LaunchedEffect(fix) { fix?.let(camera::onLocation) }
 
+    // Carte nette hors réseau seulement DANS une zone gardée (comme l'iPhone) : recalculée tous les ~100 m.
+    val coversHere = remember(fix?.latitude?.let { "%.3f".format(it) }, fix?.longitude?.let { "%.3f".format(it) }, offline.zones) {
+        offline.covers(fix?.let { LatLon(it.latitude, it.longitude) })
+    }
+
     // Progression le long de la trace : même projection sans mémoire que le Road Book.
     val projection = remember(fix, track?.traversalKey) {
         if (track == null || fix == null) null else TrackGeometry.project(LatLon(fix.latitude, fix.longitude), track.latLons, track.cumulative)
@@ -176,6 +182,8 @@ fun RideScreen(
     // routes vers le point le plus proche DEVANT soi, dessiné en pointillé bleu ; fini dès le retour
     // sur la trace (hystérésis du hors trace).
     var divergent by remember(track?.traversalKey) { mutableStateOf(false) }
+    var gapThreshold by remember(track?.traversalKey) { mutableStateOf<Double?>(null) }
+    var lastGapCheckMillis by remember { mutableStateOf(0L) }
     LaunchedEffect(fix, track?.traversalKey) {
         if (fix == null) return@LaunchedEffect
         session.onLocation(fix, track?.traversalKey, track?.cumulative?.lastOrNull(), projection?.cumulativeDistanceMeters)
@@ -184,6 +192,18 @@ fun RideScreen(
         if (settings.autoMapEnabled) {
             val ahead = if (track != null && projection != null) AutoPrefetch.trackAhead(track.latLons, track.cumulative, projection.cumulativeDistanceMeters) else emptyList()
             offline.autoPrefetch(LatLon(fix.latitude, fix.longitude), ahead, settings.autoMapRadiusKm, settings.autoMapCellular)
+        }
+        // Alerte « plus de carte devant » (idée du 06/10) : une fois par seuil franchi (15 puis 5 km), vérifiée toutes les 10 s.
+        if (track != null && projection != null && settings.mapTheme.flavor != null && projection.distanceToTrackMeters <= GAP_CHECK_MAX_TRACK_DISTANCE_METERS &&
+            System.currentTimeMillis() - lastGapCheckMillis >= 10_000
+        ) {
+            lastGapCheckMillis = System.currentTimeMillis()
+            val distance = CoverageGap.distanceToGap(track.latLons, track.cumulative, projection.cumulativeDistanceMeters, offline.coverageRings())
+            if (distance == null) gapThreshold = null
+            CoverageGap.nextAlert(distance, gapThreshold)?.let { threshold ->
+                gapThreshold = threshold
+                android.widget.Toast.makeText(context, context.getString(R.string.coverage_gap_alert, RoadbookTexts.countdown(distance ?: threshold, DistanceUnit.KM)), android.widget.Toast.LENGTH_LONG).show()
+            }
         }
         if (track == null) return@LaunchedEffect
         session.updateResume(fix, projection?.distanceToTrackMeters)
@@ -242,7 +262,7 @@ fun RideScreen(
             maneuvers = maneuvers,
             traceStyle = TraceStyle((track?.entry?.colorOverride ?: settings.traceColor).argb, (track?.entry?.widthOverride ?: settings.traceWidth).widthDp),
             mapTheme = settings.mapTheme,
-            offlineAvailable = offline.hasZones,
+            offlineAvailable = coversHere,
             anchorY = settings.anchorY,
             chevronSpacingMeters = track?.entry?.chevronSpacingOverride ?: settings.chevronSpacing,
             slopeWarnings = slopeWarnings,
@@ -595,3 +615,6 @@ private fun OffTrackChip(offTrack: OffTrackState, fix: android.location.Location
         }
     }
 }
+
+/** Au-delà, la position n'est plus « sur la trace » : pas d'alerte de couverture (comme l'iPhone). */
+private const val GAP_CHECK_MAX_TRACK_DISTANCE_METERS = 3_000.0

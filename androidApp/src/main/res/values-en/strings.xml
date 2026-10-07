@@ -524,4 +524,7 @@
     <string name="settings_auto_prepare">Prepare the active track automatically</string>
     <string name="settings_auto_prepare_hint">Downloads the track\'s corridor map, the Road Book landmarks, turn matching and roundabouts as soon as the network is good, so you can ride without network.</string>
     <string name="tuto_lib_6">On the active track, a badge says whether everything is stored locally (“Ready offline”) or something is missing; the app downloads the corridor map, landmarks, turn matching and roundabouts by itself as soon as the network is good.</string>
+    <string name="coverage_gap_alert">No more map in %1$s</string>
+    <string name="tuto_follow_6">When your track leaves the offline map area, a message warns you 15 km and then 5 km ahead: download the map before the no-network zone.</string>
+    <string name="tuto_record_5">You can turn this offer off in Settings > Ride recording (“Offer to record at start”).</string>
 </resources>
