@@ -11,8 +11,9 @@ struct TrackReadinessBadge: View {
     @EnvironmentObject private var trackRideSettings: TrackRideSettingsStore
 
     var body: some View {
-        // Trace active seulement, dans son sens de parcours (le recalage Valhalla en dépend).
-        let shown = isActive ? (RoadbookTrackSource.displayedTrack(library: library, trackRideSettings: trackRideSettings) ?? track) : track
+        // Toujours dans le sens de parcours choisi pour CETTE trace, active ou non : le recalage Valhalla est mémorisé par sens,
+        // une trace inversée serait sinon jugée « incomplète » dès qu'elle n'est plus active.
+        let shown = track.reordered(using: trackRideSettings.settings(for: track.id))
         let state = preparer.readiness(for: shown, settings: settings)
         if !isActive && state.level == .none {
             EmptyView()
@@ -52,7 +53,7 @@ struct TrackReadinessSection: View {
     @EnvironmentObject private var trackRideSettings: TrackRideSettingsStore
 
     private var shown: GPXTrack {
-        RoadbookTrackSource.displayedTrack(library: library, trackRideSettings: trackRideSettings) ?? track
+        track.reordered(using: trackRideSettings.settings(for: track.id))
     }
 
     private func name(_ part: ReadinessPart) -> String {

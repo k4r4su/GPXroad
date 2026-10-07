@@ -138,6 +138,22 @@ class TrackLibrary(private val context: Context) {
         sampled
     }
 
+    private val heads = HashMap<String, Pair<List<GpxPoint>, List<GpxPoint>>>()
+
+    /**
+     * Clé du parcours d'une trace dans son sens choisi (`LoadedTrack.traversalKey` sans garder tous les points) : sert à savoir
+     * si le recalage Valhalla de CE sens est déjà en cache. Lue une fois par trace puis gardée en mémoire. Bloquant.
+     */
+    fun traversalKey(entry: TrackEntry): String? {
+        val (forward, backward) = synchronized(heads) { heads[entry.id] } ?: run {
+            val points = document(entry)?.points ?: return null
+            val pair = points.take(2) to points.takeLast(2).reversed()
+            synchronized(heads) { heads[entry.id] = pair }
+            pair
+        }
+        return TrackOrder.traversalKey(entry.id, if (entry.reversed) backward else forward)
+    }
+
     /** Contenu GPX d'une trace (fiche : statistiques). */
     fun document(entry: TrackEntry): GpxDocument? = runCatching { GpxParser.parse(file(entry).readText()) }.getOrNull()
 

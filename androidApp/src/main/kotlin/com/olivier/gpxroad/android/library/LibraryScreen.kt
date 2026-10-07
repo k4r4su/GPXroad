@@ -263,7 +263,8 @@ fun LibraryScreen(library: TrackLibrary, settings: AppSettings, recorder: RideRe
                                 library = library,
                                 isActive = entry.id == library.activeTrackId,
                                 isOffline = offline.zoneForTrack(entry.id)?.isComplete == true,
-                                readiness = if (entry.id == library.activeTrackId) library.activeTrack?.let { readinessLabel(preparer, it) } else null,
+                                readiness = traversalKey(library, entry)?.let { readinessLabel(preparer, entry.id, it) }
+                                    ?.takeIf { entry.id == library.activeTrackId || it.second != ReadinessLevel.NONE },
                                 settings = settings,
                                 onActivate = { activate(entry) },
                                 onOpen = { opened = entry.id },
@@ -572,4 +573,11 @@ private fun MoveDialog(entry: TrackEntry, library: TrackLibrary, onDismiss: () -
         },
         confirmButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.cancel)) } },
     )
+}
+
+/** Clé du parcours d'une trace dans son sens choisi, lue hors du fil principal (voir `TrackLibrary.traversalKey`). */
+@Composable
+private fun traversalKey(library: TrackLibrary, entry: TrackEntry): String? {
+    val key by produceState<String?>(null, entry.id, entry.reversed) { value = withContext(Dispatchers.IO) { library.traversalKey(entry) } }
+    return key
 }

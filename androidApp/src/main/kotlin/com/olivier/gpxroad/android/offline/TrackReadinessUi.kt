@@ -17,9 +17,9 @@ import com.olivier.gpxroad.shared.offline.ReadinessPart
 
 /** Texte de la pastille de la liste : `null` = rien à montrer (trace active sans préparation en cours ni résultat). */
 @Composable
-fun readinessLabel(preparer: TrackPreparer, track: LoadedTrack): Pair<String, ReadinessLevel?> {
-    if (preparer.preparingTrackId == track.entry.id) return stringResource(R.string.track_preparing) to null
-    val state = preparer.readiness(track)
+fun readinessLabel(preparer: TrackPreparer, id: String, traversalKey: String): Pair<String, ReadinessLevel?> {
+    if (preparer.preparingTrackId == id) return stringResource(R.string.track_preparing) to null
+    val state = preparer.readiness(id, traversalKey)
     return when (state.level) {
         ReadinessLevel.READY -> stringResource(R.string.track_ready) to ReadinessLevel.READY
         ReadinessLevel.PARTIAL -> stringResource(R.string.track_incomplete) to ReadinessLevel.PARTIAL

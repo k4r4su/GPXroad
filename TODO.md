@@ -74,6 +74,12 @@ temps, la version iOS est vraiment correcte mais l'Android c'est une catastrophe
       autorisée). Limites assumées : pas de déplacement d'un point par glisser (supprimer puis reposer), pas de recherche d'adresse,
       pas de score de sinuosité (Valhalla n'en a pas), « éviter » ≠ « interdire », nécessite Valhalla configuré (repli sur une
       instance publique à décider).
+- [x] Fix pastille « Incomplète » à tort (07/10, retour terrain iPhone) : les lignes de la Bibliothèque évaluaient le recalage Valhalla
+      dans le sens ORIGINAL de la trace alors qu'il est mémorisé par sens (clé = id + deux premiers points) : une trace au sens inversé
+      devenait « Incomplète » dès qu'elle cessait d'être active. Rien n'était re-téléchargé (vérifié sur l'iPhone : 5 couloirs et 3 zones
+      automatiques toujours en base, caches de repères/ronds-points/recalage intacts). Évaluation désormais toujours dans le sens choisi
+      pour la trace, iOS (`reordered(using:)`) et Android (`TrackLibrary.traversalKey`, clé du sens sans charger tous les points ; règle
+      testée dans `TrackOrderKeyTest`). La pastille s'affiche maintenant aussi sur les traces non actives dès qu'elles sont (en partie) préparées.
 - [x] Créer un itinéraire, phase 2 (06/10) : pistes autorisées + base des points interdits. Avec « Autoriser les pistes », chaque
       tronçon calculé est relu (Valhalla `/trace_attributes`, chemins OSM suivis) puis ses étiquettes d'accès lues sur Overpass ;
       règles communes `shared/plan/TrackAccess` : étiquette explicite d'abord (`motorcycle` > `motor_vehicle` > `vehicle` > `access`),

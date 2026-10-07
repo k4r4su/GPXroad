@@ -56,18 +56,20 @@ class TrackPreparer(
     }
 
     /** Ce qui est déjà en local pour cette trace (lecture mémorisée : la fiche et la liste la relisent souvent). */
-    fun readiness(track: LoadedTrack): TrackReadiness {
+    fun readiness(track: LoadedTrack): TrackReadiness = readiness(track.entry.id, track.traversalKey)
+
+    /** Même chose pour n'importe quelle trace de la Bibliothèque, dans son sens choisi (clé : `TrackLibrary.traversalKey`). */
+    fun readiness(id: String, traversalKey: String): TrackReadiness {
         val rev = revision
-        val id = track.entry.id
         val enabled = settings.landmarkCategories
         val mapReady = offline.zoneForTrack(id)?.isComplete == true
         val valhalla = servers.valhalla != null
-        val key = "$id|${track.traversalKey}|${enabled.hashCode()}|$valhalla|$mapReady|$rev"
+        val key = "$id|$traversalKey|${enabled.hashCode()}|$valhalla|$mapReady|$rev"
         return memo.getOrPut(key) {
             TrackPreparation.evaluate(
                 map = mapReady,
                 landmarks = if (enabled.isEmpty()) null else caches.landmarks(id)?.fetchedCategories?.containsAll(enabled) == true,
-                routeMatch = if (!valhalla) null else caches.mapMatch(track.traversalKey) != null,
+                routeMatch = if (!valhalla) null else caches.mapMatch(traversalKey) != null,
                 roundabouts = caches.roundabouts(id) != null,
             )
         }
