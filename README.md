@@ -30,6 +30,7 @@ GPXroad est une application iOS (et bientôt Android) pour suivre une trace GPX 
 - Téléchargement automatique du corridor autour d'une trace avant de partir
 - Téléchargement manuel d'une zone plus large (avec estimation de taille en direct)
 - Préparation de la trace : dès que le réseau est bon, la carte du couloir, les repères du Road Book, le recalage des virages et les ronds-points de la trace active sont téléchargés ; une pastille dit si tu peux partir sans réseau
+- Mode longue sortie : quand la batterie baisse, les téléchargements automatiques s'arrêtent et la carte économise l'énergie ; une alerte te prévient avant que l'enregistrement ne risque d'être coupé
 - Alerte « plus de carte devant » : un message te prévient 15 km puis 5 km avant de sortir de la zone de carte téléchargée
 - Carte automatique : dès que le réseau est bon (Wi-Fi ou 4G/5G), l'app prépare toute seule la carte autour de toi (10, 15 ou 20 km) et des 30 prochains km de ta trace, et la renouvelle en roulant — sur iPhone comme sur Android
 - Le contour des zones déjà téléchargées reste visible sur la carte

@@ -529,4 +529,11 @@
     <string name="coverage_gap_alert">Plus de carte dans %1$s</string>
     <string name="tuto_follow_6">Quand ta trace sort de la zone de carte gardée hors ligne, un message te prévient 15 km puis 5 km avant : télécharge la carte avant la zone sans réseau.</string>
     <string name="tuto_record_5">Cette proposition se désactive dans Réglages > Enregistrement de la sortie (« Proposer d\'enregistrer au départ »).</string>
+    <string name="settings_longride">Mode longue sortie</string>
+    <string name="longride_off">Désactivé</string>
+    <string name="longride_auto">Auto (≤ 20 %)</string>
+    <string name="longride_always">Toujours</string>
+    <string name="settings_longride_hint">Quand le mode est actif : les téléchargements automatiques de cartes sont suspendus et l\'animation de la carte est limitée à 30 images par seconde, pour économiser la batterie. Une alerte te prévient à 15 % puis 5 % pendant un enregistrement.</string>
+    <string name="battery_alert">Batterie %1$d %% : l\'enregistrement risque d\'être coupé. Branche l\'appareil ou termine la sortie.</string>
+    <string name="tuto_set_6">Mode longue sortie : quand la batterie descend à 20 % (ou en permanence), les téléchargements automatiques sont suspendus et la carte économise l\'énergie ; une alerte te prévient à 15 % puis 5 % pendant un enregistrement.</string>
 </resources>

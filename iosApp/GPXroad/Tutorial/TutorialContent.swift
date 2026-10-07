@@ -147,6 +147,7 @@ enum TutorialContent {
                     String(localized: "Carte et Apparence : orientation, thème, unité de vitesse, trace, position des contrôles, palette du Road Book.", bundle: .appLanguage),
                     String(localized: "Enregistrement de la sortie : densité des points et nombre de sauvegardes de secours conservées.", bundle: .appLanguage),
                     String(localized: "Cartes hors-ligne (Bibliothèque) : une carte « automatique » se prépare toute seule autour de toi (et de ta trace) dès que le réseau est bon.", bundle: .appLanguage),
+                    String(localized: "Mode longue sortie : quand la batterie descend à 20 % (ou en permanence), les téléchargements automatiques sont suspendus et la carte économise l'énergie ; une alerte te prévient à 15 % puis 5 % pendant un enregistrement.", bundle: .appLanguage),
                     String(localized: "Avancé : routage Valhalla (optionnel).", bundle: .appLanguage),
                 ]),
             ]

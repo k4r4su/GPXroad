@@ -703,3 +703,10 @@
 "Plus de carte dans %@" = "Keine Karte mehr in %@";
 "Quand ta trace sort de la zone de carte gardée hors ligne, un message te prévient 15 km puis 5 km avant : télécharge la carte avant la zone sans réseau." = "Wenn dein Track den Offline-Kartenbereich verlässt, warnt dich eine Meldung 15 km und dann 5 km vorher: Lade die Karte vor der Zone ohne Netz herunter.";
 "Cette proposition se désactive dans Réglages > Enregistrement de la sortie (« Proposer d'enregistrer au départ »)." = "Du kannst dieses Angebot unter Einstellungen > Aufzeichnung der Fahrt ausschalten („Beim Start Aufzeichnung anbieten“).";
+"Désactivé" = "Aus";
+"Automatique (batterie ≤ 20 %)" = "Automatisch (Akku ≤ 20 %)";
+"Toujours" = "Immer";
+"Mode longue sortie" = "Langstrecken-Modus";
+"Quand le mode est actif : les téléchargements automatiques de cartes sont suspendus et l'animation de la carte est limitée à 30 images par seconde, pour économiser la batterie. Une alerte te prévient à 15 % puis 5 % pendant un enregistrement." = "Wenn der Modus aktiv ist: Automatische Kartendownloads werden pausiert und die Kartenanimation auf 30 Bilder pro Sekunde begrenzt, um Akku zu sparen. Eine Warnung erscheint bei 15 % und 5 % während einer Aufzeichnung.";
+"Batterie %lld %% : l'enregistrement risque d'être coupé. Branche l'appareil ou termine la sortie." = "Akku %lld %%: Die Aufzeichnung könnte unterbrochen werden. Gerät anschließen oder Fahrt beenden.";
+"Mode longue sortie : quand la batterie descend à 20 % (ou en permanence), les téléchargements automatiques sont suspendus et la carte économise l'énergie ; une alerte te prévient à 15 % puis 5 % pendant un enregistrement." = "Langstrecken-Modus: Sinkt der Akku auf 20 % (oder dauerhaft), pausieren automatische Downloads und die Karte spart Energie; eine Warnung erscheint bei 15 % und 5 % während einer Aufzeichnung.";

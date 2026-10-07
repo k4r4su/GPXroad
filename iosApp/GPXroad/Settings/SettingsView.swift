@@ -260,6 +260,16 @@ struct SettingsView: View {
                     Text("Désactivé : plus de question au début de la trace ; le bouton Enregistrer reste disponible.")
                 }
 
+                Section {
+                    Picker("Mode longue sortie", selection: $settings.longRideSetting) {
+                        ForEach(LongRideSetting.allCases) { mode in
+                            Text(mode.label).tag(mode)
+                        }
+                    }
+                } footer: {
+                    Text("Quand le mode est actif : les téléchargements automatiques de cartes sont suspendus et l'animation de la carte est limitée à 30 images par seconde, pour économiser la batterie. Une alerte te prévient à 15 % puis 5 % pendant un enregistrement.")
+                }
+
                 // Spec "unsaved-ride-recovery" (it19, retour terrain "cleanup au bout de 10 ou
                 // 20 traces, réglable") — nombre de sauvegardes de secours conservées dans
                 // Biblio > "Sorties non enregistrées" avant purge automatique des plus anciennes.

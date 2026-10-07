@@ -64,6 +64,12 @@ temps, la version iOS est vraiment correcte mais l'Android c'est une catastrophe
       Corrigé : saisie via le terminal, variables exportées, build annulé si la valeur est vide,
       vérification de la valeur dans l'APK avant de le copier (longueur seulement, jamais le contenu).
       Testé avec des valeurs fictives (bash et zsh).
+- [x] Mode longue sortie (06/10, idée 3/3) : réglage Off / Auto (≤ 20 % hors charge, par défaut) / Toujours, iOS (Réglages >
+      Enregistrement de la sortie) et Android (même page). Actif : carte automatique et préparation de la trace suspendues,
+      carte limitée à 30 images/s (`preferredFramesPerSecond` iOS, `setMaximumFps` Android) ; alerte à 15 % puis 5 % pendant un
+      enregistrement hors charge. Règles communes `shared/ride/LongRide` (testées). Pas de baisse de luminosité (illisible au
+      soleil, risque d'oubli de restauration) ni de GPS ralenti (dégraderait le guidage) : choix assumé. Vérifié : compile des deux
+      côtés + tests ; NON vérifié : économie réelle mesurée, alerte à l'exécution.
 - [x] Alerte « plus de carte devant » (06/10, idée 2/3) : toast du Ride une fois à 15 km puis à 5 km avant la première portion de
       trace hors des zones gardées (règle `shared/offline/CoverageGap`, testée), vérifiée toutes les 10 s, seulement sur la trace
       (< 3 km) et avec un fond vectoriel. Parité : la carte nette hors réseau dépend maintenant de la POSITION (zone terminée qui

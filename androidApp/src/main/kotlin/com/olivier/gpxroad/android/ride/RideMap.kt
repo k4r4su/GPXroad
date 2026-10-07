@@ -1,5 +1,6 @@
 package com.olivier.gpxroad.android.ride
 
+import com.olivier.gpxroad.shared.ride.LongRide
 import android.graphics.Bitmap
 import android.location.Location
 import androidx.compose.runtime.Composable
@@ -116,6 +117,8 @@ fun RideMap(
     mapTheme: MapTheme,
     /** Des zones hors ligne existent : sans réseau, garder le style vectoriel (tuiles gardées). */
     offlineAvailable: Boolean,
+    /** Mode longue sortie : animation de la carte limitée (économie de batterie). */
+    lowPower: Boolean = false,
     /** Position du point en cap-en-haut (fraction de la hauteur depuis le haut). */
     anchorY: Double,
     chevronSpacingMeters: Double,
@@ -143,6 +146,9 @@ fun RideMap(
     val mapView = remember {
         MapLibre.getInstance(context)
         MapView(context)
+    }
+    LaunchedEffect(lowPower) {
+        if (lowPower) mapView.setMaximumFps(LongRide.LOW_POWER_MAX_FPS) else mapView.setMaximumFps(Int.MAX_VALUE)
     }
     var map by remember { mutableStateOf<MapLibreMap?>(null) }
     var style by remember { mutableStateOf<Style?>(null) }

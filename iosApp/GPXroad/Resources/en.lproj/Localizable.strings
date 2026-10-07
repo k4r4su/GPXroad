@@ -703,3 +703,10 @@
 "Plus de carte dans %@" = "No more map in %@";
 "Quand ta trace sort de la zone de carte gardée hors ligne, un message te prévient 15 km puis 5 km avant : télécharge la carte avant la zone sans réseau." = "When your track leaves the offline map area, a message warns you 15 km and then 5 km ahead: download the map before the no-network zone.";
 "Cette proposition se désactive dans Réglages > Enregistrement de la sortie (« Proposer d'enregistrer au départ »)." = "You can turn this offer off in Settings > Ride recording (“Offer to record at start”).";
+"Désactivé" = "Off";
+"Automatique (batterie ≤ 20 %)" = "Automatic (battery ≤ 20 %)";
+"Toujours" = "Always";
+"Mode longue sortie" = "Long ride mode";
+"Quand le mode est actif : les téléchargements automatiques de cartes sont suspendus et l'animation de la carte est limitée à 30 images par seconde, pour économiser la batterie. Une alerte te prévient à 15 % puis 5 % pendant un enregistrement." = "When the mode is active: automatic map downloads are paused and map animation is limited to 30 frames per second, to save battery. An alert warns you at 15 % then 5 % during a recording.";
+"Batterie %lld %% : l'enregistrement risque d'être coupé. Branche l'appareil ou termine la sortie." = "Battery %lld %%: the recording may be cut. Plug in the device or finish the ride.";
+"Mode longue sortie : quand la batterie descend à 20 % (ou en permanence), les téléchargements automatiques sont suspendus et la carte économise l'énergie ; une alerte te prévient à 15 % puis 5 % pendant un enregistrement." = "Long ride mode: when the battery drops to 20 % (or always), automatic downloads pause and the map saves power; an alert warns you at 15 % then 5 % during a recording.";

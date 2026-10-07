@@ -14,6 +14,7 @@ struct RideView: View {
     @EnvironmentObject private var vectorPackages: VectorPackageStore
     @EnvironmentObject private var networkMonitor: NetworkMonitor
     @EnvironmentObject private var autoMap: AutoMapPrefetcher
+    @EnvironmentObject private var battery: BatteryMonitor
     /// Enregistrement de la sortie (it30) : service applicatif, jamais arrêté par cette vue.
     @EnvironmentObject private var recorder: RideRecorder
     @State private var showDetourConfirmation = false
@@ -528,7 +529,11 @@ struct RideView: View {
     private func handleAutoMapLocation(_ location: CLLocation) {
         var checksCoverage = false
         if case .vectorHosted = activeMapSource { checksCoverage = true }
-        autoMap.update(location: location, track: library.activeTrack, settings: settings, network: networkMonitor, checksCoverage: checksCoverage)
+        autoMap.update(location: location, track: library.activeTrack, settings: settings, network: networkMonitor, checksCoverage: checksCoverage, suspended: battery.isLongRideActive(settings.longRideSetting))
+    }
+
+    private func showBatteryAlert(percent: Int) {
+        toastMessage = String(format: String(localized: "Batterie %lld %% : l'enregistrement risque d'être coupé. Branche l'appareil ou termine la sortie.", bundle: .appLanguage), percent)
     }
 
     private func showGapAlert() {
@@ -783,6 +788,7 @@ struct RideView: View {
         // Recalcul brève, pas de bannière permanente" — même mécanisme toast que Pause/Stop.
         // Carte automatique : à chaque position, regarde s'il faut préparer la carte autour (voir AutoMapPrefetcher),
         // et prévient quand la carte va manquer devant.
+        .modifier(BatteryAlertHook(battery: battery, isRecording: recorder.state == .recording, onAlert: showBatteryAlert))
         .modifier(AutoMapRideHooks(autoMap: autoMap, location: session.currentLocation, onLocation: handleAutoMapLocation, onGapAlert: showGapAlert))
         .onChange(of: session.autoRecomputeToastToken) { _ in
             toastMessage = "Recalcul"

@@ -97,6 +97,8 @@ import com.olivier.gpxroad.android.roadbook.data.RoadbookData
 import com.olivier.gpxroad.android.ui.Accent
 import com.olivier.gpxroad.shared.LatLon
 import com.olivier.gpxroad.shared.geodesicDistanceMeters
+import com.olivier.gpxroad.android.data.BatteryMonitor
+import com.olivier.gpxroad.shared.ride.LongRide
 import com.olivier.gpxroad.shared.offline.AutoPrefetch
 import com.olivier.gpxroad.shared.offline.CoverageGap
 import com.olivier.gpxroad.shared.ride.SlopeAnalyzer
@@ -133,6 +135,7 @@ fun RideScreen(
     nav: NavSession,
     blockageSync: SharedBlockageSync,
     offline: OfflineMaps,
+    battery: BatteryMonitor,
     onOpenLibrary: () -> Unit,
 ) {
     val view = LocalView.current
@@ -165,6 +168,16 @@ fun RideScreen(
     val fix = location.location
     LaunchedEffect(fix) { fix?.let(camera::onLocation) }
 
+    // Alerte batterie (idée du 06/10) : une fois par niveau franchi (15 % puis 5 %) pendant un enregistrement, hors charge.
+    var lastBatteryAlert by remember { mutableStateOf<Int?>(null) }
+    LaunchedEffect(battery.percent, battery.isCharging, recorder.state) {
+        if (battery.isCharging || (battery.percent ?: 0) > LongRide.AUTO_THRESHOLD_PERCENT) lastBatteryAlert = null
+        LongRide.nextBatteryAlert(battery.percent, battery.isCharging, recorder.state == RideRecorder.State.RECORDING, lastBatteryAlert)?.let { level ->
+            lastBatteryAlert = level
+            android.widget.Toast.makeText(context, context.getString(R.string.battery_alert, battery.percent ?: level), android.widget.Toast.LENGTH_LONG).show()
+        }
+    }
+
     // Carte nette hors réseau seulement DANS une zone gardée (comme l'iPhone) : recalculée tous les ~100 m.
     val coversHere = remember(fix?.latitude?.let { "%.3f".format(it) }, fix?.longitude?.let { "%.3f".format(it) }, offline.zones) {
         offline.covers(fix?.let { LatLon(it.latitude, it.longitude) })
@@ -189,7 +202,7 @@ fun RideScreen(
         session.onLocation(fix, track?.traversalKey, track?.cumulative?.lastOrNull(), projection?.cumulativeDistanceMeters)
         nav.onLocation(fix, settings.voiceEnabled, settings.voiceVolume.toFloat(), valhalla, settings.speedMarginKmh)
         // Carte automatique : tuiles d'avance autour de soi (+ trace devant) quand le réseau est bon.
-        if (settings.autoMapEnabled) {
+        if (settings.autoMapEnabled && !battery.isLongRideActive(settings)) {
             val ahead = if (track != null && projection != null) AutoPrefetch.trackAhead(track.latLons, track.cumulative, projection.cumulativeDistanceMeters) else emptyList()
             offline.autoPrefetch(LatLon(fix.latitude, fix.longitude), ahead, settings.autoMapRadiusKm, settings.autoMapCellular)
         }
@@ -263,6 +276,7 @@ fun RideScreen(
             traceStyle = TraceStyle((track?.entry?.colorOverride ?: settings.traceColor).argb, (track?.entry?.widthOverride ?: settings.traceWidth).widthDp),
             mapTheme = settings.mapTheme,
             offlineAvailable = coversHere,
+            lowPower = battery.isLongRideActive(settings),
             anchorY = settings.anchorY,
             chevronSpacingMeters = track?.entry?.chevronSpacingOverride ?: settings.chevronSpacing,
             slopeWarnings = slopeWarnings,

@@ -54,4 +54,18 @@ final class AutoMapTests: XCTestCase {
         XCTAssertEqual(AutoMapConstants.defaultRadiusKm, Int(AutoPrefetch.shared.DEFAULT_RADIUS_KM))
         XCTAssertEqual(AutoMapConstants.maxAutoPacks, Int(AutoPrefetch.shared.MAX_AUTO_ZONES))
     }
+
+    func testNewSettingsDefaultsMatchAndroid() {
+        let suite = "AutoMapTests-\(UUID().uuidString)"
+        let defaults = UserDefaults(suiteName: suite)!
+        defer { defaults.removePersistentDomain(forName: suite) }
+        let settings = RideSettingsStore(defaults: defaults)
+        XCTAssertTrue(settings.recordingPromptEnabled, "popup d'enregistrement activé par défaut, désactivable")
+        XCTAssertTrue(settings.autoPrepareEnabled)
+        XCTAssertEqual(settings.longRideSetting, .auto)
+        settings.longRideSetting = .always
+        XCTAssertEqual(RideSettingsStore(defaults: defaults).longRideSetting, .always, "le mode longue sortie est conservé")
+        settings.recordingPromptEnabled = false
+        XCTAssertFalse(RideSettingsStore(defaults: defaults).recordingPromptEnabled)
+    }
 }

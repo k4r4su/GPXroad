@@ -216,6 +216,7 @@
 		AE1EA64F004FD8C646460954 /* WaypointCategoryExtensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = D68F72859424CE70D4155201 /* WaypointCategoryExtensions.swift */; };
 		AEDDB1AC2ACBD34B79E88BCA /* DebugReplaySection.swift in Sources */ = {isa = PBXBuildFile; fileRef = C75D468F77F00F6CE9DDB046 /* DebugReplaySection.swift */; };
 		AFDD46D1866A9C79ED1BE35C /* NavGuidancePanelView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 567CDEA152B6B08F353FB15D /* NavGuidancePanelView.swift */; };
+		B02680174DDED769D586A418 /* BatteryMonitor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 37F9DF24FD98DD127230E43F /* BatteryMonitor.swift */; };
 		B02B0ADB730CCDDDE1066039 /* Recording.strings in Resources */ = {isa = PBXBuildFile; fileRef = C6D233CEC976D1DB84EE1DF8 /* Recording.strings */; };
 		B19000DB1633600E95A7CDB6 /* DestinationSearchTabView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B3B159AEF87743AB05F46103 /* DestinationSearchTabView.swift */; };
 		B1CFF0414CFB9B8F27441029 /* TrackProjectorNearestPointTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 917A8DDCEE6E8F952B74F551 /* TrackProjectorNearestPointTests.swift */; };
@@ -385,6 +386,7 @@
 		3625EB40AC2EBFF7D87B3ADA /* GoToGuidanceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GoToGuidanceTests.swift; sourceTree = "<group>"; };
 		36E08DB8BEFAEF73D7321B36 /* RideGuidanceToggleButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RideGuidanceToggleButton.swift; sourceTree = "<group>"; };
 		3792E52217AB21A58B9E9C90 /* TileCacheStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TileCacheStore.swift; sourceTree = "<group>"; };
+		37F9DF24FD98DD127230E43F /* BatteryMonitor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BatteryMonitor.swift; sourceTree = "<group>"; };
 		38C97EF92C611896A7F4E1D2 /* RoadbookExportOptionsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RoadbookExportOptionsView.swift; sourceTree = "<group>"; };
 		38F5A3745F55AA953C87F5B2 /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/Localizable.strings; sourceTree = "<group>"; };
 		3AFA43AB96EDEEF05DD9C273 /* RidePanelStyle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RidePanelStyle.swift; sourceTree = "<group>"; };
@@ -704,6 +706,7 @@
 		87113682FEE0E91A2AFC1E6C /* Services */ = {
 			isa = PBXGroup;
 			children = (
+				37F9DF24FD98DD127230E43F /* BatteryMonitor.swift */,
 				3AFC04BB766784364CDBC7EC /* GPXParser.swift */,
 				666D2B577C46171BBD208E45 /* IdleTimerCoordinator.swift */,
 				60F4375E4B121E2ACBEE2884 /* LibraryConstants.swift */,
@@ -1227,6 +1230,7 @@
 				BEBC9F62EFD0B0360A0E0CC2 /* AppVersion.swift in Sources */,
 				B3A6B8B0B123F4BB76105EC1 /* AutoMapPolicy.swift in Sources */,
 				B60539FB834C4143FAA275E3 /* AutoMapPrefetcher.swift in Sources */,
+				B02680174DDED769D586A418 /* BatteryMonitor.swift in Sources */,
 				CD6DC9E7F139966392063D17 /* BlockageLogStore.swift in Sources */,
 				9709B95E760E34F98FD128E9 /* BlockedPathBannerView.swift in Sources */,
 				FA8A3992626FC8725F335471 /* CameraPreviewMapView.swift in Sources */,
@@ -1545,7 +1549,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 0.0.39;
+				MARKETING_VERSION = 0.0.40;
 				PRODUCT_BUNDLE_IDENTIFIER = com.olivier.gpxlibre;
 				SDKROOT = iphoneos;
 				TARGETED_DEVICE_FAMILY = 1;
@@ -1598,7 +1602,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 0.0.39;
+				MARKETING_VERSION = 0.0.40;
 				PRODUCT_BUNDLE_IDENTIFIER = com.olivier.gpxlibre;
 				SDKROOT = iphoneos;
 				TARGETED_DEVICE_FAMILY = 1;

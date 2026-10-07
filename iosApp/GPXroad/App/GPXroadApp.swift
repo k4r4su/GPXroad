@@ -23,6 +23,7 @@ struct GPXroadApp: App {
     @StateObject private var vectorPackages = VectorPackageStore()
     @StateObject private var autoMap = AutoMapPrefetcher()
     @StateObject private var trackPreparer = TrackPreparer()
+    @StateObject private var battery = BatteryMonitor()
     /// Enregistrement de la sortie (it30) : service applicatif, vit aussi longtemps que l'app,
     /// jamais lié à un écran.
     @StateObject private var rideRecorder: RideRecorder
@@ -84,6 +85,7 @@ struct GPXroadApp: App {
                     .environmentObject(vectorPackages)
                     .environmentObject(autoMap)
                     .environmentObject(trackPreparer)
+                    .environmentObject(battery)
                     .environmentObject(rideRecorder)
                     // It31 : langue choisie (formats de date/nombre) ; la vue racine est
                     // reconstruite quand elle change, pour que tous les textes suivent en direct.

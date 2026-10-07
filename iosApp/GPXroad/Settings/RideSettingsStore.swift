@@ -40,6 +40,7 @@ final class RideSettingsStore: ObservableObject {
         static let autoZoomMaxMeters = "settings.autoZoomMaxMeters"
         static let slopeWarningsEnabled = "settings.slopeWarningsEnabled"
         static let recordingPromptEnabled = "settings.recordingPromptEnabled"
+        static let longRideMode = "settings.longRideMode"
         static let autoPrepareEnabled = "settings.autoPrepareEnabled"
         static let autoMapEnabled = "settings.autoMapEnabled"
         static let autoMapRadiusKm = "settings.autoMapRadiusKm"
@@ -254,6 +255,10 @@ final class RideSettingsStore: ObservableObject {
     @Published var recordingPromptEnabled: Bool {
         didSet { defaults.set(recordingPromptEnabled, forKey: Keys.recordingPromptEnabled) }
     }
+    /// Mode longue sortie : économie de batterie (automatique ≤ 20 % hors charge par défaut), voir `BatteryMonitor`.
+    @Published var longRideSetting: LongRideSetting {
+        didSet { defaults.set(longRideSetting.rawValue, forKey: Keys.longRideMode) }
+    }
     /// Préparation automatique de la trace active (carte du couloir, repères, recalage, ronds-points) — activée par défaut.
     @Published var autoPrepareEnabled: Bool {
         didSet { defaults.set(autoPrepareEnabled, forKey: Keys.autoPrepareEnabled) }
@@ -430,6 +435,7 @@ final class RideSettingsStore: ObservableObject {
             ?? RideConstants.autoZoomMaxMetersDefault
 
         recordingPromptEnabled = defaults.object(forKey: Keys.recordingPromptEnabled) == nil ? true : defaults.bool(forKey: Keys.recordingPromptEnabled)
+        longRideSetting = defaults.string(forKey: Keys.longRideMode).flatMap(LongRideSetting.init(rawValue:)) ?? .auto
         autoPrepareEnabled = defaults.object(forKey: Keys.autoPrepareEnabled) == nil ? true : defaults.bool(forKey: Keys.autoPrepareEnabled)
         autoMapEnabled = defaults.object(forKey: Keys.autoMapEnabled) == nil ? true : defaults.bool(forKey: Keys.autoMapEnabled)
         let storedAutoMapRadius = defaults.integer(forKey: Keys.autoMapRadiusKm)

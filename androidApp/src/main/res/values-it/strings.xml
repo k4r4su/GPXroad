@@ -527,4 +527,11 @@
     <string name="coverage_gap_alert">Niente mappa tra %1$s</string>
     <string name="tuto_follow_6">Quando la traccia esce dall\'area di mappa salvata offline, un messaggio ti avvisa 15 km e poi 5 km prima: scarica la mappa prima della zona senza rete.</string>
     <string name="tuto_record_5">Puoi disattivare questa proposta in Impostazioni > Registrazione dell\'uscita («Proponi di registrare alla partenza»).</string>
+    <string name="settings_longride">Modalità uscita lunga</string>
+    <string name="longride_off">Disattivato</string>
+    <string name="longride_auto">Auto (≤ 20 %)</string>
+    <string name="longride_always">Sempre</string>
+    <string name="settings_longride_hint">Quando la modalità è attiva: i download automatici delle mappe sono sospesi e l\'animazione della mappa è limitata a 30 fotogrammi al secondo, per risparmiare batteria. Un avviso ti avvisa al 15 % e al 5 % durante una registrazione.</string>
+    <string name="battery_alert">Batteria %1$d %%: la registrazione potrebbe interrompersi. Collega il dispositivo o termina l\'uscita.</string>
+    <string name="tuto_set_6">Modalità uscita lunga: quando la batteria scende al 20 % (o sempre), i download automatici si sospendono e la mappa risparmia energia; un avviso ti avvisa al 15 % e al 5 % durante una registrazione.</string>
 </resources>

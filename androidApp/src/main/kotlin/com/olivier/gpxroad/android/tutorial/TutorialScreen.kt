@@ -66,7 +66,7 @@ private val pages = listOf(
     ),
     Page(
         R.string.tab_settings, R.string.tuto_set_summary,
-        listOf(Topic(R.string.tuto_set_main, listOf(R.string.tuto_set_1, R.string.tuto_set_2, R.string.tuto_set_3, R.string.tuto_set_4, R.string.tuto_set_5))),
+        listOf(Topic(R.string.tuto_set_main, listOf(R.string.tuto_set_1, R.string.tuto_set_2, R.string.tuto_set_3, R.string.tuto_set_4, R.string.tuto_set_6, R.string.tuto_set_5))),
     ),
 )
 

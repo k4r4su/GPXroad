@@ -80,14 +80,14 @@ final class TrackPreparer: ObservableObject {
 
     /// Prépare ce qui manque. `force` : demande de l'utilisateur (ignore le réglage automatique, l'attente après un échec
     /// et le type de réseau, pas l'absence de réseau).
-    func prepare(track: GPXTrack, settings: RideSettingsStore, network: NetworkMonitor, force: Bool = false) {
+    func prepare(track: GPXTrack, settings: RideSettingsStore, network: NetworkMonitor, force: Bool = false, suspended: Bool = false) {
         guard task == nil else { return }
         let state = readiness(for: track, settings: settings)
         guard state.level != .ready else { return }
         if force {
             guard network.isReachable else { return }
         } else {
-            guard settings.autoPrepareEnabled, network.isGoodForAutoMap(allowCellular: settings.autoMapCellular) else { return }
+            guard settings.autoPrepareEnabled, !suspended, network.isGoodForAutoMap(allowCellular: settings.autoMapCellular) else { return }
             if let failed = failures[track.id], Date().timeIntervalSince(failed) < Self.retryAfterSeconds { return }
         }
         let missing = Set(state.missing)

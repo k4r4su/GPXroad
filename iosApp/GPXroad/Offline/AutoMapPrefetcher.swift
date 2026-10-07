@@ -55,12 +55,12 @@ final class AutoMapPrefetcher: ObservableObject {
     // MARK: - Appelé à chaque position GPS du Ride
 
     /// `checksCoverage` : la carte affichée est le fond vectoriel hébergé (le seul que ces zones couvrent).
-    func update(location: CLLocation, track: GPXTrack?, settings: RideSettingsStore, network: NetworkMonitor, checksCoverage: Bool = false) {
+    func update(location: CLLocation, track: GPXTrack?, settings: RideSettingsStore, network: NetworkMonitor, checksCoverage: Bool = false, suspended: Bool = false) {
         guard let packs = MLNOfflineStorage.shared.packs else { return }   // pas encore chargés
         OfflinePacks.requestStatesIfNeeded(packs)   // zones d'avant le redémarrage : état inconnu tant qu'on ne le demande pas
         refreshCoverage(position: location.coordinate, packs: packs)
         if checksCoverage { checkGap(location: location, track: track, packs: packs) } else { lastGapThreshold = nil }
-        guard settings.autoMapEnabled else { return }
+        guard settings.autoMapEnabled, !suspended else { return }   // mode longue sortie actif : pas de téléchargement
         dropStuckPackIfNeeded()
 
         let radiusMeters = Double(settings.autoMapRadiusKm) * 1000

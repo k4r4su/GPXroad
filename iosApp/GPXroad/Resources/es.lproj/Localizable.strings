@@ -703,3 +703,10 @@
 "Plus de carte dans %@" = "Sin mapa en %@";
 "Quand ta trace sort de la zone de carte gardée hors ligne, un message te prévient 15 km puis 5 km avant : télécharge la carte avant la zone sans réseau." = "Cuando tu ruta sale de la zona de mapa guardada sin conexión, un mensaje te avisa 15 km y luego 5 km antes: descarga el mapa antes de la zona sin red.";
 "Cette proposition se désactive dans Réglages > Enregistrement de la sortie (« Proposer d'enregistrer au départ »)." = "Puedes desactivar esta propuesta en Ajustes > Grabación de la salida («Proponer grabar al empezar»).";
+"Désactivé" = "Desactivado";
+"Automatique (batterie ≤ 20 %)" = "Automático (batería ≤ 20 %)";
+"Toujours" = "Siempre";
+"Mode longue sortie" = "Modo salida larga";
+"Quand le mode est actif : les téléchargements automatiques de cartes sont suspendus et l'animation de la carte est limitée à 30 images par seconde, pour économiser la batterie. Une alerte te prévient à 15 % puis 5 % pendant un enregistrement." = "Cuando el modo está activo: las descargas automáticas de mapas se suspenden y la animación del mapa se limita a 30 imágenes por segundo, para ahorrar batería. Una alerta te avisa al 15 % y al 5 % durante una grabación.";
+"Batterie %lld %% : l'enregistrement risque d'être coupé. Branche l'appareil ou termine la sortie." = "Batería %lld %%: la grabación podría cortarse. Conecta el dispositivo o termina la salida.";
+"Mode longue sortie : quand la batterie descend à 20 % (ou en permanence), les téléchargements automatiques sont suspendus et la carte économise l'énergie ; une alerte te prévient à 15 % puis 5 % pendant un enregistrement." = "Modo salida larga: cuando la batería baja al 20 % (o siempre), se suspenden las descargas automáticas y el mapa ahorra energía; una alerta te avisa al 15 % y al 5 % durante una grabación.";

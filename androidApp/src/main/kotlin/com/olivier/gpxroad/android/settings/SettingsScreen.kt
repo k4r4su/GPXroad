@@ -1,5 +1,6 @@
 package com.olivier.gpxroad.android.settings
 
+import com.olivier.gpxroad.shared.ride.LongRideMode
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -280,6 +281,7 @@ private fun Setting(label: String, value: Double, range: ClosedFloatingPointRang
 /** Enregistrement de la sortie (comme l'iPhone) : densité des points, sauvegardes de secours. */
 @Composable
 private fun RecordingSettings(settings: AppSettings) {
+    val context = LocalContext.current
     val labels = mapOf(
         RecordingDensity.PRECIS to R.string.density_precis,
         RecordingDensity.LEGER to R.string.density_leger,
@@ -294,6 +296,21 @@ private fun RecordingSettings(settings: AppSettings) {
                 subtitle = stringResource(R.string.density_detail, density.minIntervalSeconds, density.minDistanceMeters),
                 onClick = { settings.updateRecordingDensity(density) },
                 trailing = { RadioButton(selected = settings.recordingDensity == density, onClick = null) },
+            )
+        }
+    }
+    SettingsGroup(footer = stringResource(R.string.settings_longride_hint)) {
+        GroupContent {
+            SettingChoice(
+                stringResource(R.string.settings_longride), LongRideMode.entries.toList(), settings.longRideMode,
+                {
+                    when (it) {
+                        LongRideMode.OFF -> context.getString(R.string.longride_off)
+                        LongRideMode.AUTO -> context.getString(R.string.longride_auto)
+                        LongRideMode.ALWAYS -> context.getString(R.string.longride_always)
+                    }
+                },
+                settings::updateLongRideMode,
             )
         }
     }

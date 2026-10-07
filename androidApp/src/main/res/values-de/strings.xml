@@ -527,4 +527,11 @@
     <string name="coverage_gap_alert">Keine Karte mehr in %1$s</string>
     <string name="tuto_follow_6">Wenn dein Track den Offline-Kartenbereich verlässt, warnt dich eine Meldung 15 km und dann 5 km vorher: Lade die Karte vor der Zone ohne Netz herunter.</string>
     <string name="tuto_record_5">Du kannst dieses Angebot unter Einstellungen > Aufzeichnung der Fahrt ausschalten („Beim Start Aufzeichnung anbieten“).</string>
+    <string name="settings_longride">Langstrecken-Modus</string>
+    <string name="longride_off">Aus</string>
+    <string name="longride_auto">Auto (≤ 20 %)</string>
+    <string name="longride_always">Immer</string>
+    <string name="settings_longride_hint">Wenn der Modus aktiv ist: Automatische Kartendownloads werden pausiert und die Kartenanimation auf 30 Bilder pro Sekunde begrenzt, um Akku zu sparen. Eine Warnung erscheint bei 15 % und 5 % während einer Aufzeichnung.</string>
+    <string name="battery_alert">Akku %1$d %%: Die Aufzeichnung könnte unterbrochen werden. Gerät anschließen oder Fahrt beenden.</string>
+    <string name="tuto_set_6">Langstrecken-Modus: Sinkt der Akku auf 20 % (oder dauerhaft), pausieren automatische Downloads und die Karte spart Energie; eine Warnung erscheint bei 15 % und 5 % während einer Aufzeichnung.</string>
 </resources>

@@ -36,6 +36,8 @@ class TrackPreparer(
     private val servers: ServerSettings,
     private val data: RoadbookData,
     private val offline: OfflineMaps,
+    /** Mode longue sortie actif : pas de téléchargement automatique. */
+    private val isSuspended: () -> Boolean = { false },
 ) {
     private val caches = RoadbookCaches(context.filesDir)
     private val scope = MainScope()
@@ -83,7 +85,7 @@ class TrackPreparer(
         if (force) {
             if (!Http.isOnline(context)) return
         } else {
-            if (!settings.autoPrepareEnabled || !Http.isGoodForDownloads(context, settings.autoMapCellular, AutoPrefetch.MIN_CELLULAR_KBPS)) return
+            if (!settings.autoPrepareEnabled || isSuspended() || !Http.isGoodForDownloads(context, settings.autoMapCellular, AutoPrefetch.MIN_CELLULAR_KBPS)) return
             failures[id]?.let { if (System.currentTimeMillis() - it < RETRY_AFTER_MILLIS) return }
         }
         val missing = state.missing.toSet()

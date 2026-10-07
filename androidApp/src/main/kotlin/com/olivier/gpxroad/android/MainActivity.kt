@@ -49,6 +49,7 @@ import com.olivier.gpxroad.android.net.NominatimClient
 import com.olivier.gpxroad.android.sync.SharedBlockageSync
 import androidx.compose.runtime.LaunchedEffect
 import kotlinx.coroutines.delay
+import com.olivier.gpxroad.android.data.BatteryMonitor
 import com.olivier.gpxroad.android.offline.OfflineMaps
 import com.olivier.gpxroad.android.offline.TrackPreparer
 import com.olivier.gpxroad.shared.LatLon
@@ -92,8 +93,9 @@ class MainActivity : ComponentActivity() {
         val nav = NavSession(applicationContext, routing, overpass)
         val roadbook = RoadbookData(applicationContext, servers, overpass, routing)
         val offline = OfflineMaps(applicationContext)
-        val preparer = TrackPreparer(applicationContext, settings, servers, roadbook, offline)
-        val services = AppServices(library, settings, location, servers, overpass, routing, roadbook, RejoinController(routing), RejoinController(routing), RideSession(routing), nav, NavPlaces(applicationContext), NominatimClient(), SharedBlockageSync(applicationContext), offline, RideCameraState(settings), RideRecorder.get(applicationContext), preparer)
+        battery = BatteryMonitor(applicationContext)
+        val preparer = TrackPreparer(applicationContext, settings, servers, roadbook, offline) { battery.isLongRideActive(settings) }
+        val services = AppServices(library, settings, location, servers, overpass, routing, roadbook, RejoinController(routing), RejoinController(routing), RideSession(routing), nav, NavPlaces(applicationContext), NominatimClient(), SharedBlockageSync(applicationContext), offline, RideCameraState(settings), RideRecorder.get(applicationContext), preparer, battery)
         setContent {
             GPXroadTheme {
                 var showOnboarding by remember { mutableStateOf(!settings.hasSeenOnboarding && library.tracks.isEmpty() && incomingGpx == null) }
@@ -107,6 +109,13 @@ class MainActivity : ComponentActivity() {
                 }
             }
         }
+    }
+
+    private lateinit var battery: BatteryMonitor
+
+    override fun onDestroy() {
+        if (::battery.isInitialized) battery.stop()
+        super.onDestroy()
     }
 
     override fun attachBaseContext(newBase: Context) {
@@ -151,6 +160,8 @@ private class AppServices(
     val recorder: RideRecorder,
     /** Préparation hors ligne de la trace active (carte du couloir, repères, recalage, ronds-points). */
     val preparer: TrackPreparer,
+    /** Niveau de batterie : mode longue sortie et alerte pendant l'enregistrement. */
+    val battery: BatteryMonitor,
 )
 
 @Composable
@@ -203,7 +214,7 @@ private fun GPXroadApp(services: AppServices, incomingGpx: Uri?, onLanguageChang
     ) { padding ->
         Box(Modifier.fillMaxSize().padding(padding)) {
             when (tab) {
-                AppTab.RIDE -> RideScreen(library, settings, services.servers, services.roadbook, services.rideCamera, services.location, services.recorder, services.rideRejoin, services.rideSession, services.nav, services.blockageSync, services.offline) { tab = AppTab.LIBRARY }
+                AppTab.RIDE -> RideScreen(library, settings, services.servers, services.roadbook, services.rideCamera, services.location, services.recorder, services.rideRejoin, services.rideSession, services.nav, services.blockageSync, services.offline, services.battery) { tab = AppTab.LIBRARY }
                 AppTab.GOTO -> GoToScreen(services.places, services.nominatim, services.location.location?.let { LatLon(it.latitude, it.longitude) }) { place, profile ->
                     services.rideSession.cancelResume()
                     services.nav.start(NavDestination(place.label, place.coordinate, profile), services.location.location, services.servers.valhalla)

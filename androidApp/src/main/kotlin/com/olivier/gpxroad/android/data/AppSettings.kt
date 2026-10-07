@@ -1,5 +1,6 @@
 package com.olivier.gpxroad.android.data
 
+import com.olivier.gpxroad.shared.ride.LongRideMode
 import android.content.Context
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableDoubleStateOf
@@ -80,6 +81,15 @@ class AppSettings(context: Context) {
     fun updateRecordingPromptEnabled(value: Boolean) {
         recordingPromptEnabled = value
         preferences.edit().putBoolean("recordingPromptEnabled", value).apply()
+    }
+
+    /** Mode longue sortie (économie de batterie) : automatique ≤ 20 % hors charge par défaut, comme l'iPhone. */
+    var longRideMode by mutableStateOf(enumValueOrNull<LongRideMode>(preferences.getString("longRideMode", null)) ?: LongRideMode.AUTO)
+        private set
+
+    fun updateLongRideMode(value: LongRideMode) {
+        longRideMode = value
+        preferences.edit().putString("longRideMode", value.name).apply()
     }
 
     /** Préparation automatique de la trace active (carte du couloir, repères, recalage, ronds-points). */

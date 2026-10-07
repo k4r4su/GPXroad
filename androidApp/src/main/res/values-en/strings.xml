@@ -527,4 +527,11 @@
     <string name="coverage_gap_alert">No more map in %1$s</string>
     <string name="tuto_follow_6">When your track leaves the offline map area, a message warns you 15 km and then 5 km ahead: download the map before the no-network zone.</string>
     <string name="tuto_record_5">You can turn this offer off in Settings > Ride recording (“Offer to record at start”).</string>
+    <string name="settings_longride">Long ride mode</string>
+    <string name="longride_off">Off</string>
+    <string name="longride_auto">Auto (≤ 20 %)</string>
+    <string name="longride_always">Always</string>
+    <string name="settings_longride_hint">When the mode is active: automatic map downloads are paused and map animation is limited to 30 frames per second, to save battery. An alert warns you at 15 % then 5 % during a recording.</string>
+    <string name="battery_alert">Battery %1$d %%: the recording may be cut. Plug in the device or finish the ride.</string>
+    <string name="tuto_set_6">Long ride mode: when the battery drops to 20 % (or always), automatic downloads pause and the map saves power; an alert warns you at 15 % then 5 % during a recording.</string>
 </resources>

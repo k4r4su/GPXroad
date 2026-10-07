@@ -527,4 +527,11 @@
     <string name="coverage_gap_alert">Sin mapa en %1$s</string>
     <string name="tuto_follow_6">Cuando tu ruta sale de la zona de mapa guardada sin conexión, un mensaje te avisa 15 km y luego 5 km antes: descarga el mapa antes de la zona sin red.</string>
     <string name="tuto_record_5">Puedes desactivar esta propuesta en Ajustes > Grabación de la salida («Proponer grabar al empezar»).</string>
+    <string name="settings_longride">Modo salida larga</string>
+    <string name="longride_off">Desactivado</string>
+    <string name="longride_auto">Auto (≤ 20 %)</string>
+    <string name="longride_always">Siempre</string>
+    <string name="settings_longride_hint">Cuando el modo está activo: las descargas automáticas de mapas se suspenden y la animación del mapa se limita a 30 imágenes por segundo, para ahorrar batería. Una alerta te avisa al 15 % y al 5 % durante una grabación.</string>
+    <string name="battery_alert">Batería %1$d %%: la grabación podría cortarse. Conecta el dispositivo o termina la salida.</string>
+    <string name="tuto_set_6">Modo salida larga: cuando la batería baja al 20 % (o siempre), se suspenden las descargas automáticas y el mapa ahorra energía; una alerta te avisa al 15 % y al 5 % durante una grabación.</string>
 </resources>

@@ -1,5 +1,6 @@
 import SwiftUI
 import MapLibre
+import GPXroadShared
 import CoreLocation
 
 /// Spec "replay-marker-heading-x2" (it17, Bloc 4) : passé par `.environment(...)` plutôt
@@ -83,6 +84,8 @@ extension EnvironmentValues {
 /// style de secours embarqué (fallback-style.json) et on remonte un état d'erreur visible
 /// via `onStatusChange`.
 struct RideMapLibreView: UIViewRepresentable, MapProvider {
+    @EnvironmentObject private var battery: BatteryMonitor
+    @EnvironmentObject private var appSettings: RideSettingsStore
     let track: GPXTrack?
     let checkpoints: [Checkpoint]
     let waypoints: [RollingWaypoint]
@@ -157,6 +160,10 @@ struct RideMapLibreView: UIViewRepresentable, MapProvider {
     }
 
     func updateUIView(_ mapView: MLNMapView, context: Context) {
+        // Mode longue sortie : animation de la carte limitée à 30 images/s (économie de batterie).
+        let lowPower = battery.isLongRideActive(appSettings.longRideSetting)
+        let fps: MLNMapViewPreferredFramesPerSecond = lowPower ? MLNMapViewPreferredFramesPerSecond(rawValue: Int(LongRide.shared.LOW_POWER_MAX_FPS)) : .maximum
+        if mapView.preferredFramesPerSecond != fps { mapView.preferredFramesPerSecond = fps }
         context.coordinator.onManualGesture = onManualGesture
         context.coordinator.onStatusChange = onStatusChange
         context.coordinator.onLongPress = onLongPress
