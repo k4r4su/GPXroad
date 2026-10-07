@@ -2,6 +2,17 @@ import SwiftUI
 
 struct RootView: View {
     @EnvironmentObject private var navigationState: AppNavigationState
+    @EnvironmentObject private var library: LibraryStore
+    @EnvironmentObject private var trackRideSettings: TrackRideSettingsStore
+    @EnvironmentObject private var settings: RideSettingsStore
+    @EnvironmentObject private var networkMonitor: NetworkMonitor
+    @EnvironmentObject private var trackPreparer: TrackPreparer
+
+    /// Préparation de la trace active (06/10) : carte du couloir, repères, recalage, ronds-points, dès que le réseau est bon.
+    private func prepareActiveTrack() {
+        guard let track = RoadbookTrackSource.displayedTrack(library: library, trackRideSettings: trackRideSettings) else { return }
+        trackPreparer.prepare(track: track, settings: settings, network: networkMonitor)
+    }
 
     var body: some View {
         TabView(selection: $navigationState.selectedTab) {
@@ -31,5 +42,13 @@ struct RootView: View {
                 .tabItem { Label("Réglages", systemImage: "gearshape") }
                 .tag(AppTab.settings)
         }
+        .task {
+            try? await Task.sleep(nanoseconds: 3_000_000_000)   // laisse MapLibre charger les zones déjà sur disque
+            prepareActiveTrack()
+        }
+        .onChange(of: library.activeTrackID) { _ in prepareActiveTrack() }
+        .onChange(of: networkMonitor.isReachable) { _ in prepareActiveTrack() }
+        .onChange(of: networkMonitor.isWifiOrEthernet) { _ in prepareActiveTrack() }
+        .onChange(of: settings.autoPrepareEnabled) { _ in prepareActiveTrack() }
     }
 }

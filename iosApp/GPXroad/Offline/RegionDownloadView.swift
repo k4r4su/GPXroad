@@ -31,6 +31,12 @@ struct RegionDownloadView: View {
 
     var body: some View {
         List {
+            Section {
+                Toggle("Préparer la trace active automatiquement", isOn: $settings.autoPrepareEnabled)
+            } footer: {
+                Text("Télécharge la carte du couloir de la trace, les repères du Road Book, le recalage des virages et les ronds-points dès que le réseau est bon, pour rouler sans réseau.")
+            }
+
             // Carte automatique (04/10) : même réglage qu'Android (Réglages > Cartes hors ligne > Carte automatique).
             Section {
                 Toggle("Garder la carte autour de moi", isOn: $settings.autoMapEnabled)

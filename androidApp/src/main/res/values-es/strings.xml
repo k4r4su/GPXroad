@@ -509,4 +509,19 @@
     <string name="tuto_set_3">Mapa y cámara: tema, posición del punto, zoom por defecto y automático. Mapas sin conexión: un mapa «automático» se prepara solo a tu alrededor (y de tu ruta) en cuanto la red es buena.</string>
     <string name="settings_record_prompt">Proponer grabar al empezar</string>
     <string name="settings_record_prompt_hint">Desactivado: sin pregunta al empezar la ruta; el botón Grabar sigue disponible.</string>
+    <string name="track_ready">Lista sin conexión</string>
+    <string name="track_incomplete">Incompleta</string>
+    <string name="track_not_prepared">Sin preparar</string>
+    <string name="track_preparing">Preparando…</string>
+    <string name="prep_title">Preparación sin conexión</string>
+    <string name="prep_all_local">Todo está en local: mapa del corredor, referencias, ajuste de giros y rotondas.</string>
+    <string name="prep_missing">Falta: %1$s</string>
+    <string name="prep_part_map">mapa del corredor</string>
+    <string name="prep_part_landmarks">referencias</string>
+    <string name="prep_part_route">ajuste de giros</string>
+    <string name="prep_part_roundabouts">rotondas</string>
+    <string name="prep_now">Preparar ahora</string>
+    <string name="settings_auto_prepare">Preparar la ruta activa automáticamente</string>
+    <string name="settings_auto_prepare_hint">Descarga el mapa del corredor de la ruta, las referencias del Road Book, el ajuste de giros y las rotondas en cuanto la red es buena, para rodar sin red.</string>
+    <string name="tuto_lib_6">En la ruta activa, una etiqueta indica si todo está en local («Lista sin conexión») o si falta algo; la app descarga sola el mapa del corredor, las referencias, el ajuste de giros y las rotondas en cuanto la red es buena.</string>
 </resources>

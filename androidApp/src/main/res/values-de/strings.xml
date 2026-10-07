@@ -509,4 +509,19 @@
     <string name="tuto_set_3">Karte und Kamera: Thema, Punktposition, Standard- und automatischer Zoom. Offline-Karten: Eine „automatische“ Karte bereitet sich selbst um dich (und deinen Track) vor, sobald das Netz gut ist.</string>
     <string name="settings_record_prompt">Beim Start Aufzeichnung anbieten</string>
     <string name="settings_record_prompt_hint">Aus: keine Frage mehr beim Start des Tracks; die Aufnahme-Taste bleibt verfügbar.</string>
+    <string name="track_ready">Offline bereit</string>
+    <string name="track_incomplete">Unvollständig</string>
+    <string name="track_not_prepared">Nicht vorbereitet</string>
+    <string name="track_preparing">Vorbereitung…</string>
+    <string name="prep_title">Offline-Vorbereitung</string>
+    <string name="prep_all_local">Alles ist lokal: Korridorkarte, Landmarken, Abbiege-Abgleich und Kreisverkehre.</string>
+    <string name="prep_missing">Fehlt: %1$s</string>
+    <string name="prep_part_map">Korridorkarte</string>
+    <string name="prep_part_landmarks">Landmarken</string>
+    <string name="prep_part_route">Abbiege-Abgleich</string>
+    <string name="prep_part_roundabouts">Kreisverkehre</string>
+    <string name="prep_now">Jetzt vorbereiten</string>
+    <string name="settings_auto_prepare">Aktiven Track automatisch vorbereiten</string>
+    <string name="settings_auto_prepare_hint">Lädt die Korridorkarte des Tracks, die Road-Book-Landmarken, den Abbiege-Abgleich und die Kreisverkehre herunter, sobald das Netz gut ist – damit du ohne Netz fahren kannst.</string>
+    <string name="tuto_lib_6">Auf dem aktiven Track zeigt ein Abzeichen, ob alles lokal vorliegt („Offline bereit“) oder etwas fehlt; die App lädt Korridorkarte, Landmarken, Abbiege-Abgleich und Kreisverkehre selbst herunter, sobald das Netz gut ist.</string>
 </resources>

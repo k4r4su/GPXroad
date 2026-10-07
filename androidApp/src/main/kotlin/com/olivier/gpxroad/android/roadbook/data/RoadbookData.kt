@@ -133,6 +133,11 @@ class RoadbookData(
 
     // MARK: Valhalla
 
+    /** Permet un nouvel essai pour le même parcours (préparation de la trace) : sans cela, un échec n'est jamais retenté. */
+    fun forgetMapMatchAttempt() {
+        mapMatchKey = null
+    }
+
     /** À chaque affichage du Road Book (trace, sens ou serveur changé) : map matching si nécessaire. */
     fun ensureMapMatch(track: LoadedTrack) {
         val configuration = servers.valhalla

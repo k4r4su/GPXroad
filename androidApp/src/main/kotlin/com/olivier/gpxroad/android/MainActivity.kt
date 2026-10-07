@@ -47,7 +47,10 @@ import com.olivier.gpxroad.android.nav.NavPlaces
 import com.olivier.gpxroad.android.nav.NavSession
 import com.olivier.gpxroad.android.net.NominatimClient
 import com.olivier.gpxroad.android.sync.SharedBlockageSync
+import androidx.compose.runtime.LaunchedEffect
+import kotlinx.coroutines.delay
 import com.olivier.gpxroad.android.offline.OfflineMaps
+import com.olivier.gpxroad.android.offline.TrackPreparer
 import com.olivier.gpxroad.shared.LatLon
 import androidx.compose.material.icons.automirrored.rounded.FormatListBulleted
 import androidx.compose.material.icons.rounded.CollectionsBookmark
@@ -87,7 +90,10 @@ class MainActivity : ComponentActivity() {
         val overpass = OverpassClient(applicationContext, servers)
         val routing = RoutingClient()
         val nav = NavSession(applicationContext, routing, overpass)
-        val services = AppServices(library, settings, location, servers, overpass, routing, RoadbookData(applicationContext, servers, overpass, routing), RejoinController(routing), RejoinController(routing), RideSession(routing), nav, NavPlaces(applicationContext), NominatimClient(), SharedBlockageSync(applicationContext), OfflineMaps(applicationContext), RideCameraState(settings), RideRecorder.get(applicationContext))
+        val roadbook = RoadbookData(applicationContext, servers, overpass, routing)
+        val offline = OfflineMaps(applicationContext)
+        val preparer = TrackPreparer(applicationContext, settings, servers, roadbook, offline)
+        val services = AppServices(library, settings, location, servers, overpass, routing, roadbook, RejoinController(routing), RejoinController(routing), RideSession(routing), nav, NavPlaces(applicationContext), NominatimClient(), SharedBlockageSync(applicationContext), offline, RideCameraState(settings), RideRecorder.get(applicationContext), preparer)
         setContent {
             GPXroadTheme {
                 var showOnboarding by remember { mutableStateOf(!settings.hasSeenOnboarding && library.tracks.isEmpty() && incomingGpx == null) }
@@ -143,6 +149,8 @@ private class AppServices(
     val rideCamera: RideCameraState,
     /** Enregistrement de la sortie : unique pour tout le processus, indépendant de l'activité. */
     val recorder: RideRecorder,
+    /** Préparation hors ligne de la trace active (carte du couloir, repères, recalage, ronds-points). */
+    val preparer: TrackPreparer,
 )
 
 @Composable
@@ -156,6 +164,14 @@ private fun GPXroadApp(services: AppServices, incomingGpx: Uri?, onLanguageChang
     val settings = services.settings
     var tab by rememberSaveable { mutableStateOf(if (library.activeTrackId == null) AppTab.LIBRARY else AppTab.RIDE) }
     if (incomingGpx != null) tab = AppTab.LIBRARY
+    // Préparation de la trace active : dès que le réseau est bon (réessayée chaque minute, le réseau n'étant pas observé).
+    LaunchedEffect(library.activeTrackId, library.activeTrack?.traversalKey, settings.autoPrepareEnabled) {
+        delay(5_000)   // laisse MapLibre relire les zones déjà téléchargées
+        while (true) {
+            library.activeTrack?.let { services.preparer.prepare(it) }
+            delay(60_000)
+        }
+    }
     val items = remember {
         listOf(
             Triple(AppTab.RIDE, R.string.tab_ride, Icons.Rounded.Navigation),
@@ -197,7 +213,7 @@ private fun GPXroadApp(services: AppServices, incomingGpx: Uri?, onLanguageChang
                     services.rideCamera.focusOn(point)
                     tab = AppTab.RIDE
                 }
-                AppTab.LIBRARY -> LibraryScreen(library, settings, services.recorder, services.offline, incomingGpx, onImportHandled)
+                AppTab.LIBRARY -> LibraryScreen(library, settings, services.recorder, services.offline, services.preparer, incomingGpx, onImportHandled)
                 AppTab.SETTINGS -> SettingsScreen(settings, services.servers, services.overpass, services.routing, services.blockageSync, services.offline, services.location.location?.let { LatLon(it.latitude, it.longitude) }, onOpenTutorial = { tutorial = true }, onLanguageChanged = onLanguageChanged)
             }
         }

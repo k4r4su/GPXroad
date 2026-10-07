@@ -102,7 +102,7 @@ final class RoadbookLandmarkLoader: ObservableObject {
         isOnline: @escaping () -> Bool = { true },
         now: @escaping () -> Date = Date.init
     ) {
-        self.cache = cache ?? RoadbookLandmarkDataCache()
+        self.cache = cache ?? RoadbookLandmarkDataCache.shared
         self.fetchChunk = fetchChunk
         self.isOnline = isOnline
         self.now = now
@@ -120,6 +120,10 @@ final class RoadbookLandmarkLoader: ObservableObject {
             partial = nil
             data = cache.data(for: trackID)
             phase = .idle
+        }
+        if downloadTask == nil, let cached = cache.data(for: trackID),
+           cached.fetchedCategories.count > (data?.fetchedCategories.count ?? -1) {
+            data = cached   // téléchargé entre-temps par la préparation de la trace
         }
         if traversalKey != self.traversalKey {
             // Ids des repères dérivés de la position le long de CE parcours : jamais réutilisés.

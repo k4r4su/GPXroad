@@ -50,8 +50,8 @@ android {
         applicationId = "com.olivier.gpxroad"
         minSdk = 26
         targetSdk = 36
-        versionCode = 37
-        versionName = "0.0.37"
+        versionCode = 38
+        versionName = "0.0.38"
         // Tablette et émulateur de test : arm64 seulement (MapLibre embarque sinon 4 bibliothèques natives).
         ndk { abiFilters += "arm64-v8a" }
     }

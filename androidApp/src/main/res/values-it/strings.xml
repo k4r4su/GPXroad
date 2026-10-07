@@ -509,4 +509,19 @@
     <string name="tuto_set_3">Mappa e fotocamera: tema, posizione del punto, zoom predefinito e automatico. Mappe offline: una mappa «automatica» si prepara da sola intorno a te (e alla traccia) appena la rete è buona.</string>
     <string name="settings_record_prompt">Proponi di registrare alla partenza</string>
     <string name="settings_record_prompt_hint">Disattivato: nessuna domanda all\'inizio della traccia; il pulsante Registra resta disponibile.</string>
+    <string name="track_ready">Pronta offline</string>
+    <string name="track_incomplete">Incompleta</string>
+    <string name="track_not_prepared">Non preparata</string>
+    <string name="track_preparing">Preparazione…</string>
+    <string name="prep_title">Preparazione offline</string>
+    <string name="prep_all_local">Tutto è in locale: mappa del corridoio, punti di riferimento, riconoscimento delle svolte e rotonde.</string>
+    <string name="prep_missing">Manca: %1$s</string>
+    <string name="prep_part_map">mappa del corridoio</string>
+    <string name="prep_part_landmarks">punti di riferimento</string>
+    <string name="prep_part_route">riconoscimento delle svolte</string>
+    <string name="prep_part_roundabouts">rotonde</string>
+    <string name="prep_now">Prepara ora</string>
+    <string name="settings_auto_prepare">Prepara automaticamente la traccia attiva</string>
+    <string name="settings_auto_prepare_hint">Scarica la mappa del corridoio della traccia, i punti di riferimento del Road Book, il riconoscimento delle svolte e le rotonde appena la rete è buona, per guidare senza rete.</string>
+    <string name="tuto_lib_6">Sulla traccia attiva, un\'etichetta indica se tutto è in locale («Pronta offline») o se manca qualcosa; l\'app scarica da sola la mappa del corridoio, i punti di riferimento, il riconoscimento delle svolte e le rotonde appena la rete è buona.</string>
 </resources>

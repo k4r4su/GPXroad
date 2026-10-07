@@ -40,6 +40,7 @@ final class RideSettingsStore: ObservableObject {
         static let autoZoomMaxMeters = "settings.autoZoomMaxMeters"
         static let slopeWarningsEnabled = "settings.slopeWarningsEnabled"
         static let recordingPromptEnabled = "settings.recordingPromptEnabled"
+        static let autoPrepareEnabled = "settings.autoPrepareEnabled"
         static let autoMapEnabled = "settings.autoMapEnabled"
         static let autoMapRadiusKm = "settings.autoMapRadiusKm"
         static let autoMapCellular = "settings.autoMapCellular"
@@ -253,6 +254,10 @@ final class RideSettingsStore: ObservableObject {
     @Published var recordingPromptEnabled: Bool {
         didSet { defaults.set(recordingPromptEnabled, forKey: Keys.recordingPromptEnabled) }
     }
+    /// Préparation automatique de la trace active (carte du couloir, repères, recalage, ronds-points) — activée par défaut.
+    @Published var autoPrepareEnabled: Bool {
+        didSet { defaults.set(autoPrepareEnabled, forKey: Keys.autoPrepareEnabled) }
+    }
     @Published var autoMapEnabled: Bool {
         didSet { defaults.set(autoMapEnabled, forKey: Keys.autoMapEnabled) }
     }
@@ -425,6 +430,7 @@ final class RideSettingsStore: ObservableObject {
             ?? RideConstants.autoZoomMaxMetersDefault
 
         recordingPromptEnabled = defaults.object(forKey: Keys.recordingPromptEnabled) == nil ? true : defaults.bool(forKey: Keys.recordingPromptEnabled)
+        autoPrepareEnabled = defaults.object(forKey: Keys.autoPrepareEnabled) == nil ? true : defaults.bool(forKey: Keys.autoPrepareEnabled)
         autoMapEnabled = defaults.object(forKey: Keys.autoMapEnabled) == nil ? true : defaults.bool(forKey: Keys.autoMapEnabled)
         let storedAutoMapRadius = defaults.integer(forKey: Keys.autoMapRadiusKm)
         autoMapRadiusKm = AutoMapConstants.radiusOptionsKm.contains(storedAutoMapRadius) ? storedAutoMapRadius : AutoMapConstants.defaultRadiusKm

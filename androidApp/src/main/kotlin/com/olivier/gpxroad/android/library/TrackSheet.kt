@@ -54,6 +54,8 @@ import com.olivier.gpxroad.android.data.TrackEntry
 import com.olivier.gpxroad.android.data.TrackLibrary
 import com.olivier.gpxroad.android.offline.OfflineMaps
 import com.olivier.gpxroad.android.offline.TrackOfflineRow
+import com.olivier.gpxroad.android.offline.TrackPreparer
+import com.olivier.gpxroad.android.offline.TrackReadinessRow
 import com.olivier.gpxroad.android.roadbook.RoadbookTexts
 import com.olivier.gpxroad.shared.LatLon
 import com.olivier.gpxroad.shared.track.TrackMetrics
@@ -76,6 +78,7 @@ fun TrackSheet(
     library: TrackLibrary,
     settings: AppSettings,
     offline: OfflineMaps,
+    preparer: TrackPreparer,
     isActive: Boolean,
     onDismiss: () -> Unit,
     onActivate: () -> Unit,
@@ -125,6 +128,7 @@ fun TrackSheet(
             if (loaded != null) {
                 val latLons = remember(entry.id, points.size) { points.map { LatLon(it.latitude, it.longitude) } }
                 TrackOfflineRow(entry.id, entry.name, latLons, offline)
+                if (isActive) library.activeTrack?.let { TrackReadinessRow(preparer, it) }
             }
             Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(10.dp)) {
                 if (!isActive) {

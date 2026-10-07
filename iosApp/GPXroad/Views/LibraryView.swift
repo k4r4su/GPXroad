@@ -476,6 +476,7 @@ private struct TrackRow: View {
                         .font(.caption)
                         .foregroundStyle(.secondary)
                 }
+                TrackReadinessBadge(track: track, isActive: isActive)
                 HStack(spacing: 12) {
                     Label(String(format: "%.1f km", track.totalDistanceKm), systemImage: "ruler")
                     Label("\(track.pointCount) pts", systemImage: "point.topleft.down.curvedto.point.bottomright.up")

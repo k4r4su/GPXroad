@@ -509,4 +509,19 @@
     <string name="tuto_set_3">Map and camera: theme, dot position, default and automatic zoom. Offline maps: an “automatic” map prepares itself around you (and your track) as soon as the network is good.</string>
     <string name="settings_record_prompt">Offer to record at start</string>
     <string name="settings_record_prompt_hint">Off: no more question when a track starts; the Record button stays available.</string>
+    <string name="track_ready">Ready offline</string>
+    <string name="track_incomplete">Incomplete</string>
+    <string name="track_not_prepared">Not prepared</string>
+    <string name="track_preparing">Preparing…</string>
+    <string name="prep_title">Offline preparation</string>
+    <string name="prep_all_local">Everything is local: corridor map, landmarks, turn matching and roundabouts.</string>
+    <string name="prep_missing">Missing: %1$s</string>
+    <string name="prep_part_map">corridor map</string>
+    <string name="prep_part_landmarks">landmarks</string>
+    <string name="prep_part_route">turn matching</string>
+    <string name="prep_part_roundabouts">roundabouts</string>
+    <string name="prep_now">Prepare now</string>
+    <string name="settings_auto_prepare">Prepare the active track automatically</string>
+    <string name="settings_auto_prepare_hint">Downloads the track\'s corridor map, the Road Book landmarks, turn matching and roundabouts as soon as the network is good, so you can ride without network.</string>
+    <string name="tuto_lib_6">On the active track, a badge says whether everything is stored locally (“Ready offline”) or something is missing; the app downloads the corridor map, landmarks, turn matching and roundabouts by itself as soon as the network is good.</string>
 </resources>

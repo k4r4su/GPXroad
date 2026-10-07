@@ -53,7 +53,7 @@ struct RoadBookTabView: View {
     @State private var mapMatchedManeuvers: [MapMatchedManeuver] = []
     /// Portions recalées par Valhalla (it33 bis) — `nil` : pas de map matching.
     @State private var mapMatchCoverage: [ClosedRange<Double>]?
-    @State private var mapMatchCache = RoadbookMapMatchCache()
+    @State private var mapMatchCache = RoadbookMapMatchCache.shared
     @State private var mapMatchingProvider: MapMatchingProvider = ValhallaMapMatchingProvider()
     @State private var mapMatchingTask: Task<Void, Never>?
     @State private var mapMatchedTraversalKey: String?

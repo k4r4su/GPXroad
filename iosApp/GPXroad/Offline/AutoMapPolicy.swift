@@ -1,5 +1,6 @@
 import Foundation
 import CoreTelephony
+import GPXroadShared
 
 /// Carte automatique autour de soi (retour terrain du 04/10) — réglages communs, mêmes valeurs
 /// qu'Android (`shared/offline/AutoPrefetch`, relues ici plutôt que redéfinies).
@@ -18,6 +19,8 @@ enum AutoMapConstants {
     /// Un téléchargement qui dure plus de 20 min est abandonné (réseau perdu en route).
     static let stuckAfterSeconds: TimeInterval = 20 * 60
     static let minZoom = 5.0
+    /// Couloir d'une trace : niveaux 10 à 14, comme le téléchargement manuel et Android (constante partagée).
+    static let corridorMinZoom = Double(GPXroadShared.OfflineConstants.shared.CORRIDOR_MIN_ZOOM)
     static let maxZoom = 14.0
 }
 

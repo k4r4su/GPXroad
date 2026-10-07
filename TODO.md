@@ -64,6 +64,14 @@ temps, la version iOS est vraiment correcte mais l'Android c'est une catastrophe
       Corrigé : saisie via le terminal, variables exportées, build annulé si la valeur est vide,
       vérification de la valeur dans l'APK avant de le copier (longueur seulement, jamais le contenu).
       Testé avec des valeurs fictives (bash et zsh).
+- [x] Préparation complète de la trace active (06/10, idée 1/3 des évolutions proposées) : dès que le réseau est bon, carte du
+      couloir (±1 km, niveaux 10-14), repères du Road Book, recalage Valhalla et ronds-points sont téléchargés pour la trace active ;
+      pastille « Prête hors ligne » / « Incomplète » / « Non préparée » dans Biblio, détail et « Préparer maintenant » dans la fiche,
+      réglage « Préparer la trace active automatiquement » (activé). Règles communes `shared/offline/TrackPreparation` (testées),
+      `TrackPreparer` iOS et Android ; caches Road Book iOS devenus des singletons (plusieurs instances s'écrasaient) ; état des
+      zones d'avant redémarrage demandé à MapLibre iOS (sinon « zone absente »). Vérifié : iOS simulateur (zone du couloir créée,
+      repères en cache) ; Android compile, tests unitaires verts, NON vérifié à l'exécution (émulateur planté, tablette déconnectée).
+      Non vérifié sur iOS : réussite des ronds-points (Overpass public indisponible depuis ce Mac).
 - [x] Réglage « Proposer d'enregistrer au départ » (06/10, retour terrain : le popup revenait à chaque lancement) —
       interrupteur activé par défaut, iOS (Réglages > Enregistrement de la sortie) ET Android (même page). Version 0.0.37.
 - [x] Carte automatique autour de soi (04/10, retour terrain : zone sans réseau, carte illisible parce que

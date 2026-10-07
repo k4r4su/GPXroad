@@ -82,6 +82,15 @@ class AppSettings(context: Context) {
         preferences.edit().putBoolean("recordingPromptEnabled", value).apply()
     }
 
+    /** Préparation automatique de la trace active (carte du couloir, repères, recalage, ronds-points). */
+    var autoPrepareEnabled by mutableStateOf(preferences.getBoolean("autoPrepareEnabled", true))
+        private set
+
+    fun updateAutoPrepare(value: Boolean) {
+        autoPrepareEnabled = value
+        preferences.edit().putBoolean("autoPrepareEnabled", value).apply()
+    }
+
     fun updateRecordingDensity(value: RecordingDensity) {
         recordingDensity = value
         preferences.edit().putString("recordingDensity", value.name).apply()

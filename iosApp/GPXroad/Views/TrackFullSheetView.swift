@@ -68,6 +68,8 @@ struct TrackFullSheetView: View {
                         .multilineTextAlignment(.center)
                 }
 
+                if isActive { TrackReadinessSection(track: track) }
+
                 Spacer()
 
                 VStack(spacing: 12) {

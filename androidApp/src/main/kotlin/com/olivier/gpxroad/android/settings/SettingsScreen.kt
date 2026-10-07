@@ -327,6 +327,9 @@ private fun CommunitySettings(sync: SharedBlockageSync) {
 /** Carte automatique autour de soi : activée par défaut, rayon 10/15/20 km, avec ou sans données mobiles. */
 @Composable
 private fun AutoMapGroup(settings: AppSettings) {
+    SettingsGroup(footer = stringResource(R.string.settings_auto_prepare_hint)) {
+        ToggleRow(stringResource(R.string.settings_auto_prepare), settings.autoPrepareEnabled, onChange = settings::updateAutoPrepare)
+    }
     SettingsGroup(stringResource(R.string.offline_auto_title), footer = stringResource(R.string.offline_auto_footer)) {
         ToggleRow(stringResource(R.string.offline_auto_enable), settings.autoMapEnabled) { settings.updateAutoMap(it, settings.autoMapRadiusKm, settings.autoMapCellular) }
         if (settings.autoMapEnabled) {

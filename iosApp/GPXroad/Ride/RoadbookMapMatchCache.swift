@@ -49,6 +49,9 @@ struct CachedMapMatch: Codable {
 
 @MainActor
 final class RoadbookMapMatchCache {
+    /// Instance unique de l'app (Ride, Road Book, préparation de la trace) — voir `RoadbookLandmarkDataCache.shared`.
+    static let shared = RoadbookMapMatchCache()
+
     private var entries: [String: (maneuvers: [CachedMapMatchedManeuver], coveredRanges: [[Double]])] = [:]
 
     private let fileManager = FileManager.default

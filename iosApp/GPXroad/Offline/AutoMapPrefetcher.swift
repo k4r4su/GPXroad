@@ -49,6 +49,7 @@ final class AutoMapPrefetcher: ObservableObject {
 
     func update(location: CLLocation, track: GPXTrack?, settings: RideSettingsStore, network: NetworkMonitor) {
         guard let packs = MLNOfflineStorage.shared.packs else { return }   // pas encore chargés
+        OfflinePacks.requestStatesIfNeeded(packs)   // zones d'avant le redémarrage : état inconnu tant qu'on ne le demande pas
         refreshCoverage(position: location.coordinate, packs: packs)
         guard settings.autoMapEnabled else { return }
         dropStuckPackIfNeeded()
@@ -125,7 +126,12 @@ final class AutoMapPrefetcher: ObservableObject {
     }
 
     private func progressChanged(_ pack: MLNOfflinePack?) {
-        guard let pack, pack === currentPack else { return }
+        guard let pack else { return }
+        guard pack === currentPack else {
+            // État d'une ancienne zone enfin connu : la couverture de la position peut changer.
+            if let position = lastPosition { refreshCoverage(position: position, packs: MLNOfflineStorage.shared.packs ?? []) }
+            return
+        }
         guard pack.state == .complete else { return }
         currentPack = nil
         currentPackStart = nil

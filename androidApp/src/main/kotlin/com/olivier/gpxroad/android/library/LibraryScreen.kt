@@ -95,6 +95,12 @@ import com.olivier.gpxroad.android.data.TrackEntry
 import com.olivier.gpxroad.android.data.TrackFolder
 import com.olivier.gpxroad.android.data.TrackLibrary
 import com.olivier.gpxroad.android.offline.OfflineMaps
+import com.olivier.gpxroad.android.offline.TrackPreparer
+import com.olivier.gpxroad.android.offline.readinessLabel
+import com.olivier.gpxroad.shared.offline.ReadinessLevel
+import androidx.compose.material.icons.rounded.CheckCircle
+import androidx.compose.material.icons.rounded.CloudDownload
+import androidx.compose.material.icons.rounded.Warning
 import com.olivier.gpxroad.android.recording.RideRecorder
 import com.olivier.gpxroad.android.recording.UnsavedRide
 import com.olivier.gpxroad.android.recording.shareGpx
@@ -114,7 +120,7 @@ private val UnsavedAmber = Color(0xFFFF9500)
  * dossier, suppression). [pendingImport] : fichier GPX ouvert depuis une autre app.
  */
 @Composable
-fun LibraryScreen(library: TrackLibrary, settings: AppSettings, recorder: RideRecorder, offline: OfflineMaps, pendingImport: Uri?, onImportHandled: () -> Unit) {
+fun LibraryScreen(library: TrackLibrary, settings: AppSettings, recorder: RideRecorder, offline: OfflineMaps, preparer: TrackPreparer, pendingImport: Uri?, onImportHandled: () -> Unit) {
     val context = LocalContext.current
     val snackbar = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
@@ -235,6 +241,7 @@ fun LibraryScreen(library: TrackLibrary, settings: AppSettings, recorder: RideRe
                                 library = library,
                                 isActive = entry.id == library.activeTrackId,
                                 isOffline = offline.zoneForTrack(entry.id)?.isComplete == true,
+                                readiness = if (entry.id == library.activeTrackId) library.activeTrack?.let { readinessLabel(preparer, it) } else null,
                                 settings = settings,
                                 onActivate = { activate(entry) },
                                 onOpen = { opened = entry.id },
@@ -261,6 +268,7 @@ fun LibraryScreen(library: TrackLibrary, settings: AppSettings, recorder: RideRe
                 library = library,
                 settings = settings,
                 offline = offline,
+                preparer = preparer,
                 isActive = current.id == library.activeTrackId,
                 onDismiss = { opened = null },
                 onActivate = { activate(current) },
@@ -382,6 +390,7 @@ private fun TrackCard(
     library: TrackLibrary,
     isActive: Boolean,
     isOffline: Boolean,
+    readiness: Pair<String, ReadinessLevel?>?,
     settings: AppSettings,
     onActivate: () -> Unit,
     onOpen: () -> Unit,
@@ -405,11 +414,18 @@ private fun TrackCard(
                 Text(entry.name, style = MaterialTheme.typography.titleMedium, maxLines = 2, overflow = TextOverflow.Ellipsis)
                 val date = DateFormat.getDateInstance(DateFormat.MEDIUM).format(Date(entry.importDateMillis))
                 Text(RoadbookTexts.distance(entry.lengthMeters, settings.distanceUnit) + " · " + date, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                if (isActive || entry.reversed || isOffline) {
+                if (isActive || entry.reversed || isOffline || readiness != null) {
                     Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                         if (isActive) Pill(stringResource(R.string.track_active_short), MaterialTheme.colorScheme.primary, Icons.Rounded.Navigation)
                         if (entry.reversed) Pill(stringResource(R.string.library_reversed), MaterialTheme.colorScheme.secondary, Icons.Rounded.SwapVert)
                         if (isOffline) Pill(stringResource(R.string.track_offline_short), Color(0xFF007AFF), Icons.Rounded.DownloadDone)
+                        readiness?.let { (label, level) ->
+                            when (level) {
+                                ReadinessLevel.READY -> Pill(label, Color(0xFF34A853), Icons.Rounded.CheckCircle)
+                                ReadinessLevel.PARTIAL -> Pill(label, Color(0xFFF29900), Icons.Rounded.Warning)
+                                else -> Pill(label, MaterialTheme.colorScheme.onSurfaceVariant, Icons.Rounded.CloudDownload)
+                            }
+                        }
                     }
                 }
             }

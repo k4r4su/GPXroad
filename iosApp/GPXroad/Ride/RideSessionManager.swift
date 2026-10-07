@@ -111,7 +111,7 @@ final class RideSessionManager: NSObject, ObservableObject, CLLocationManagerDel
     /// dépendre d'un vrai réseau Valhalla en test.
     var mapMatchingProvider: MapMatchingProvider = ValhallaMapMatchingProvider()
     /// idem, `directoryOverride` dédié en test — jamais le vrai `Documents/RoadbookMapMatchCache`.
-    var mapMatchCache = RoadbookMapMatchCache()
+    var mapMatchCache = RoadbookMapMatchCache.shared
     /// Ronds-points analysés sur OSM (it34) : RELUS depuis le cache que remplit l'onglet Road Book —
     /// le Ride ne télécharge rien lui-même. Recalcul des événements dès qu'une donnée arrive.
     var roundaboutStore: RoadbookRoundaboutStore = .shared {

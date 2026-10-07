@@ -14,6 +14,10 @@ final class RoadbookLandmarkDataCache {
         let data: RoadbookLandmarkData
     }
 
+    /// Instance unique de l'app (Road Book + préparation de la trace) : plusieurs instances auraient chacune
+    /// leur copie en mémoire et s'écraseraient à l'écriture du fichier.
+    static let shared = RoadbookLandmarkDataCache()
+
     private var entries: [UUID: RoadbookLandmarkData] = [:]
     private let fileManager = FileManager.default
     private let directoryOverride: URL?
