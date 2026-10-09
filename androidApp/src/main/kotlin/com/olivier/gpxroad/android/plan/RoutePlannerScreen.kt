@@ -34,6 +34,8 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.rememberModalBottomSheetState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -243,7 +245,8 @@ fun RoutePlannerScreen(library: TrackLibrary, servers: ServerSettings, routing: 
 
     if (showFlagged) {
         var pending by remember { mutableStateOf<FlaggedSegment?>(null) }
-        ModalBottomSheet(onDismissRequest = { showFlagged = false }) {
+        // Ouverte en grand d'emblée : en paysage (tablette), la moitié de l'écran ne montre pas toute la liste.
+        ModalBottomSheet(onDismissRequest = { showFlagged = false }, sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)) {
             FlaggedSegmentsSheet(model.flagged) { pending = it }
         }
         pending?.let { segment ->
@@ -264,7 +267,8 @@ fun RoutePlannerScreen(library: TrackLibrary, servers: ServerSettings, routing: 
         }
     }
     if (showOptions) {
-        ModalBottomSheet(onDismissRequest = { showOptions = false; model.optionsChanged() }) {
+        // Ouverte en grand d'emblée et défilable : en paysage (tablette), la moitié de l'écran coupait « ferries » et « pistes ».
+        ModalBottomSheet(onDismissRequest = { showOptions = false; model.optionsChanged() }, sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)) {
             PlannerOptionsSheet(model.options, model::updateOptions)
         }
     }
@@ -365,7 +369,7 @@ private fun PlannerPanel(model: PlannerModel, onFlagged: () -> Unit, onOptions: 
 /** Fenêtre d'options : le but est de s'amuser, donc autoroutes et péages évités par défaut. */
 @Composable
 private fun PlannerOptionsSheet(options: PlanOptions, onChange: (PlanOptions) -> Unit) {
-    Column(Modifier.fillMaxWidth().padding(horizontal = 16.dp).padding(bottom = 24.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+    Column(Modifier.fillMaxWidth().verticalScroll(rememberScrollState()).padding(horizontal = 16.dp).padding(bottom = 24.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
         Text(stringResource(R.string.plan_options_title), style = MaterialTheme.typography.titleLarge)
         SettingsGroup {
             GroupContent {
@@ -415,7 +419,7 @@ private fun AccessLine(model: PlannerModel, onFlagged: () -> Unit) {
 /** Liste des portions à vérifier : on peut en signaler une comme interdite (les prochains itinéraires l'évitent). */
 @Composable
 private fun FlaggedSegmentsSheet(segments: List<FlaggedSegment>, onReport: (FlaggedSegment) -> Unit) {
-    Column(Modifier.fillMaxWidth().padding(horizontal = 16.dp).padding(bottom = 24.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+    Column(Modifier.fillMaxWidth().verticalScroll(rememberScrollState()).padding(horizontal = 16.dp).padding(bottom = 24.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
         Text(stringResource(R.string.plan_flagged_title), style = MaterialTheme.typography.titleLarge)
         segments.forEach { segment ->
             Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(4.dp)) {

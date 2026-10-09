@@ -74,6 +74,13 @@ temps, la version iOS est vraiment correcte mais l'Android c'est une catastrophe
       autorisée). Limites assumées : pas de déplacement d'un point par glisser (supprimer puis reposer), pas de recherche d'adresse,
       pas de score de sinuosité (Valhalla n'en a pas), « éviter » ≠ « interdire », nécessite Valhalla configuré (repli sur une
       instance publique à décider).
+- [x] Test sur la tablette réelle (09/10, Wi-Fi) : Bibliothèque (pastilles « Active », « Hors ligne », « Prête hors ligne » sur vosges-tour),
+      Road Book Assisté GPS hors trace (« Hors trace », virages du chemin de retour, « Retour sur la trace 7,5 km » : la reprise Android marche
+      avec le vrai GPS), écran « Créer un itinéraire » (points colorés, chips, calcul Valhalla public : 33,8 km / 54 min, options, enregistrement
+      grisé sans itinéraire). Défaut trouvé et corrigé : fenêtres d'options et de portions à vérifier coupées en paysage (ouvertes en grand
+      d'emblée + défilables). Contrôle d'accès : `trace_attributes` passe sur Android, Overpass public refuse (504/406, serveur surchargé). La
+      tablette n'a AUCUN accès Valhalla/Overpass intégré tant que `scripts/build-tester-apk.sh` n'est pas relancé (builds de développement
+      0.0.38 puis 0.0.43/0.0.44 installés par erreur de communication le 06/10 : données conservées, serveurs intégrés absents).
 - [x] Fix pastille « Incomplète » à tort (07/10, retour terrain iPhone) : les lignes de la Bibliothèque évaluaient le recalage Valhalla
       dans le sens ORIGINAL de la trace alors qu'il est mémorisé par sens (clé = id + deux premiers points) : une trace au sens inversé
       devenait « Incomplète » dès qu'elle cessait d'être active. Rien n'était re-téléchargé (vérifié sur l'iPhone : 5 couloirs et 3 zones
