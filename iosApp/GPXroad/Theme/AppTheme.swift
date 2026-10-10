@@ -1,9 +1,9 @@
 import SwiftUI
 
-/// Les trois designs au choix (Réglages > Apparence) : Forêt (nature, fraîcheur), Clair (sobre, lumineux), Sombre (nuit).
-/// Maquettes validées le 10/10 ; mêmes noms et mêmes couleurs sur Android.
+/// Les trois designs au choix (Réglages > Apparence) : Clair (défaut, gris et bleu façon iOS), Sombre (nuit), Forêt (nature).
+/// Maquettes validées le 10/10, palettes ajustées le 10/10 (Clair en nuances de gris) ; mêmes noms et couleurs sur Android.
 enum AppDesign: String, CaseIterable, Identifiable {
-    case foret, clair, sombre
+    case clair, sombre, foret
 
     var id: String { rawValue }
 
@@ -84,13 +84,13 @@ struct ThemePalette {
     )
 
     static let clair = ThemePalette(
-        ground: Color(hex: 0xFAFAF7), surface: Color(hex: 0xFFFFFF), tonal: Color(hex: 0xF1EFE8), onTonal: Color(hex: 0x15171A),
-        ink: Color(hex: 0x15171A), inkSecondary: Color(hex: 0x6A6F73), hairline: Color(hex: 0xE7E8E3),
-        action: Color(hex: 0x15171A), onAction: .white, trace: Color(hex: 0xF26B1D), position: Color(hex: 0x1E7BE0),
-        danger: Color(hex: 0xC8352D), onDanger: .white, warning: Color(hex: 0xE6A21A),
-        readyBackground: Color(hex: 0xE3F3E8), readyText: Color(hex: 0x17603A),
+        ground: Color(hex: 0xF2F2F7), surface: Color(hex: 0xFFFFFF), tonal: Color(hex: 0xE3ECFA), onTonal: Color(hex: 0x0A66D6),
+        ink: Color(hex: 0x1C1C1E), inkSecondary: Color(hex: 0x636366), hairline: Color(hex: 0xD1D1D6),
+        action: Color(hex: 0x0A66D6), onAction: .white, trace: Color(hex: 0xF26B1D), position: Color(hex: 0x0A84FF),
+        danger: Color(hex: 0xD93A32), onDanger: .white, warning: Color(hex: 0xE6A21A),
+        readyBackground: Color(hex: 0xE1F3E6), readyText: Color(hex: 0x1C6B3A),
         incompleteBackground: Color(hex: 0xFDF0D5), incompleteText: Color(hex: 0x7A5200),
-        neutralBackground: Color(hex: 0xEEF0EB), neutralText: Color(hex: 0x555A5E),
+        neutralBackground: Color(hex: 0xE5E5EA), neutralText: Color(hex: 0x48484A),
         isDark: false, rounded: false
     )
 
@@ -107,7 +107,7 @@ struct ThemePalette {
 }
 
 private struct ThemeKey: EnvironmentKey {
-    static let defaultValue = ThemePalette.foret
+    static let defaultValue = ThemePalette.clair
 }
 
 extension EnvironmentValues {

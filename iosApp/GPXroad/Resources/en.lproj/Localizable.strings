@@ -755,3 +755,6 @@
 "Clair" = "Light";
 "Design" = "Design";
 "Forêt : nature et fraîcheur. Clair : sobre et lumineux, très net au soleil. Sombre : pour la nuit." = "Forest: nature and freshness. Light: clean and bright, very sharp in the sun. Dark: for the night.";
+"Trace et contrôles" = "Route and controls";
+"Clair : gris et bleu, façon iOS. Sombre : pour la nuit. Forêt : nature et fraîcheur." = "Light: greys and blue, iOS style. Dark: for the night. Forest: nature and freshness.";
+"%@ · %@" = "%@ · %@";

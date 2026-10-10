@@ -121,6 +121,7 @@
 		594352FD3810CCD259EA9D7F /* OffTrackChipView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D7D8B826EBE9AA82267497C5 /* OffTrackChipView.swift */; };
 		5A5802ED7A75D4F8A4F0FA6B /* MapColorFlavor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8287B02856A20C771CE81A2F /* MapColorFlavor.swift */; };
 		5B7EAB89A460A68B4866DF31 /* MapLoadStatus.swift in Sources */ = {isa = PBXBuildFile; fileRef = CED0A2E7437FD66D92563F7F /* MapLoadStatus.swift */; };
+		5C519A96B52BA4DADCE0B375 /* AppearanceSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7DCE05FFFB778F22F352AB07 /* AppearanceSettingsView.swift */; };
 		5D12DCEC1CC4F96799CCF2D4 /* RoadbookMapMatchCacheTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 050390A38869B3F0964B9765 /* RoadbookMapMatchCacheTests.swift */; };
 		5E36A601DCAB63F159D3C26D /* RideRecorder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 68FACD09E25B4435B8EE4E6D /* RideRecorder.swift */; };
 		5F9684AE9440C4A90DDC0A87 /* OfflineTileEstimator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6398E815BFAF67D5DC05B881 /* OfflineTileEstimator.swift */; };
@@ -474,6 +475,7 @@
 		7B768A5306ECE0743E21D2B3 /* RideRecorderTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RideRecorderTests.swift; sourceTree = "<group>"; };
 		7CFABDC77A158278ADD347A7 /* RoutePlannerModelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RoutePlannerModelTests.swift; sourceTree = "<group>"; };
 		7DA29AA292A75AA63149A14A /* AppLanguage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppLanguage.swift; sourceTree = "<group>"; };
+		7DCE05FFFB778F22F352AB07 /* AppearanceSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppearanceSettingsView.swift; sourceTree = "<group>"; };
 		7FA44AEDC969CCC3979F3CEE /* SharedBlockageStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SharedBlockageStore.swift; sourceTree = "<group>"; };
 		8014DC3CC756A45893238597 /* SpeedLimitService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpeedLimitService.swift; sourceTree = "<group>"; };
 		809E535849A055079BD00A81 /* UnsavedRideStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UnsavedRideStore.swift; sourceTree = "<group>"; };
@@ -1053,6 +1055,7 @@
 		F51CC95C750C566709BFFBF1 /* Settings */ = {
 			isa = PBXGroup;
 			children = (
+				7DCE05FFFB778F22F352AB07 /* AppearanceSettingsView.swift */,
 				C9F4F7AD520B08790B0AD763 /* CameraPreviewMapView.swift */,
 				13B367E8B6AE545E35904B15 /* ControlsSide.swift */,
 				C75D468F77F00F6CE9DDB046 /* DebugReplaySection.swift */,
@@ -1272,6 +1275,7 @@
 				8C64996D1BC428AF666C5DBC /* AppNavigationState.swift in Sources */,
 				639EE582B6C6EDE28AF7DADD /* AppTheme.swift in Sources */,
 				BEBC9F62EFD0B0360A0E0CC2 /* AppVersion.swift in Sources */,
+				5C519A96B52BA4DADCE0B375 /* AppearanceSettingsView.swift in Sources */,
 				B3A6B8B0B123F4BB76105EC1 /* AutoMapPolicy.swift in Sources */,
 				B60539FB834C4143FAA275E3 /* AutoMapPrefetcher.swift in Sources */,
 				B02680174DDED769D586A418 /* BatteryMonitor.swift in Sources */,
@@ -1601,7 +1605,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 0.0.45;
+				MARKETING_VERSION = 0.0.46;
 				PRODUCT_BUNDLE_IDENTIFIER = com.olivier.gpxlibre;
 				SDKROOT = iphoneos;
 				TARGETED_DEVICE_FAMILY = 1;
@@ -1654,7 +1658,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 0.0.45;
+				MARKETING_VERSION = 0.0.46;
 				PRODUCT_BUNDLE_IDENTIFIER = com.olivier.gpxlibre;
 				SDKROOT = iphoneos;
 				TARGETED_DEVICE_FAMILY = 1;

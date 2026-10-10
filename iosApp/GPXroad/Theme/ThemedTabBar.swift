@@ -3,6 +3,9 @@ import SwiftUI
 /// Barre d'onglets flottante du design (maquette du 10/10) : icônes seules, le nom n'apparaît que sur l'onglet actif,
 /// dans une pastille de la couleur d'action. Remplace la barre native (masquée) ; même zone réservée en bas de l'écran.
 struct ThemedTabBar: View {
+    /// Hauteur réservée en bas de chaque onglet : barre (68) + marge basse (6).
+    static let reservedHeight: CGFloat = 74
+
     @Binding var selection: AppTab
     @Environment(\.theme) private var theme
 

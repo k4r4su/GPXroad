@@ -19,6 +19,7 @@ struct RootView: View {
         TabView(selection: $navigationState.selectedTab) {
             RideView()
                 .toolbar(.hidden, for: .tabBar)
+                .safeAreaInset(edge: .bottom, spacing: 0) { Color.clear.frame(height: ThemedTabBar.reservedHeight) }
                 .tabItem { Label("Ride", systemImage: "location.north.line.fill") }
                 .tag(AppTab.ride)
 
@@ -27,6 +28,7 @@ struct RootView: View {
             // comme demandé.
             DestinationSearchTabView()
                 .toolbar(.hidden, for: .tabBar)
+                .safeAreaInset(edge: .bottom, spacing: 0) { Color.clear.frame(height: ThemedTabBar.reservedHeight) }
                 .tabItem { Label("Aller à", systemImage: "magnifyingglass") }
                 .tag(AppTab.search)
 
@@ -35,22 +37,25 @@ struct RootView: View {
             // RoadBook/CLAUDE.md.
             RoadBookTabView()
                 .toolbar(.hidden, for: .tabBar)
+                .safeAreaInset(edge: .bottom, spacing: 0) { Color.clear.frame(height: ThemedTabBar.reservedHeight) }
                 .tabItem { Label("Road Book", systemImage: "list.bullet.rectangle.portrait") }
                 .tag(AppTab.roadBook)
 
             LibraryView()
                 .toolbar(.hidden, for: .tabBar)
+                .safeAreaInset(edge: .bottom, spacing: 0) { Color.clear.frame(height: ThemedTabBar.reservedHeight) }
                 .tabItem { Label("Biblio", systemImage: "map") }
                 .tag(AppTab.library)
 
             SettingsView()
                 .toolbar(.hidden, for: .tabBar)
+                .safeAreaInset(edge: .bottom, spacing: 0) { Color.clear.frame(height: ThemedTabBar.reservedHeight) }
                 .tabItem { Label("Réglages", systemImage: "gearshape") }
                 .tag(AppTab.settings)
         }
-        // Barre du bas du design (icônes seules, nom sur l'onglet actif) : la barre native est masquée, celle-ci réserve la même zone
-        // (le Ride lit sa vraie marge basse, voir `rideContent`).
-        .safeAreaInset(edge: .bottom, spacing: 0) {
+        // Barre du bas du design (icônes seules, nom sur l'onglet actif) : la barre native est masquée ; chaque onglet réserve sa
+        // hauteur (ci-dessus) pour que listes, formulaires et le Ride (qui lit sa vraie marge basse) ne passent jamais dessous.
+        .overlay(alignment: .bottom) {
             ThemedTabBar(selection: $navigationState.selectedTab)
         }
         .task {

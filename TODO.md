@@ -77,6 +77,10 @@ temps, la version iOS est vraiment correcte mais l'Android c'est une catastrophe
 - [x] Design iOS « Forêt / Clair / Sombre » (10/10, maquettes validées par le propriétaire : artefact « GPXroad — design Forêt »), palier 1 :
       socle `Theme/` (palettes, `ThemedRoot` : teinte + schéma + police arrondie, styles de boutons, `StatusPill`, `themedCard`),
       barre du bas flottante (icônes seules, nom sur l'onglet actif, la barre native est masquée), choix du design dans Réglages.
+  - [x] Retour du 10/10 : défaut = « Clair » en nuances de gris façon iOS (fond #F2F2F7, bleu #0A66D6, texte #1C1C1E) ; « Forêt » devient
+        un design alternatif ; réglages d'interface regroupés dans Réglages > Apparence (design, fond de carte, orientation, unité de vitesse,
+        trace, côté des contrôles, palette Road Book) ; bug « Revoir le didacticiel caché par la barre » corrigé : la barre flottante est en
+        surimpression et CHAQUE onglet réserve sa hauteur (`ThemedTabBar.reservedHeight`). iOS 0.0.46.
   - [ ] Palier 2 : fonds des listes/formulaires, Biblio en cartes avec miniature et pastilles, commandes de carte du Ride, carte Sombre
         (le fond de carte reste clair en Sombre), Road Book, fiche « Prêt à partir ? », Réglages par profil.
   - [ ] Android : même design (Material 3 : palettes, barre du bas, boutons) — iOS d'abord, comme demandé.

@@ -256,7 +256,7 @@ final class RideSettingsStore: ObservableObject {
     @Published var recordingPromptEnabled: Bool {
         didSet { defaults.set(recordingPromptEnabled, forKey: Keys.recordingPromptEnabled) }
     }
-    /// Design de l'app (Forêt par défaut, maquettes du 10/10).
+    /// Design de l'app (Clair par défaut ; Forêt et Sombre au choix).
     @Published var appDesign: AppDesign {
         didSet { defaults.set(appDesign.rawValue, forKey: Keys.appDesign) }
     }
@@ -440,7 +440,7 @@ final class RideSettingsStore: ObservableObject {
             ?? RideConstants.autoZoomMaxMetersDefault
 
         recordingPromptEnabled = defaults.object(forKey: Keys.recordingPromptEnabled) == nil ? true : defaults.bool(forKey: Keys.recordingPromptEnabled)
-        appDesign = defaults.string(forKey: Keys.appDesign).flatMap(AppDesign.init(rawValue:)) ?? .foret
+        appDesign = defaults.string(forKey: Keys.appDesign).flatMap(AppDesign.init(rawValue:)) ?? .clair
         longRideSetting = defaults.string(forKey: Keys.longRideMode).flatMap(LongRideSetting.init(rawValue:)) ?? .auto
         autoPrepareEnabled = defaults.object(forKey: Keys.autoPrepareEnabled) == nil ? true : defaults.bool(forKey: Keys.autoPrepareEnabled)
         autoMapEnabled = defaults.object(forKey: Keys.autoMapEnabled) == nil ? true : defaults.bool(forKey: Keys.autoMapEnabled)
