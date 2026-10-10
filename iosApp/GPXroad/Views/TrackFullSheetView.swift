@@ -29,8 +29,16 @@ struct TrackFullSheetView: View {
         NavigationStack {
             ScrollView {
                 VStack(alignment: .leading, spacing: 16) {
-                    TrackMiniMap(points: track.points)
-                        .frame(height: 170)
+                    // Vraie carte avec la trace (noms de lieux et de rues) : on voit par où elle passe, et on peut la déplacer et zoomer.
+                    TrackFicheMapView(
+                        orderedTrack: track,
+                        isReversed: false,
+                        traceAppearance: TraceAppearance(colorPreset: .orange),
+                        isDark: theme.isDark,
+                        vectorMap: true
+                    )
+                    .frame(height: 300)
+                    .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
 
                     Text(track.name)
                         .font(.title2.bold())
@@ -52,13 +60,6 @@ struct TrackFullSheetView: View {
                     TrackReadinessSection(track: track)
                         .padding(.vertical, 14)
                         .themedCard(theme)
-
-                    // Démarrer : active la trace (avec la confirmation habituelle pendant une sortie) et ouvre le Ride.
-                    Button(action: onStart) {
-                        Label("Démarrer", systemImage: "play.fill")
-                            .frame(maxWidth: .infinity)
-                    }
-                    .buttonStyle(PrimaryPillButtonStyle())
 
                     // Spec "track-geek-metrics" (it21) : replié par défaut, approfondissement OPT-IN.
                     if let metrics = TrackMetricsCalculator.compute(for: track.points) {
@@ -97,7 +98,18 @@ struct TrackFullSheetView: View {
                 .padding(.bottom, 24)
             }
             .background(theme.ground.ignoresSafeArea())
-            .navigationTitle("Trace")
+            // Démarrer : toujours visible en bas de la fiche (active la trace, avec la confirmation habituelle pendant une sortie, puis ouvre le Ride).
+            .safeAreaInset(edge: .bottom, spacing: 0) {
+                Button(action: onStart) {
+                    Label("Démarrer", systemImage: "play.fill")
+                        .frame(maxWidth: .infinity)
+                }
+                .buttonStyle(PrimaryPillButtonStyle())
+                .padding(.horizontal, 20)
+                .padding(.vertical, 10)
+                .background(theme.ground.opacity(0.96).ignoresSafeArea())
+            }
+            .navigationTitle("Prêt à partir ?")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {

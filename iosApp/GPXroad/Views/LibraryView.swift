@@ -273,15 +273,8 @@ struct LibraryView: View {
                     trackToConfigure = track
                 },
                 onStart: {
-                    // Active la trace (avec la confirmation habituelle si une sortie est en cours) puis ouvre le Ride.
                     trackForFullSheet = nil
-                    var pending = pendingActivation
-                    if library.activeTrackID != track.id {
-                        pending = library.request(.activate(track), recordedPointsCount: rideRecorder.pointCount)
-                        pendingActivation = pending
-                    }
-                    // Une confirmation en attente (sortie en cours) se répond ICI : on ne change d'onglet qu'une fois la trace activée.
-                    if pending == nil { navigationState.selectedTab = .ride }
+                    startTrack(track)
                 }
             )
         }
@@ -350,6 +343,17 @@ struct LibraryView: View {
         }
     }
 
+    /// Démarrer : active la trace (avec la confirmation habituelle si une sortie est en cours) puis ouvre le Ride.
+    private func startTrack(_ track: GPXTrack) {
+        var pending = pendingActivation
+        if library.activeTrackID != track.id {
+            pending = library.request(.activate(track), recordedPointsCount: rideRecorder.pointCount)
+            pendingActivation = pending
+        }
+        // Une confirmation en attente (sortie en cours) se répond ICI : on ne change d'onglet qu'une fois la trace activée.
+        if pending == nil { navigationState.selectedTab = .ride }
+    }
+
     private func startCreatingFolder(for track: GPXTrack?) {
         folderNameText = ""
         trackAwaitingNewFolder = track
@@ -397,6 +401,13 @@ struct LibraryView: View {
                 // Swipe à DROITE (edge .leading, spec "per-track-settings") : accès direct au
                 // panneau "Paramétrer la trace" — sens, départ personnalisé, apparence, chevrons.
                 .swipeActions(edge: .leading) {
+                    // Raccourci : démarrer tout de suite (active la trace et ouvre le Ride).
+                    Button {
+                        startTrack(track)
+                    } label: {
+                        Label("Démarrer", systemImage: "play.fill")
+                    }
+                    .tint(theme.action)
                     Button {
                         trackToConfigure = track
                     } label: {

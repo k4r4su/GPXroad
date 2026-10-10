@@ -45,18 +45,18 @@ enum ColorFlavorPatcher {
         return value
     }
 
-    /// Luminosité de nuit : fond et surfaces entre 0,05 et 0,23 (courbe cubique, ordre conservé), blanc pur (routes) relevé à 0,36
-    /// pour qu'elles restent plus claires que le fond ; texte : 0,96 − 0,86 × L.
+    /// Luminosité de nuit (relevée le 10/10 : la première version, entre 0,05 et 0,23, était illisible) : fond et surfaces entre 0,20 et
+    /// 0,46 (courbe carrée, ordre conservé), blanc pur (routes) relevé à 0,72 pour qu'elles ressortent nettement ; texte : 0,96 − 0,86 × L.
     static func nightLightness(_ l: Double, isText: Bool) -> Double {
         if isText { return 0.96 - 0.86 * l }
-        if l >= 0.985 { return 0.36 }
-        return 0.05 + 0.18 * l * l * l
+        if l >= 0.985 { return 0.72 }
+        return 0.20 + 0.26 * l * l
     }
 
     static func nightColorString(_ string: String, isText: Bool) -> String? {
         guard let color = parseColor(string) else { return nil }
         let lightness = nightLightness(color.l, isText: isText)
-        let saturation = color.s * (isText ? 0.6 : 0.3)
+        let saturation = color.s * (isText ? 0.6 : 0.22)
         return "hsla(\(formatted(color.h)), \(formatted(saturation * 100))%, \(formatted(lightness * 100))%, \(formatted(color.a, decimals: 3)))"
     }
 

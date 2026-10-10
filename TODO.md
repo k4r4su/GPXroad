@@ -89,6 +89,11 @@ temps, la version iOS est vraiment correcte mais l'Android c'est une catastrophe
         fiche « Prêt à partir ? » (aperçu, statistiques, état de préparation, gros bouton Démarrer qui active la trace et ouvre le Ride),
         « Mon style de sortie » (Balade / Trail et pistes / Longue route : flashs, fusion des virages, carte hors ligne, batterie, densité).
         iOS 0.0.47, 538 tests. NON fait : Road Book (garde sa palette papier/nuit propre), Android (iOS d'abord), flavor `nuit` côté Kotlin partagé.
+  - [x] Retours du 10/10 (soir) → version 0.1.0 (iOS et Android) : la fiche d'une trace montre maintenant la VRAIE carte avec la trace (A/B,
+        chevrons, noms de lieux, zoom et déplacement) au lieu d'une miniature seule ; bouton « Démarrer » toujours visible en bas, titre « Prêt à
+        partir ? », et raccourci « Démarrer » en glissant une ligne de la Bibliothèque vers la droite ; carte de nuit nettement éclaircie (gris moyen
+        neutre, routes claires) ; « Mon style de sortie » RETIRÉ des Réglages (jugé sans intérêt : mêmes réglages, un tap de moins mais rien de plus
+        pratique — à reconsidérer seulement avec un vrai besoin). Règle du propriétaire : l'interface doit s'allier à la praticité, sinon elle ne sert à rien.
   - [ ] Android : même design (Material 3 : palettes, barre du bas, boutons) — iOS d'abord, comme demandé.
 - [x] Test sur la tablette réelle (09/10, Wi-Fi) : Bibliothèque (pastilles « Active », « Hors ligne », « Prête hors ligne » sur vosges-tour),
       Road Book Assisté GPS hors trace (« Hors trace », virages du chemin de retour, « Retour sur la trace 7,5 km » : la reprise Android marche

@@ -21,6 +21,10 @@ struct TrackFicheMapView: UIViewRepresentable {
     let orderedTrack: GPXTrack
     let isReversed: Bool
     let traceAppearance: TraceAppearance
+    /// Fond de carte de nuit pour les designs sombres (même carte vectorielle que le Ride).
+    var isDark = false
+    /// Carte vectorielle hébergée (comme le Ride) au lieu du fond raster minimal : noms de lieux et de rues lisibles pour voir par où passe la trace.
+    var vectorMap = false
 
     private static let trackSourceIdentifier = "fiche-track-source"
     private static let trackCasingLayerIdentifier = "fiche-track-casing-layer"
@@ -46,7 +50,10 @@ struct TrackFicheMapView: UIViewRepresentable {
     static let cameraGeographicMarginMeters: Double = 2000
 
     func makeUIView(context: Context) -> MLNMapView {
-        let mapView = MLNMapView(frame: .zero, styleJSON: MapEngineConstants.buildInitialStyleJSON())
+        let styleJSON = vectorMap
+            ? MapEngineConstants.buildStyleJSON(for: .vectorHosted(flavor: isDark ? .nuit : .standard))
+            : MapEngineConstants.buildInitialStyleJSON()
+        let mapView = MLNMapView(frame: .zero, styleJSON: styleJSON)
         mapView.delegate = context.coordinator
         mapView.showsUserLocation = false
         mapView.showsAttributionButton = true

@@ -1,34 +1,13 @@
 import XCTest
 @testable import GPXroad
 
-/// Design (10/10) : styles de sortie, fond de carte de nuit, choix automatique.
+/// Design (10/10) : fond de carte de nuit, choix automatique.
 @MainActor
 final class ThemeTests: XCTestCase {
     private func freshSettings() -> (RideSettingsStore, () -> Void) {
         let suite = "ThemeTests-\(UUID().uuidString)"
         let defaults = UserDefaults(suiteName: suite)!
         return (RideSettingsStore(defaults: defaults), { defaults.removePersistentDomain(forName: suite) })
-    }
-
-    func testEachRideProfileAppliesAndIsRecognised() {
-        let (settings, cleanup) = freshSettings()
-        defer { cleanup() }
-        for profile in RideProfile.allCases {
-            profile.apply(to: settings)
-            XCTAssertEqual(RideProfile.current(for: settings), profile, "\(profile) reconnu après application")
-        }
-        // Un réglage qui s'écarte du style : « Personnalisé ».
-        RideProfile.trail.apply(to: settings)
-        settings.autoMapRadiusKm = 10
-        XCTAssertNil(RideProfile.current(for: settings))
-    }
-
-    func testProfilesOnlyUseValuesOfTheExistingOptions() {
-        for profile in RideProfile.allCases {
-            XCTAssertTrue(RideConstants.flashCountOptions.contains(profile.flashCount))
-            XCTAssertTrue(RideConstants.turnMergeMinDistanceMetersOptions.contains(profile.turnMergeMeters))
-            XCTAssertTrue(AutoMapConstants.radiusOptionsKm.contains(profile.autoMapRadiusKm))
-        }
     }
 
     func testDefaultDesignIsClairAndAutomaticFollowsTheIPhone() {
@@ -44,8 +23,9 @@ final class ThemeTests: XCTestCase {
     func testNightMapKeepsRoadsBrighterThanLandAndInvertsText() {
         let land = ColorFlavorPatcher.nightLightness(0.96, isText: false)   // fond clair du style
         let road = ColorFlavorPatcher.nightLightness(1.0, isText: false)    // route blanche
-        XCTAssertLessThan(land, 0.30, "fond sombre")
-        XCTAssertGreaterThan(road, land + 0.1, "les routes restent plus claires que le fond")
+        XCTAssertGreaterThan(land, 0.25, "carte lisible : fond de carte gris moyen, pas noir")
+        XCTAssertLessThan(land, 0.45, "mais toujours sombre")
+        XCTAssertGreaterThan(road, land + 0.2, "les routes ressortent nettement du fond")
         XCTAssertGreaterThan(ColorFlavorPatcher.nightLightness(0.15, isText: true), 0.7, "texte sombre → texte clair")
         XCTAssertLessThan(ColorFlavorPatcher.nightLightness(1.0, isText: true), 0.15, "halo blanc → halo sombre")
         // Ordre conservé sur les surfaces : plus clair avant = plus clair après.

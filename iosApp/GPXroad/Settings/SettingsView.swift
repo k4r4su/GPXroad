@@ -10,15 +10,6 @@ struct SettingsView: View {
     var body: some View {
         NavigationStack {
             Form {
-                // Style de sortie : un tap règle d'un coup flashs, fusion des virages, carte hors ligne, batterie, enregistrement.
-                Section {
-                    RideProfileSection()
-                } header: {
-                    Text("Mon style de sortie")
-                } footer: {
-                    Text("Chaque réglage reste modifiable un par un plus bas ; dès que l'un s'écarte du style, celui-ci devient « Personnalisé ». Les règles du Road Book (angles) ne changent pas.")
-                }
-
                 // Tout ce qui touche à l'interface est regroupé dans « Apparence » : design, fond de carte, trace, contrôles.
                 Section {
                     NavigationLink {
