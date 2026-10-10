@@ -751,3 +751,7 @@
 "Signaler ce chemin comme interdit ?" = "Report this way as forbidden?";
 "Les prochains itinéraires l'éviteront. Le signalement est envoyé à la base partagée si elle est configurée." = "Future routes will avoid it. The report is sent to the shared database if one is configured.";
 "Avec « Autoriser les pistes », les portions dont l'accès est à vérifier d'après OpenStreetMap sont surlignées ; signale-en une comme interdite et les prochains itinéraires l'éviteront." = "With “Allow tracks”, sections whose access should be checked according to OpenStreetMap are highlighted; report one as forbidden and future routes will avoid it.";
+"Forêt" = "Forest";
+"Clair" = "Light";
+"Design" = "Design";
+"Forêt : nature et fraîcheur. Clair : sobre et lumineux, très net au soleil. Sombre : pour la nuit." = "Forest: nature and freshness. Light: clean and bright, very sharp in the sun. Dark: for the night.";

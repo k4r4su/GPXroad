@@ -89,6 +89,7 @@ struct GPXroadApp: App {
                     .environmentObject(rideRecorder)
                     // It31 : langue choisie (formats de date/nombre) ; la vue racine est
                     // reconstruite quand elle change, pour que tous les textes suivent en direct.
+                    .modifier(ThemedRoot(design: settings.appDesign))
                     .environment(\.locale, Locale(identifier: settings.appLanguage.resolvedCode()))
                     .id(settings.appLanguage.resolvedCode())
                     .onOpenURL { url in

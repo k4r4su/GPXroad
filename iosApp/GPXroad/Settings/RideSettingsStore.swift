@@ -40,6 +40,7 @@ final class RideSettingsStore: ObservableObject {
         static let autoZoomMaxMeters = "settings.autoZoomMaxMeters"
         static let slopeWarningsEnabled = "settings.slopeWarningsEnabled"
         static let recordingPromptEnabled = "settings.recordingPromptEnabled"
+        static let appDesign = "settings.appDesign"
         static let longRideMode = "settings.longRideMode"
         static let autoPrepareEnabled = "settings.autoPrepareEnabled"
         static let autoMapEnabled = "settings.autoMapEnabled"
@@ -255,6 +256,10 @@ final class RideSettingsStore: ObservableObject {
     @Published var recordingPromptEnabled: Bool {
         didSet { defaults.set(recordingPromptEnabled, forKey: Keys.recordingPromptEnabled) }
     }
+    /// Design de l'app (Forêt par défaut, maquettes du 10/10).
+    @Published var appDesign: AppDesign {
+        didSet { defaults.set(appDesign.rawValue, forKey: Keys.appDesign) }
+    }
     /// Mode longue sortie : économie de batterie (automatique ≤ 20 % hors charge par défaut), voir `BatteryMonitor`.
     @Published var longRideSetting: LongRideSetting {
         didSet { defaults.set(longRideSetting.rawValue, forKey: Keys.longRideMode) }
@@ -435,6 +440,7 @@ final class RideSettingsStore: ObservableObject {
             ?? RideConstants.autoZoomMaxMetersDefault
 
         recordingPromptEnabled = defaults.object(forKey: Keys.recordingPromptEnabled) == nil ? true : defaults.bool(forKey: Keys.recordingPromptEnabled)
+        appDesign = defaults.string(forKey: Keys.appDesign).flatMap(AppDesign.init(rawValue:)) ?? .foret
         longRideSetting = defaults.string(forKey: Keys.longRideMode).flatMap(LongRideSetting.init(rawValue:)) ?? .auto
         autoPrepareEnabled = defaults.object(forKey: Keys.autoPrepareEnabled) == nil ? true : defaults.bool(forKey: Keys.autoPrepareEnabled)
         autoMapEnabled = defaults.object(forKey: Keys.autoMapEnabled) == nil ? true : defaults.bool(forKey: Keys.autoMapEnabled)

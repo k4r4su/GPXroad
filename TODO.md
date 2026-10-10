@@ -74,6 +74,12 @@ temps, la version iOS est vraiment correcte mais l'Android c'est une catastrophe
       autorisée). Limites assumées : pas de déplacement d'un point par glisser (supprimer puis reposer), pas de recherche d'adresse,
       pas de score de sinuosité (Valhalla n'en a pas), « éviter » ≠ « interdire », nécessite Valhalla configuré (repli sur une
       instance publique à décider).
+- [x] Design iOS « Forêt / Clair / Sombre » (10/10, maquettes validées par le propriétaire : artefact « GPXroad — design Forêt »), palier 1 :
+      socle `Theme/` (palettes, `ThemedRoot` : teinte + schéma + police arrondie, styles de boutons, `StatusPill`, `themedCard`),
+      barre du bas flottante (icônes seules, nom sur l'onglet actif, la barre native est masquée), choix du design dans Réglages.
+  - [ ] Palier 2 : fonds des listes/formulaires, Biblio en cartes avec miniature et pastilles, commandes de carte du Ride, carte Sombre
+        (le fond de carte reste clair en Sombre), Road Book, fiche « Prêt à partir ? », Réglages par profil.
+  - [ ] Android : même design (Material 3 : palettes, barre du bas, boutons) — iOS d'abord, comme demandé.
 - [x] Test sur la tablette réelle (09/10, Wi-Fi) : Bibliothèque (pastilles « Active », « Hors ligne », « Prête hors ligne » sur vosges-tour),
       Road Book Assisté GPS hors trace (« Hors trace », virages du chemin de retour, « Retour sur la trace 7,5 km » : la reprise Android marche
       avec le vrai GPS), écran « Créer un itinéraire » (points colorés, chips, calcul Valhalla public : 33,8 km / 54 min, options, enregistrement

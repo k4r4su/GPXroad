@@ -751,3 +751,7 @@
 "Signaler ce chemin comme interdit ?" = "Segnalare questa strada come vietata?";
 "Les prochains itinéraires l'éviteront. Le signalement est envoyé à la base partagée si elle est configurée." = "I prossimi percorsi lo eviteranno. La segnalazione viene inviata al database condiviso se configurato.";
 "Avec « Autoriser les pistes », les portions dont l'accès est à vérifier d'après OpenStreetMap sont surlignées ; signale-en une comme interdite et les prochains itinéraires l'éviteront." = "Con «Consenti le piste», i tratti il cui accesso va verificato secondo OpenStreetMap vengono evidenziati; segnalane uno come vietato e i prossimi percorsi lo eviteranno.";
+"Forêt" = "Foresta";
+"Clair" = "Chiaro";
+"Design" = "Design";
+"Forêt : nature et fraîcheur. Clair : sobre et lumineux, très net au soleil. Sombre : pour la nuit." = "Foresta: natura e freschezza. Chiaro: sobrio e luminoso, nitido al sole. Scuro: per la notte.";

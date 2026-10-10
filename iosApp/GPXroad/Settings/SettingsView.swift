@@ -10,6 +10,16 @@ struct SettingsView: View {
     var body: some View {
         NavigationStack {
             Form {
+                // Design de l'app (10/10) : Forêt, Clair ou Sombre, appliqué tout de suite.
+                Section {
+                    DesignPickerRow(selection: $settings.appDesign)
+                        .listRowInsets(EdgeInsets(top: 12, leading: 12, bottom: 12, trailing: 12))
+                } header: {
+                    Text("Design")
+                } footer: {
+                    Text("Forêt : nature et fraîcheur. Clair : sobre et lumineux, très net au soleil. Sombre : pour la nuit.")
+                }
+
                 // It31 : langue de l'app — automatique (langue de l'appareil si supportée, sinon
                 // français) ou forcée. Appliquée tout de suite, sans relancer.
                 Section {

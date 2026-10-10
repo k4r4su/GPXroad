@@ -18,6 +18,7 @@ struct RootView: View {
     var body: some View {
         TabView(selection: $navigationState.selectedTab) {
             RideView()
+                .toolbar(.hidden, for: .tabBar)
                 .tabItem { Label("Ride", systemImage: "location.north.line.fill") }
                 .tag(AppTab.ride)
 
@@ -25,6 +26,7 @@ struct RootView: View {
             // (bouton flottant retiré) pour devenir son propre onglet, entre Ride et Biblio
             // comme demandé.
             DestinationSearchTabView()
+                .toolbar(.hidden, for: .tabBar)
                 .tabItem { Label("Aller à", systemImage: "magnifyingglass") }
                 .tag(AppTab.search)
 
@@ -32,16 +34,24 @@ struct RootView: View {
             // directions pures — totalement découplé de l'état de Ride actif, voir
             // RoadBook/CLAUDE.md.
             RoadBookTabView()
+                .toolbar(.hidden, for: .tabBar)
                 .tabItem { Label("Road Book", systemImage: "list.bullet.rectangle.portrait") }
                 .tag(AppTab.roadBook)
 
             LibraryView()
+                .toolbar(.hidden, for: .tabBar)
                 .tabItem { Label("Biblio", systemImage: "map") }
                 .tag(AppTab.library)
 
             SettingsView()
+                .toolbar(.hidden, for: .tabBar)
                 .tabItem { Label("Réglages", systemImage: "gearshape") }
                 .tag(AppTab.settings)
+        }
+        // Barre du bas du design (icônes seules, nom sur l'onglet actif) : la barre native est masquée, celle-ci réserve la même zone
+        // (le Ride lit sa vraie marge basse, voir `rideContent`).
+        .safeAreaInset(edge: .bottom, spacing: 0) {
+            ThemedTabBar(selection: $navigationState.selectedTab)
         }
         .task {
             try? await Task.sleep(nanoseconds: 3_000_000_000)   // laisse MapLibre charger les zones déjà sur disque
