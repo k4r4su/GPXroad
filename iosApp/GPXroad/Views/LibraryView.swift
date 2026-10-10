@@ -8,6 +8,8 @@ struct LibraryView: View {
     @EnvironmentObject private var trackRideSettings: TrackRideSettingsStore
     /// Sortie en cours (`RideRecorder.pointCount`) : changer de trace active demande confirmation (it29).
     @EnvironmentObject private var rideRecorder: RideRecorder
+    @EnvironmentObject private var navigationState: AppNavigationState
+    @Environment(\.theme) private var theme
     @State private var pendingActivation: TrackActivationRequest?
     @StateObject private var unsavedRides = UnsavedRideStore()
     @State private var isImporting = false
@@ -195,6 +197,9 @@ struct LibraryView: View {
                 }
             }
         }
+        .listStyle(.plain)
+        .scrollContentBackground(.hidden)
+        .background(theme.ground.ignoresSafeArea())
         .trackActivationConfirmation($pendingActivation)
         .confirmationDialog(
             "Déplacer vers",
@@ -266,6 +271,17 @@ struct LibraryView: View {
                 onConfigure: {
                     trackForFullSheet = nil
                     trackToConfigure = track
+                },
+                onStart: {
+                    // Active la trace (avec la confirmation habituelle si une sortie est en cours) puis ouvre le Ride.
+                    trackForFullSheet = nil
+                    var pending = pendingActivation
+                    if library.activeTrackID != track.id {
+                        pending = library.request(.activate(track), recordedPointsCount: rideRecorder.pointCount)
+                        pendingActivation = pending
+                    }
+                    // Une confirmation en attente (sortie en cours) se répond ICI : on ne change d'onglet qu'une fois la trace activée.
+                    if pending == nil { navigationState.selectedTab = .ride }
                 }
             )
         }
@@ -354,6 +370,16 @@ struct LibraryView: View {
                 .onTapGesture {
                     trackForFullSheet = track
                 }
+                // Carte du design : fond de surface arrondi, sans séparateur de liste.
+                .listRowBackground(
+                    RoundedRectangle(cornerRadius: 20, style: .continuous)
+                        .fill(theme.surface)
+                        .overlay(RoundedRectangle(cornerRadius: 20, style: .continuous).stroke(library.activeTrackID == track.id ? theme.action : theme.hairline, lineWidth: library.activeTrackID == track.id ? 2 : 1))
+                        .padding(.vertical, 5)
+                        .padding(.horizontal, 16)
+                )
+                .listRowSeparator(.hidden)
+                .listRowInsets(EdgeInsets(top: 10, leading: 28, bottom: 10, trailing: 28))
                 .swipeActions(edge: .trailing) {
                     Button(role: .destructive) {
                         library.delete(track)
@@ -447,54 +473,52 @@ private struct TrackRow: View {
     let track: GPXTrack
     let isFullyOffline: Bool
     /// Fix "single-source-active-track" (Bloc 1, itération 10) : un seul indicateur, la
-    /// trace active pour le Ride — coché vert. Bascule explicite en tête de ligne, second
+    /// trace active pour le Ride — coché. Bascule explicite en tête de ligne, second
     /// point d'entrée identique dans TrackSettingsView (swipe it8).
     let isActive: Bool
     let onToggleActive: () -> Void
+    @Environment(\.theme) private var theme
 
     var body: some View {
         HStack(spacing: 12) {
             Button(action: onToggleActive) {
                 Image(systemName: isActive ? "checkmark.circle.fill" : "circle")
                     .font(.title3)
-                    .foregroundStyle(isActive ? .green : .secondary)
+                    .foregroundStyle(isActive ? theme.action : theme.inkSecondary)
             }
             .buttonStyle(.plain)
             .accessibilityLabel(isActive ? "Trace active pour le Ride, toucher pour désactiver" : "Rendre cette trace active pour le Ride")
 
-            VStack(alignment: .leading, spacing: 4) {
+            TrackMiniMap(points: track.points)
+                .frame(width: 64, height: 64)
+
+            VStack(alignment: .leading, spacing: 5) {
+                Text(track.name)
+                    .font(.headline)
+                    .foregroundStyle(theme.ink)
+                    .lineLimit(2)
+                // Spec "biblio-date-display" (it15, Bloc 1) : sobre, sous le nom — masquable via LibraryConstants.dateDisplayEnabled.
+                Text(statsLine)
+                    .font(.caption)
+                    .foregroundStyle(theme.inkSecondary)
+                    .lineLimit(1)
                 HStack(spacing: 6) {
-                    Text(track.name)
-                        .font(.headline)
+                    if isActive { StatusPill(text: String(localized: "Active", bundle: .appLanguage), kind: .active) }
+                    TrackReadinessBadge(track: track, isActive: isActive)
                     if isFullyOffline {
-                        // Spec "offline-zones-outline" (it17, Bloc 1) : libellé aligné sur le
-                        // texte demandé par le prompt ("hors-ligne OK"), badge discret inchangé
-                        // (icône seule dans la ligne Biblio, déjà en place depuis it10).
-                        Label("Hors-ligne OK", systemImage: "checkmark.seal.fill")
-                            .labelStyle(.iconOnly)
-                            .foregroundStyle(.green)
-                            .accessibilityLabel("Trace entièrement hors-ligne — Hors-ligne OK")
+                        // Spec "offline-zones-outline" (it17, Bloc 1) : badge « Hors-ligne OK » (cartes raster téléchargées).
+                        StatusPill(text: String(localized: "Hors-ligne OK", bundle: .appLanguage), kind: .ready, systemImage: "checkmark.seal.fill")
                     }
                 }
-                // Spec "biblio-date-display" (it15, Bloc 1) : sobre, gris secondaire, sous le
-                // nom — masquable entièrement via LibraryConstants.dateDisplayEnabled.
-                if LibraryConstants.dateDisplayEnabled {
-                    Text(track.displayDateLabel)
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                }
-                TrackReadinessBadge(track: track, isActive: isActive)
-                HStack(spacing: 12) {
-                    Label(String(format: "%.1f km", track.totalDistanceKm), systemImage: "ruler")
-                    Label("\(track.pointCount) pts", systemImage: "point.topleft.down.curvedto.point.bottomright.up")
-                    if track.elevationGainMeters > 0 {
-                        Label(String(format: "+%.0f m", track.elevationGainMeters), systemImage: "arrow.up.right")
-                    }
-                }
-                .font(.caption)
-                .foregroundStyle(.secondary)
             }
         }
-        .padding(.vertical, 4)
+        .padding(.vertical, 2)
+    }
+
+    private var statsLine: String {
+        var parts = [String(format: "%.1f km", track.totalDistanceKm)]
+        if track.elevationGainMeters > 0 { parts.append(String(format: "+%.0f m", track.elevationGainMeters)) }
+        if LibraryConstants.dateDisplayEnabled { parts.append(track.displayDateLabel) }
+        return parts.joined(separator: " · ")
     }
 }

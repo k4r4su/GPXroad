@@ -24,12 +24,15 @@ enum MapSourceResolver {
         activeVectorPackageFileURL: URL?,
         isNetworkReachable: Bool,
         hasOfflineVectorCoverage: Bool = false,
+        isDarkDesign: Bool = false,
         themePreset: MapThemePreset,
         fileExists: (URL) -> Bool = { FileManager.default.fileExists(atPath: $0.path) }
     ) -> MapSourceSelection {
-        guard let flavor = themePreset.colorFlavor else {
+        guard let presetFlavor = themePreset.colorFlavor else {
             return .raster(TileSource.active(for: themePreset))
         }
+        // Design sombre : fond de carte de nuit, quel que soit le thème de carte vectoriel choisi.
+        let flavor: MapColorFlavor = isDarkDesign ? .nuit : presetFlavor
         if let fileURL = activeVectorPackageFileURL, fileExists(fileURL) {
             return .vectorLocal(fileURL: fileURL, flavor: flavor)
         }

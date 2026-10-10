@@ -45,6 +45,9 @@ enum MapColorFlavor: String, CaseIterable, Codable, Equatable {
     case standard
     case hauteContraste
     case terreux
+    /// Fond de carte sombre (design Sombre / mode sombre de l'iPhone) : pas un choix de l'utilisateur, imposé par le design ;
+    /// traité à part par `ColorFlavorPatcher` (luminosité abaissée, textes inversés).
+    case nuit
 
     var id: String { rawValue }
 
@@ -53,6 +56,7 @@ enum MapColorFlavor: String, CaseIterable, Codable, Equatable {
         case .standard: return String(localized: "Standard", bundle: .appLanguage)
         case .hauteContraste: return String(localized: "Contraste élevé", bundle: .appLanguage)
         case .terreux: return String(localized: "Terreux", bundle: .appLanguage)
+        case .nuit: return String(localized: "Nuit", bundle: .appLanguage)
         }
     }
 
@@ -61,6 +65,7 @@ enum MapColorFlavor: String, CaseIterable, Codable, Equatable {
         case .standard: return String(localized: "Palette d'origine du style vectoriel, inchangée.", bundle: .appLanguage)
         case .hauteContraste: return String(localized: "Couleurs plus vives, plus de contraste — pensé pour la lisibilité au soleil, avec des gants.", bundle: .appLanguage)
         case .terreux: return String(localized: "Teintes plus chaudes et naturelles, esprit carte de randonnée.", bundle: .appLanguage)
+        case .nuit: return String(localized: "Fond de carte sombre pour la nuit.", bundle: .appLanguage)
         }
     }
 
@@ -74,6 +79,7 @@ enum MapColorFlavor: String, CaseIterable, Codable, Equatable {
         // Décalage franc vers le chaud (orange/brun) — "Terreux" doit se voir, pas juste se
         // deviner (retour terrain it22bis).
         case .terreux: return 22
+        case .nuit: return 0
         }
     }
 
@@ -89,6 +95,7 @@ enum MapColorFlavor: String, CaseIterable, Codable, Equatable {
         case .standard: return 0
         case .hauteContraste: return 0.45
         case .terreux: return 0.30
+        case .nuit: return 0
         }
     }
 
@@ -102,12 +109,13 @@ enum MapColorFlavor: String, CaseIterable, Codable, Equatable {
         case .standard: return 0
         case .hauteContraste: return -0.07
         case .terreux: return -0.05
+        case .nuit: return 0
         }
     }
 
     /// `true` si ce flavor ne change rien (évite tout parcours/ré-encodage JSON inutile pour
     /// "Standard", et sert de garde générique si un futur flavor était ajouté à l'identique).
     var isIdentity: Bool {
-        hueShiftDegrees == 0 && saturationBoostFraction == 0 && lightnessDelta == 0
+        self != .nuit && hueShiftDegrees == 0 && saturationBoostFraction == 0 && lightnessDelta == 0
     }
 }

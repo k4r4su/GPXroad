@@ -18,102 +18,85 @@ struct TrackFullSheetView: View {
     let onDelete: () -> Void
     let onRename: () -> Void
     let onConfigure: () -> Void
+    /// « Démarrer » : active la trace puis ouvre le Ride (fourni par la Bibliothèque).
+    let onStart: () -> Void
 
+    @Environment(\.theme) private var theme
     @Environment(\.dismiss) private var dismiss
     @State private var showDeleteConfirmation = false
 
     var body: some View {
         NavigationStack {
-            VStack(spacing: 28) {
-                VStack(spacing: 8) {
+            ScrollView {
+                VStack(alignment: .leading, spacing: 16) {
+                    TrackMiniMap(points: track.points)
+                        .frame(height: 170)
+
                     Text(track.name)
                         .font(.title2.bold())
-                        .multilineTextAlignment(.center)
-                    if isActive {
-                        Label("Trace active pour le Ride", systemImage: "checkmark.circle.fill")
-                            .font(.caption.bold())
-                            .foregroundStyle(.green)
-                    }
-                }
-                .padding(.top, 8)
+                        .foregroundStyle(theme.ink)
 
-                HStack(spacing: 12) {
-                    StatItem(title: "Distance", value: String(format: "%.1f km", track.totalDistanceKm))
-                    Divider().frame(height: 32)
-                    StatItem(title: String(localized: "Points", bundle: .appLanguage), value: "\(track.pointCount)")
-                    Divider().frame(height: 32)
-                    StatItem(title: String(localized: "Dénivelé +", bundle: .appLanguage), value: String(format: "%.0f m", track.elevationGainMeters))
-                    if isFullyOffline {
-                        Divider().frame(height: 32)
-                        StatItem(title: String(localized: "Hors-ligne", bundle: .appLanguage), value: "100%")
+                    HStack(spacing: 6) {
+                        if isActive { StatusPill(text: String(localized: "Active", bundle: .appLanguage), kind: .active) }
+                        TrackReadinessBadge(track: track, isActive: true)
+                        if isFullyOffline { StatusPill(text: String(localized: "Hors-ligne OK", bundle: .appLanguage), kind: .ready, systemImage: "checkmark.seal.fill") }
                     }
-                }
 
-                // Spec "track-geek-metrics" (it21, retour terrain : "ça peut rester dans l'app
-                // en mode petit côté geek pour ceux qui veulent savoir comment s'est passé le
-                // trajet") — replié par défaut (même patron que l'encart "tiles-zoom-explainer",
-                // it17) : la fiche reste volontairement minimale par défaut (voir doc du type
-                // ci-dessus), ces stats sont un approfondissement OPT-IN, pas un ajout au bloc
-                // principal déjà affiché plus haut.
-                if let metrics = TrackMetricsCalculator.compute(for: track.points) {
-                    DisclosureGroup("Statistiques avancées") {
-                        geekMetricsGrid(metrics)
-                            .padding(.top, 8)
+                    HStack(spacing: 10) {
+                        StatItem(title: String(localized: "Distance", bundle: .appLanguage), value: String(format: "%.1f km", track.totalDistanceKm))
+                        StatItem(title: String(localized: "Dénivelé +", bundle: .appLanguage), value: String(format: "%.0f m", track.elevationGainMeters))
+                        StatItem(title: String(localized: "Points", bundle: .appLanguage), value: "\(track.pointCount)")
                     }
+
+                    // « Prêt à partir ? » : ce qui est en local, et « Préparer maintenant ».
+                    TrackReadinessSection(track: track)
+                        .padding(.vertical, 14)
+                        .themedCard(theme)
+
+                    // Démarrer : active la trace (avec la confirmation habituelle pendant une sortie) et ouvre le Ride.
+                    Button(action: onStart) {
+                        Label("Démarrer", systemImage: "play.fill")
+                            .frame(maxWidth: .infinity)
+                    }
+                    .buttonStyle(PrimaryPillButtonStyle())
+
+                    // Spec "track-geek-metrics" (it21) : replié par défaut, approfondissement OPT-IN.
+                    if let metrics = TrackMetricsCalculator.compute(for: track.points) {
+                        DisclosureGroup("Statistiques avancées") {
+                            geekMetricsGrid(metrics)
+                                .padding(.top, 8)
+                        }
+                        .font(.subheadline)
+                        .tint(theme.inkSecondary)
+                    } else {
+                        Text("Statistiques avancées indisponibles — cette trace n'a pas d'horodatage exploitable (import externe sans temps réel).")
+                            .font(.caption)
+                            .foregroundStyle(theme.inkSecondary)
+                    }
+
+                    // Spec "biblio-share-export" (it19) : le partage système propose déjà « Enregistrer dans Fichiers ».
+                    LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 10) {
+                        Button { onConfigure() } label: {
+                            Label("Paramètres", systemImage: "slider.horizontal.3").frame(maxWidth: .infinity)
+                        }
+                        ShareLink(item: shareURL) {
+                            Label("Partager / Exporter", systemImage: "square.and.arrow.up").frame(maxWidth: .infinity)
+                        }
+                        Button { onRename() } label: {
+                            Label("Renommer", systemImage: "pencil").frame(maxWidth: .infinity)
+                        }
+                        Button(role: .destructive) { showDeleteConfirmation = true } label: {
+                            Label("Supprimer", systemImage: "trash").frame(maxWidth: .infinity)
+                        }
+                    }
+                    .buttonStyle(TonalPillButtonStyle())
                     .font(.subheadline)
-                } else {
-                    Text("Statistiques avancées indisponibles — cette trace n'a pas d'horodatage exploitable (import externe sans temps réel).")
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                        .multilineTextAlignment(.center)
                 }
-
-                if isActive { TrackReadinessSection(track: track) }
-
-                Spacer()
-
-                VStack(spacing: 12) {
-                    Button {
-                        onConfigure()
-                    } label: {
-                        Label("Paramètres", systemImage: "slider.horizontal.3")
-                            .frame(maxWidth: .infinity)
-                    }
-                    .buttonStyle(.borderedProminent)
-
-                    // Spec "biblio-share-export" (it19) : "une trace à la fois, share sheet iOS
-                    // standard + export GPX fidèle au format vers Fichiers iOS" — ShareLink sur
-                    // le fichier stocké tel quel couvre les deux (le share sheet standard
-                    // propose déjà "Enregistrer dans Fichiers" pour toute URL de fichier, même
-                    // patron que EndRideView.ShareLink après une sortie enregistrée).
-                    ShareLink(item: shareURL) {
-                        Label("Partager / Exporter", systemImage: "square.and.arrow.up")
-                            .frame(maxWidth: .infinity)
-                    }
-                    .buttonStyle(.bordered)
-
-                    Button {
-                        onRename()
-                    } label: {
-                        Label("Renommer", systemImage: "pencil")
-                            .frame(maxWidth: .infinity)
-                    }
-                    .buttonStyle(.bordered)
-
-                    Button(role: .destructive) {
-                        showDeleteConfirmation = true
-                    } label: {
-                        Label("Supprimer", systemImage: "trash")
-                            .frame(maxWidth: .infinity)
-                    }
-                    .buttonStyle(.bordered)
-                    .tint(.red)
-                }
-                .controlSize(.large)
-                .padding(.bottom, 8)
+                .padding(.horizontal, 20)
+                .padding(.top, 12)
+                .padding(.bottom, 24)
             }
-            .padding(.horizontal, 20)
-            .padding(.top, 12)
+            .background(theme.ground.ignoresSafeArea())
             .navigationTitle("Trace")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
@@ -162,17 +145,21 @@ struct TrackFullSheetView: View {
 private struct StatItem: View {
     let title: String
     let value: String
+    @Environment(\.theme) private var theme
 
     var body: some View {
         VStack(spacing: 2) {
             Text(value)
-                .font(.headline)
+                .font(.system(size: 20, weight: .heavy))
+                .foregroundStyle(theme.ink)
                 .lineLimit(1)
                 .minimumScaleFactor(0.7)
             Text(title)
-                .font(.caption2)
-                .foregroundStyle(.secondary)
+                .font(.caption)
+                .foregroundStyle(theme.inkSecondary)
         }
         .frame(maxWidth: .infinity)
+        .padding(.vertical, 12)
+        .themedCard(theme, cornerRadius: 16)
     }
 }

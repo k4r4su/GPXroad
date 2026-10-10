@@ -8,25 +8,23 @@ struct RideStatsBadge: View {
     let action: () -> Void
 
     @EnvironmentObject private var settings: RideSettingsStore
+    @Environment(\.theme) private var theme
 
     var body: some View {
         Button(action: action) {
             VStack(spacing: 0) {
                 Text("\(settings.speedUnit.roundedValue(fromKmh: currentSpeedKmh))")
-                    .font(.system(size: 22, weight: .bold, design: .rounded))
+                    .font(.system(size: 26, weight: .heavy, design: .rounded))
                     .monospacedDigit()
                 Text(settings.speedUnit.label)
-                    .font(.system(size: 9))
+                    .font(.system(size: 10, weight: .bold))
+                    .foregroundStyle(theme.inkSecondary)
             }
-            .foregroundStyle(.white)
+            .foregroundStyle(theme.ink)
             .frame(width: 60, height: 60)
-            // Fix "panel-consistency" (Bug 6) : même matériau que les panneaux (ultraThinMaterial
-            // sombre) — la forme reste un cercle (bouton, pas un panneau rectangulaire).
-            .background(Color.black.opacity(0.35))
-            .background(.ultraThinMaterial)
-            .environment(\.colorScheme, .dark)
-            .clipShape(Circle())
-            .shadow(color: .black.opacity(0.28), radius: 10, x: 0, y: 4)
+            // Pastille ronde du design (même taille qu'avant : la grille d'overlays du Ride en dépend).
+            .background(Circle().fill(theme.surface))
+            .shadow(color: .black.opacity(theme.isDark ? 0.5 : 0.22), radius: 8, x: 0, y: 3)
         }
         .accessibilityLabel(String(localized: "Vitesse \(settings.speedUnit.displayString(fromKmh: currentSpeedKmh)), toucher pour plus de mesures", bundle: .appLanguage))
     }

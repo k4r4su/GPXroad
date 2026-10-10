@@ -3,23 +3,35 @@ import SwiftUI
 /// Les trois designs au choix (Réglages > Apparence) : Clair (défaut, gris et bleu façon iOS), Sombre (nuit), Forêt (nature).
 /// Maquettes validées le 10/10, palettes ajustées le 10/10 (Clair en nuances de gris) ; mêmes noms et couleurs sur Android.
 enum AppDesign: String, CaseIterable, Identifiable {
-    case clair, sombre, foret
+    case auto, clair, sombre, foret
 
     var id: String { rawValue }
 
     var label: String {
         switch self {
-        case .foret: return String(localized: "Forêt", bundle: .appLanguage)
+        case .auto: return String(localized: "Automatique", bundle: .appLanguage)
         case .clair: return String(localized: "Clair", bundle: .appLanguage)
         case .sombre: return String(localized: "Sombre", bundle: .appLanguage)
+        case .foret: return String(localized: "Forêt", bundle: .appLanguage)
         }
     }
 
-    var palette: ThemePalette {
+    /// Palette du design ; « Automatique » suit le mode clair ou sombre de l'iPhone.
+    func palette(systemScheme: ColorScheme) -> ThemePalette {
         switch self {
-        case .foret: return .foret
+        case .auto: return systemScheme == .dark ? .sombre : .clair
         case .clair: return .clair
         case .sombre: return .sombre
+        case .foret: return .foret
+        }
+    }
+
+    /// Schéma imposé à l'app, `nil` = celui de l'iPhone.
+    var forcedScheme: ColorScheme? {
+        switch self {
+        case .auto: return nil
+        case .clair, .foret: return .light
+        case .sombre: return .dark
         }
     }
 }
@@ -94,14 +106,15 @@ struct ThemePalette {
         isDark: false, rounded: false
     )
 
+    /// Sombre : les gris étagés du mode sombre iOS (noir, #1C1C1E, #2C2C2E, #3A3A3C), bleu iOS, trace orange.
     static let sombre = ThemePalette(
-        ground: Color(hex: 0x101312), surface: Color(hex: 0x1B201E), tonal: Color(hex: 0x262B29), onTonal: Color(hex: 0xD6DBD8),
-        ink: Color(hex: 0xF2F4F3), inkSecondary: Color(hex: 0x9AA39F), hairline: Color(hex: 0x2A302E),
-        action: Color(hex: 0xFFB547), onAction: Color(hex: 0x1A1300), trace: Color(hex: 0xFF7A2F), position: Color(hex: 0x5AC8FA),
-        danger: Color(hex: 0xFF5A52), onDanger: Color(hex: 0x1A0503), warning: Color(hex: 0xFFB547),
-        readyBackground: Color(hex: 0x1F3A2B), readyText: Color(hex: 0x8FE0B0),
-        incompleteBackground: Color(hex: 0x3A2E12), incompleteText: Color(hex: 0xFFD27A),
-        neutralBackground: Color(hex: 0x262B29), neutralText: Color(hex: 0xB7BFBB),
+        ground: Color(hex: 0x000000), surface: Color(hex: 0x1C1C1E), tonal: Color(hex: 0x2C2C2E), onTonal: Color(hex: 0x64A8FF),
+        ink: Color(hex: 0xF2F2F7), inkSecondary: Color(hex: 0xAEAEB2), hairline: Color(hex: 0x38383A),
+        action: Color(hex: 0x0A84FF), onAction: .white, trace: Color(hex: 0xFF8A3D), position: Color(hex: 0x64D2FF),
+        danger: Color(hex: 0xFF453A), onDanger: .white, warning: Color(hex: 0xFFB340),
+        readyBackground: Color(hex: 0x1E3A2A), readyText: Color(hex: 0x6EE19A),
+        incompleteBackground: Color(hex: 0x3D3216), incompleteText: Color(hex: 0xFFD27A),
+        neutralBackground: Color(hex: 0x2C2C2E), neutralText: Color(hex: 0xC7C7CC),
         isDark: true, rounded: false
     )
 }
@@ -118,25 +131,27 @@ extension EnvironmentValues {
 }
 
 /// Applique un design à toute une hiérarchie : palette dans l'environnement, teinte, schéma clair/sombre, police.
+/// Aucune branche `if` sur le design : changer de design ne doit JAMAIS reconstruire la hiérarchie (la navigation remontait d'un niveau).
 struct ThemedRoot: ViewModifier {
     let design: AppDesign
+    @Environment(\.colorScheme) private var systemScheme
 
     func body(content: Content) -> some View {
-        let palette = design.palette
-        content
+        let palette = design.palette(systemScheme: systemScheme)
+        return content
             .environment(\.theme, palette)
             .tint(palette.action)
-            .preferredColorScheme(palette.isDark ? .dark : .light)
-            .modifier(RoundedFontIfNeeded(rounded: palette.rounded))
+            .preferredColorScheme(design.forcedScheme)
+            .modifier(FontDesignModifier(rounded: palette.rounded))
     }
 }
 
-private struct RoundedFontIfNeeded: ViewModifier {
+private struct FontDesignModifier: ViewModifier {
     let rounded: Bool
 
     func body(content: Content) -> some View {
-        if rounded, #available(iOS 16.1, *) {
-            content.fontDesign(.rounded)
+        if #available(iOS 16.1, *) {
+            content.fontDesign(rounded ? .rounded : .default)
         } else {
             content
         }
@@ -269,16 +284,26 @@ struct StatusPill: View {
 struct DesignPickerRow: View {
     @Binding var selection: AppDesign
     @Environment(\.theme) private var theme
+    @Environment(\.colorScheme) private var scheme
 
     var body: some View {
-        HStack(spacing: 10) {
+        HStack(spacing: 8) {
             ForEach(AppDesign.allCases) { design in
-                let palette = design.palette
+                let palette = design.palette(systemScheme: scheme)
                 let isSelected = selection == design
                 Button { selection = design } label: {
                     VStack(spacing: 8) {
                         ZStack {
-                            RoundedRectangle(cornerRadius: 14, style: .continuous).fill(palette.ground)
+                            if design == .auto {
+                                // Moitié clair, moitié sombre : suit l'iPhone.
+                                HStack(spacing: 0) {
+                                    Rectangle().fill(ThemePalette.clair.ground)
+                                    Rectangle().fill(ThemePalette.sombre.surface)
+                                }
+                                .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
+                            } else {
+                                RoundedRectangle(cornerRadius: 14, style: .continuous).fill(palette.ground)
+                            }
                             VStack(spacing: 6) {
                                 Capsule().fill(palette.trace).frame(width: 44, height: 5)
                                 RoundedRectangle(cornerRadius: 6, style: .continuous).fill(palette.surface).frame(width: 44, height: 16)
@@ -288,7 +313,9 @@ struct DesignPickerRow: View {
                         .frame(height: 76)
                         .overlay(RoundedRectangle(cornerRadius: 14, style: .continuous).stroke(palette.hairline, lineWidth: 1))
                         Text(design.label)
-                            .font(.system(size: 15, weight: .bold))
+                            .font(.system(size: 13, weight: .bold))
+                            .lineLimit(1)
+                            .minimumScaleFactor(0.7)
                             .foregroundStyle(theme.ink)
                     }
                     .padding(6)

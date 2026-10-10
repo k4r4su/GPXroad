@@ -8,6 +8,7 @@ import CoreLocation
 struct RideRecordingControl: View {
     @EnvironmentObject private var recorder: RideRecorder
     @State private var showDeniedAlert = false
+    @Environment(\.theme) private var theme
 
     var body: some View {
         Button(action: toggle) {
@@ -19,14 +20,11 @@ struct RideRecordingControl: View {
                     .font(.caption.bold().monospacedDigit())
                     .lineLimit(1)
             }
-            .foregroundStyle(.white)
-            .padding(.horizontal, 10)
-            .padding(.vertical, 7)
-            .background(Color.black.opacity(0.35))
-            .background(.ultraThinMaterial)
-            .environment(\.colorScheme, .dark)
-            .clipShape(Capsule())
-            .shadow(color: .black.opacity(0.28), radius: 8, x: 0, y: 3)
+            .foregroundStyle(theme.ink)
+            .padding(.horizontal, 12)
+            .padding(.vertical, 8)
+            .background(Capsule().fill(theme.surface))
+            .shadow(color: .black.opacity(theme.isDark ? 0.5 : 0.2), radius: 7, x: 0, y: 3)
         }
         .accessibilityLabel(RideRecordingControl.accessibilityLabel(state: recorder.state, pointCount: recorder.pointCount))
         .recordingDeniedAlert(isPresented: $showDeniedAlert)

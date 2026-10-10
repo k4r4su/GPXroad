@@ -53,6 +53,9 @@ struct RootView: View {
                 .tabItem { Label("Réglages", systemImage: "gearshape") }
                 .tag(AppTab.settings)
         }
+        // Listes et formulaires (aussi ceux poussés depuis un onglet) : marge basse = hauteur de la barre, sinon la dernière ligne
+        // reste sous elle (`safeAreaInset` ne suffit pas pour les vues à défilement).
+        .modifier(TabBarScrollMargin())
         // Barre du bas du design (icônes seules, nom sur l'onglet actif) : la barre native est masquée ; chaque onglet réserve sa
         // hauteur (ci-dessus) pour que listes, formulaires et le Ride (qui lit sa vraie marge basse) ne passent jamais dessous.
         .overlay(alignment: .bottom) {

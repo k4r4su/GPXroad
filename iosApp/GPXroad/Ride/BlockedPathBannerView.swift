@@ -40,6 +40,7 @@ struct BlockedPathBannerView: View {
 /// Bloc 2) : label texte permanent, pas seulement un explicateur au long-press.
 struct BlockedPathButton: View {
     let action: () -> Void
+    @Environment(\.theme) private var theme
 
     var body: some View {
         Button(action: action) {
@@ -49,10 +50,10 @@ struct BlockedPathButton: View {
                 Text("Bloqué")
                     .font(.system(size: 9, weight: .semibold))
             }
-            .foregroundStyle(.white)
+            .foregroundStyle(theme.onDanger)
             .frame(width: 56, height: 56)
-            .background(.red.opacity(0.85))
-            .clipShape(Circle())
+            .background(RoundedRectangle(cornerRadius: 18, style: .continuous).fill(theme.danger))
+            .shadow(color: theme.danger.opacity(0.45), radius: 7, y: 3)
         }
         .accessibilityLabel("Chemin bloqué")
     }

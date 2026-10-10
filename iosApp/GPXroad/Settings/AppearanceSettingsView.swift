@@ -14,7 +14,7 @@ struct AppearanceSettingsView: View {
                 } header: {
                     Text("Design")
                 } footer: {
-                    Text("Clair : gris et bleu, façon iOS. Sombre : pour la nuit. Forêt : nature et fraîcheur.")
+                    Text("Automatique : suit le mode clair ou sombre de l'iPhone. Clair : gris et bleu façon iOS. Sombre : gris étagés pour la nuit. Forêt : nature et fraîcheur.")
                 }
 
                 Section {

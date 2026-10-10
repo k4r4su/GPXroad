@@ -13,12 +13,51 @@ enum ColorFlavorPatcher {
     /// `style["layers"]` désérialisée en `[[String: Any]]`.
     static func apply(_ flavor: MapColorFlavor, toLayers layers: [[String: Any]]) -> [[String: Any]] {
         guard !flavor.isIdentity else { return layers }
+        if flavor == .nuit { return layers.map(nightLayer) }
         return layers.map { layer -> [String: Any] in
             guard let paint = layer["paint"] else { return layer }
             var patched = layer
             patched["paint"] = transform(paint, flavor: flavor)
             return patched
         }
+    }
+
+    // MARK: - Nuit (fond de carte sombre)
+
+    /// Les couleurs de TEXTE sont inversées (texte clair, halo sombre) ; toutes les autres sont abaissées en gardant leur ordre
+    /// (les routes restent plus claires que le fond, l'eau et les parcs restent distincts). Même principe que les autres
+    /// flavors : seule la clé `paint` est touchée, jamais `layout` (rotation des labels).
+    private static func nightLayer(_ layer: [String: Any]) -> [String: Any] {
+        guard let paint = layer["paint"] as? [String: Any] else { return layer }
+        var patched = layer
+        var result: [String: Any] = [:]
+        for (key, value) in paint {
+            result[key] = nightTransform(value, isText: key.hasPrefix("text-") || key.hasPrefix("icon-"))
+        }
+        patched["paint"] = result
+        return patched
+    }
+
+    private static func nightTransform(_ value: Any, isText: Bool) -> Any {
+        if let string = value as? String { return nightColorString(string, isText: isText) ?? string }
+        if let array = value as? [Any] { return array.map { nightTransform($0, isText: isText) } }
+        if let dict = value as? [String: Any] { return dict.mapValues { nightTransform($0, isText: isText) } }
+        return value
+    }
+
+    /// Luminosité de nuit : fond et surfaces entre 0,05 et 0,23 (courbe cubique, ordre conservé), blanc pur (routes) relevé à 0,36
+    /// pour qu'elles restent plus claires que le fond ; texte : 0,96 − 0,86 × L.
+    static func nightLightness(_ l: Double, isText: Bool) -> Double {
+        if isText { return 0.96 - 0.86 * l }
+        if l >= 0.985 { return 0.36 }
+        return 0.05 + 0.18 * l * l * l
+    }
+
+    static func nightColorString(_ string: String, isText: Bool) -> String? {
+        guard let color = parseColor(string) else { return nil }
+        let lightness = nightLightness(color.l, isText: isText)
+        let saturation = color.s * (isText ? 0.6 : 0.3)
+        return "hsla(\(formatted(color.h)), \(formatted(saturation * 100))%, \(formatted(lightness * 100))%, \(formatted(color.a, decimals: 3)))"
     }
 
     private static func transform(_ value: Any, flavor: MapColorFlavor) -> Any {

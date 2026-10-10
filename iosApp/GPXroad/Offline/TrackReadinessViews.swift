@@ -9,6 +9,7 @@ struct TrackReadinessBadge: View {
     @EnvironmentObject private var settings: RideSettingsStore
     @EnvironmentObject private var library: LibraryStore
     @EnvironmentObject private var trackRideSettings: TrackRideSettingsStore
+    @Environment(\.theme) private var theme
 
     var body: some View {
         // Toujours dans le sens de parcours choisi pour CETTE trace, active ou non : le recalage Valhalla est mémorisé par sens,
@@ -22,22 +23,16 @@ struct TrackReadinessBadge: View {
                 ProgressView().controlSize(.mini)
                 Text("Préparation…")
             }
-            .font(.caption2)
-            .foregroundStyle(.secondary)
+            .font(.system(size: 13, weight: .bold))
+            .foregroundStyle(theme.inkSecondary)
         } else {
             switch state.level {
             case .ready:
-                Label("Prête hors ligne", systemImage: "checkmark.seal.fill")
-                    .font(.caption2)
-                    .foregroundStyle(.green)
+                StatusPill(text: String(localized: "Prête hors ligne", bundle: .appLanguage), kind: .ready)
             case .partial:
-                Label("Incomplète", systemImage: "exclamationmark.triangle.fill")
-                    .font(.caption2)
-                    .foregroundStyle(.orange)
+                StatusPill(text: String(localized: "Incomplète", bundle: .appLanguage), kind: .incomplete)
             default:
-                Label("Non préparée", systemImage: "icloud.and.arrow.down")
-                    .font(.caption2)
-                    .foregroundStyle(.secondary)
+                StatusPill(text: String(localized: "Non préparée", bundle: .appLanguage), kind: .neutral)
             }
         }
     }

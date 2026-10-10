@@ -10,12 +10,13 @@ struct PlannerMapView: UIViewRepresentable {
     let flagged: [FlaggedSegment]
     let fitToken: Int
     let startCenter: CLLocationCoordinate2D
+    var isDark = false
     let onTap: (CLLocationCoordinate2D) -> Void
 
     func makeCoordinator() -> Coordinator { Coordinator(self) }
 
     func makeUIView(context: Context) -> MLNMapView {
-        let mapView = MLNMapView(frame: .zero, styleJSON: MapEngineConstants.buildStyleJSON(for: .vectorHosted(flavor: .standard)))
+        let mapView = MLNMapView(frame: .zero, styleJSON: MapEngineConstants.buildStyleJSON(for: .vectorHosted(flavor: isDark ? .nuit : .standard)))
         mapView.delegate = context.coordinator
         mapView.showsUserLocation = true
         mapView.showsCompassView = false

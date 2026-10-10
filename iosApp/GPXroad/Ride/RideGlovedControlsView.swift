@@ -5,6 +5,7 @@ import SwiftUI
 struct RideGlovedZoomControls: View {
     let onZoomIn: () -> Void
     let onZoomOut: () -> Void
+    @Environment(\.theme) private var theme
 
     var body: some View {
         VStack(spacing: 14) {
@@ -18,10 +19,10 @@ struct RideGlovedZoomControls: View {
         return Button(action: action) {
             Image(systemName: systemImage)
                 .font(.system(size: 22, weight: .bold))
-                .foregroundStyle(.white)
+                .foregroundStyle(theme.action)
                 .frame(width: RideConstants.glovedTapTargetSize, height: RideConstants.glovedTapTargetSize)
-                .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
-                .background(.black.opacity(0.25), in: RoundedRectangle(cornerRadius: 16, style: .continuous))
+                .background(RoundedRectangle(cornerRadius: 18, style: .continuous).fill(theme.surface))
+                .shadow(color: .black.opacity(theme.isDark ? 0.5 : 0.2), radius: 7, y: 3)
         }
         .longPressTooltip(explanation)
     }
@@ -31,6 +32,7 @@ struct RideGlovedZoomControls: View {
 /// pour ne pas surcharger l'écran.
 struct RideRecenterButton: View {
     let action: () -> Void
+    @Environment(\.theme) private var theme
 
     var body: some View {
         Button(action: action) {
@@ -40,10 +42,10 @@ struct RideRecenterButton: View {
                 Text("me recentrer")
                     .font(.system(size: 10, weight: .semibold))
             }
-            .foregroundStyle(.white)
+            .foregroundStyle(theme.onAction)
             .frame(width: RideConstants.glovedTapTargetSize + 8, height: RideConstants.glovedTapTargetSize + 8)
-            .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 18, style: .continuous))
-            .background(.blue.opacity(0.35), in: RoundedRectangle(cornerRadius: 18, style: .continuous))
+            .background(RoundedRectangle(cornerRadius: 18, style: .continuous).fill(theme.action))
+            .shadow(color: .black.opacity(theme.isDark ? 0.5 : 0.25), radius: 7, y: 3)
         }
         .accessibilityLabel("Me recentrer sur ma position, reprendre le cap")
         .transition(.scale.combined(with: .opacity))

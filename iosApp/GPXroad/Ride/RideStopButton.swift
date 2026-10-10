@@ -4,6 +4,7 @@ import SwiftUI
 /// texte permanent. La confirmation (1 geste) est portée par l'appelant (RideView).
 struct RideStopButton: View {
     let action: () -> Void
+    @Environment(\.theme) private var theme
 
     var body: some View {
         Button(action: action) {
@@ -13,10 +14,10 @@ struct RideStopButton: View {
                 Text("Stop")
                     .font(.system(size: 9, weight: .semibold))
             }
-            .foregroundStyle(.white)
+            .foregroundStyle(theme.ink)
             .frame(width: RideConstants.glovedTapTargetSize, height: RideConstants.glovedTapTargetSize)
-            .background(.gray.opacity(0.55), in: RoundedRectangle(cornerRadius: 16, style: .continuous))
-            .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
+            .background(RoundedRectangle(cornerRadius: 18, style: .continuous).fill(theme.surface))
+            .shadow(color: .black.opacity(theme.isDark ? 0.5 : 0.2), radius: 7, y: 3)
         }
         .accessibilityLabel("Arrêter le guidage")
     }

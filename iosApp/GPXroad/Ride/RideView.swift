@@ -15,6 +15,7 @@ struct RideView: View {
     @EnvironmentObject private var networkMonitor: NetworkMonitor
     @EnvironmentObject private var autoMap: AutoMapPrefetcher
     @EnvironmentObject private var battery: BatteryMonitor
+    @Environment(\.theme) private var theme
     /// Enregistrement de la sortie (it30) : service applicatif, jamais arrêté par cette vue.
     @EnvironmentObject private var recorder: RideRecorder
     @State private var showDetourConfirmation = false
@@ -63,6 +64,7 @@ struct RideView: View {
             activeVectorPackageFileURL: vectorPackages.activeFileURL,
             isNetworkReachable: networkMonitor.isReachable,
             hasOfflineVectorCoverage: autoMap.coversPosition,
+            isDarkDesign: theme.isDark,
             themePreset: settings.mapThemePreset
         )
     }
@@ -387,10 +389,10 @@ struct RideView: View {
                             Text(is2DNorthUp ? "Cap" : "Nord")
                                 .font(.system(size: 9, weight: .semibold))
                         }
-                        .foregroundStyle(.white)
+                        .foregroundStyle(theme.action)
                         .frame(width: RideConstants.glovedTapTargetSize, height: RideConstants.glovedTapTargetSize)
-                        .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
-                        .background(.black.opacity(0.25), in: RoundedRectangle(cornerRadius: 16, style: .continuous))
+                        .background(RoundedRectangle(cornerRadius: 18, style: .continuous).fill(theme.surface))
+                        .shadow(color: .black.opacity(theme.isDark ? 0.5 : 0.2), radius: 7, y: 3)
                     }
                     .accessibilityLabel(is2DNorthUp ? "Revenir à la vue cap-en-haut" : "Vue nord-en-haut")
                     .longPressTooltip(is2DNorthUp ? String(localized: "Bascule en cap-en-haut : la carte tourne avec ta direction", bundle: .appLanguage) : String(localized: "Bascule en nord-en-haut : la carte reste fixe", bundle: .appLanguage))

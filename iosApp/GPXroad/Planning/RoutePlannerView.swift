@@ -10,6 +10,7 @@ struct RoutePlannerView: View {
     @EnvironmentObject private var settings: RideSettingsStore
     @EnvironmentObject private var sharedBlockages: SharedBlockageSyncCoordinator
     @EnvironmentObject private var networkMonitor: NetworkMonitor
+    @Environment(\.theme) private var theme
     @StateObject private var model = RoutePlannerModel()
     @State private var showFlagged = false
     @StateObject private var locationManager = LocationManager()
@@ -32,6 +33,7 @@ struct RoutePlannerView: View {
                     flagged: model.flagged,
                     fitToken: model.fitToken,
                     startCenter: startCenter,
+                    isDark: theme.isDark,
                     onTap: { model.add($0) }
                 )
                 .ignoresSafeArea(edges: .bottom)

@@ -13,6 +13,7 @@ struct RideGuidanceToggleButton: View {
     let onPause: () -> Void
     let onResume: () -> Void
     let onDefiniteStop: () -> Void
+    @Environment(\.theme) private var theme
 
     var body: some View {
         Button {
@@ -28,10 +29,10 @@ struct RideGuidanceToggleButton: View {
                 Text(isStopped ? "Reprendre" : "Pause")
                     .font(.system(size: 9, weight: .semibold))
             }
-            .foregroundStyle(.white)
+            .foregroundStyle(isStopped ? theme.onAction : theme.action)
             .frame(width: RideConstants.glovedTapTargetSize, height: RideConstants.glovedTapTargetSize)
-            .background((isStopped ? Color.green : Color.gray).opacity(0.55), in: RoundedRectangle(cornerRadius: 16, style: .continuous))
-            .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
+            .background(RoundedRectangle(cornerRadius: 18, style: .continuous).fill(isStopped ? theme.action : theme.surface))
+            .shadow(color: .black.opacity(theme.isDark ? 0.5 : 0.2), radius: 7, y: 3)
         }
         .contextMenu {
             Button(role: .destructive, action: onDefiniteStop) {

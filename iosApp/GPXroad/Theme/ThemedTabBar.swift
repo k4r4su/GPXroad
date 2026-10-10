@@ -66,3 +66,14 @@ struct ThemedTabBar: View {
         .padding(.bottom, 6)
     }
 }
+
+/// Marge basse des vues à défilement égale à la hauteur de la barre flottante (iOS 17+ ; avant, la barre native réservait sa place).
+struct TabBarScrollMargin: ViewModifier {
+    func body(content: Content) -> some View {
+        if #available(iOS 17.0, *) {
+            content.contentMargins(.bottom, ThemedTabBar.reservedHeight + 12, for: .scrollContent)
+        } else {
+            content
+        }
+    }
+}

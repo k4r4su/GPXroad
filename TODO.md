@@ -81,8 +81,14 @@ temps, la version iOS est vraiment correcte mais l'Android c'est une catastrophe
         un design alternatif ; réglages d'interface regroupés dans Réglages > Apparence (design, fond de carte, orientation, unité de vitesse,
         trace, côté des contrôles, palette Road Book) ; bug « Revoir le didacticiel caché par la barre » corrigé : la barre flottante est en
         surimpression et CHAQUE onglet réserve sa hauteur (`ThemedTabBar.reservedHeight`). iOS 0.0.46.
-  - [ ] Palier 2 : fonds des listes/formulaires, Biblio en cartes avec miniature et pastilles, commandes de carte du Ride, carte Sombre
-        (le fond de carte reste clair en Sombre), Road Book, fiche « Prêt à partir ? », Réglages par profil.
+  - [x] Palier 2 (10/10) : choix « Automatique » (suit le mode clair/sombre de l'iPhone), Sombre = gris étagés façon iOS (noir, #1C1C1E, #2C2C2E,
+        bleu #0A84FF), bug « Forêt remonte d'un niveau » corrigé (le changement de design reconstruisait la hiérarchie : plus de branche `if`),
+        bug du bas des Réglages corrigé pour de bon (`contentMargins` sur tous les écrans à défilement, vérifié à l'écran), commandes du Ride
+        thématisées (zoom, recentrage, pause, stop, bloqué, vitesse, REC), carte de nuit pour les designs sombres (flavor `nuit`, routes plus
+        claires que le fond, textes inversés), Bibliothèque en cartes (miniature de la trace, pastilles Active / Prête hors ligne / Incomplète),
+        fiche « Prêt à partir ? » (aperçu, statistiques, état de préparation, gros bouton Démarrer qui active la trace et ouvre le Ride),
+        « Mon style de sortie » (Balade / Trail et pistes / Longue route : flashs, fusion des virages, carte hors ligne, batterie, densité).
+        iOS 0.0.47, 538 tests. NON fait : Road Book (garde sa palette papier/nuit propre), Android (iOS d'abord), flavor `nuit` côté Kotlin partagé.
   - [ ] Android : même design (Material 3 : palettes, barre du bas, boutons) — iOS d'abord, comme demandé.
 - [x] Test sur la tablette réelle (09/10, Wi-Fi) : Bibliothèque (pastilles « Active », « Hors ligne », « Prête hors ligne » sur vosges-tour),
       Road Book Assisté GPS hors trace (« Hors trace », virages du chemin de retour, « Retour sur la trace 7,5 km » : la reprise Android marche
